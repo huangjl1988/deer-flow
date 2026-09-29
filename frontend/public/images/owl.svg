@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="owlGrad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9089fc"/>
+      <stop offset="1" stop-color="#ff80b5"/>
+    </linearGradient>
+  </defs>
+  <!-- Owl body -->
+  <ellipse cx="100" cy="115" rx="62" ry="68" fill="url(#owlGrad)"/>
+  <!-- Ear tufts -->
+  <path d="M52 60 L40 25 L70 50 Z" fill="url(#owlGrad)"/>
+  <path d="M148 60 L160 25 L130 50 Z" fill="url(#owlGrad)"/>
+  <!-- Eye whites -->
+  <circle cx="76" cy="100" r="22" fill="white"/>
+  <circle cx="124" cy="100" r="22" fill="white"/>
+  <!-- Eye pupils -->
+  <circle cx="76" cy="102" r="11" fill="#1a1a2e"/>
+  <circle cx="124" cy="102" r="11" fill="#1a1a2e"/>
+  <!-- Eye shine -->
+  <circle cx="80" cy="97" r="4" fill="white"/>
+  <circle cx="128" cy="97" r="4" fill="white"/>
+  <!-- Beak -->
+  <path d="M100 118 L90 135 L110 135 Z" fill="#f5a623"/>
+  <!-- Belly pattern -->
+  <path d="M75 145 Q100 160 125 145" stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M70 160 Q100 175 130 160" stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+</svg>
