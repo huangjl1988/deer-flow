@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DeerFlow 总体架构图</title>
+<style>
+  /* ============ 基础重置 ============ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6fa;
+    color: #333;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #1a1a1a;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+  }
+
+  /* ============ 架构图容器 ============ */
+  .arch {
+    max-width: 1280px;
+    margin: 0 auto;
+    border: 2px solid #999;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ============ 每一层 ============ */
+  .layer {
+    display: flex;
+    border-bottom: 1px solid #bbb;
+  }
+  .layer:last-child { border-bottom: none; }
+
+  /* 左侧纵向层标签 */
+  .layer-label {
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    writing-mode: vertical-rl;
+    letter-spacing: 4px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,.25);
+  }
+
+  /* 层内容区 */
+  .layer-body {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 层内子标签（横向，如 "上层 Web 应用"） */
+  .sublabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    padding: 2px 0;
+  }
+
+  /* 分组容器 */
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  /* 分组框（虚线边框 + 标题） */
+  .group {
+    border: 1.5px dashed #aaa;
+    border-radius: 4px;
+    padding: 10px 12px 12px;
+    background: rgba(255,255,255,0.55);
+    position: relative;
+  }
+  .group-title {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 10px;
+    padding: 1px 10px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 3px;
+  }
+
+  /* 小功能块网格 */
+  .boxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+  }
+  .box {
+    background: #fff;
+    border: 1px solid #c9c9c9;
+    border-radius: 3px;
+    padding: 6px 4px;
+    font-size: 12px;
+    text-align: center;
+    color: #444;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .box:hover { background: #f0f7ff; border-color: #90caf9; }
+
+  /* ============ 各层配色 ============ */
+  .layer-1 .layer-label { background: #66bb6a; }
+  .layer-1 .layer-body  { background: #e8f5e9; }
+
+  .layer-2 .layer-label { background: #ec87b8; }
+  .layer-2 .layer-body  { background: #fce4ec; }
+
+  .layer-3 .layer-label { background: #fdd835; color: #5d4037; text-shadow: none; }
+  .layer-3 .layer-body  { background: #fff9c4; }
+
+  .layer-4 .layer-label { background: #ec87b8; }
+  .layer-4 .layer-body  { background: #fce4ec; padding: 10px; }
+
+  /* ============ 核心能力层：子服务 ============ */
+  .subservice {
+    display: flex;
+    margin-bottom: 8px;
+    border: 1px solid #e0a8c0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .subservice:last-child { margin-bottom: 0; }
+
+  .subservice-label {
+    flex: 0 0 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    writing-mode: vertical-rl;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,.2);
+  }
+  .subservice-body {
+    flex: 1;
+    padding: 10px 12px;
+  }
+  .subservice-body .group { background: rgba(255,255,255,0.7); }
+
+  /* 子服务左侧色条 */
+  .bar-tools    { background: #fb8c00; }
+  .bar-sandbox  { background: #42a5f5; }
+  .bar-model    { background: #ab47bc; }
+  .bar-skill    { background: #66bb6a; }
+  .bar-mcp      { background: #26c6da; }
+  .bar-memory   { background: #ef5350; }
+  .bar-sub      { background: #26a69a; }
+  .bar-ext      { background: #8d6e63; }
+
+  /* ============ 图例 ============ */
+  .legend {
+    max-width: 1280px;
+    margin: 18px auto 0;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #666;
+  }
+  .legend-title { font-weight: 700; color: #333; margin-bottom: 8px; }
+  .legend-items { display: flex; flex-wrap: wrap; gap: 16px 22px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(0,0,0,.1); }
+
+  @media (max-width: 720px) {
+    .layer-label { flex-basis: 40px; font-size: 14px; letter-spacing: 2px; }
+    .groups { grid-template-columns: 1fr; }
+    .boxes { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<h1>DeerFlow 总体架构图</h1>
+<div class="subtitle">Deep Exploration &amp; Efficient Research Flow · LangGraph 超级 Agent 系统</div>
+
+<div class="arch">
+
+  <!-- ===================== 第 1 层：接入层 ===================== -->
+  <div class="layer layer-1">
+    <div class="layer-label">接入层</div>
+    <div class="layer-body">
+      <div class="sublabel">业务线 / 接入渠道</div>
+      <div class="groups">
+        <div class="group">
+          <div class="group-title">客户端接入</div>
+          <div class="boxes">
+            <div class="box">Web 浏览器</div>
+            <div class="box">LangGraph SDK</div>
+            <div class="box">DeerFlowClient</div>
+            <div class="box">TUI 终端</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">IM 平台通道</div>
+          <div class="boxes">
+            <div class="box">飞书</div>
+            <div class="box">Slack</div>
+            <div class="box">Telegram</div>
+            <div class="box">Discord</div>
+            <div class="box">钉钉</div>
+            <div class="box">企业微信</div>
+            <div class="box">微信</div>
+            <div class="box">GitHub</div>
+            <div class="box">Buzz(Nostr)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 第 2 层：前端应用层 ===================== -->
+  <div class="layer layer-2">
+    <div class="layer-label">前台用户应用层</div>
+    <div class="layer-body">
+      <div class="sublabel">上层 Web 应用（Next.js 16 · React 19 · Tailwind v4）</div>
+      <div class="groups">
+        <div class="group">
+          <div class="group-title">用户工作台</div>
+          <div class="boxes">
+            <div class="box">聊天会话</div>
+            <div class="box">流式响应</div>
+            <div class="box">产物展示</div>
+            <div class="box">任务追踪 Todo</div>
+            <div class="box">目标管理 /goal</div>
+            <div class="box">公开演示 Showcase</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">配置管理</div>
+          <div class="boxes">
+            <div class="box">自定义 Agent</div>
+            <div class="box">定时任务</div>
+            <div class="box">MCP 服务</div>
+            <div class="box">模型列表</div>
+            <div class="box">技能管理</div>
+            <div class="box">记忆管理</div>
+            <div class="box">通道连接</div>
+            <div class="box">三方集成</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">基础功能</div>
+          <div class="boxes">
+            <div class="box">首页落地</div>
+            <div class="box">文档 / 博客</div>
+            <div class="box">登录注册</div>
+            <div class="box">系统设置</div>
+            <div class="box">通知中心</div>
+            <div class="box">i18n 多语言</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">前端核心 core/</div>
+          <div class="boxes">
+            <div class="box">threads 流式状态</div>
+            <div class="box">api LangGraph client</div>
+            <div class="box">TanStack Query</div>
+            <div class="box">SSE 事件归一化</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 第 3 层：网关运行时层 ===================== -->
+  <div class="layer layer-3">
+    <div class="layer-label">网关运行时层</div>
+    <div class="layer-body">
+      <div class="sublabel">统一入口 · Agent 编排（Nginx :2026 / Gateway :8001）</div>
+      <div class="groups">
+        <div class="group">
+          <div class="group-title">Nginx 反向代理 :2026</div>
+          <div class="boxes">
+            <div class="box">静态资源 /*</div>
+            <div class="box">/api/* 转发</div>
+            <div class="box">/api/langgraph/* 重写</div>
+            <div class="box">唯一对外入口</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">Gateway API 路由</div>
+          <div class="boxes">
+            <div class="box">认证授权</div>
+            <div class="box">线程管理</div>
+            <div class="box">运行管理</div>
+            <div class="box">模型路由</div>
+            <div class="box">MCP 路由</div>
+            <div class="box">技能路由</div>
+            <div class="box">上传路由</div>
+            <div class="box">产物路由</div>
+            <div class="box">建议路由</div>
+            <div class="box">通道路由</div>
+            <div class="box">记忆路由</div>
+            <div class="box">Agent 路由</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">Agent 运行时</div>
+          <div class="boxes">
+            <div class="box">RunManager</div>
+            <div class="box">run_agent()</div>
+            <div class="box">StreamBridge</div>
+            <div class="box">ThreadState</div>
+            <div class="box">检查点 Checkpoint</div>
+            <div class="box">SSE 流式输出</div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">中间件链（8 层）</div>
+          <div class="boxes">
+            <div class="box">ThreadData</div>
+            <div class="box">Uploads</div>
+            <div class="box">Sandbox</div>
+            <div class="box">Summarization</div>
+            <div class="box">Title</div>
+            <div class="box">TodoList</div>
+            <div class="box">ViewImage</div>
+            <div class="box">Clarification</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 第 4 层：核心能力层 ===================== -->
+  <div class="layer layer-4">
+    <div class="layer-label">核心能力支撑层</div>
+    <div class="layer-body">
+
+      <!-- 子服务 1：工具系统 -->
+      <div class="subservice">
+        <div class="subservice-label bar-tools">工具系统</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">内置工具 tools/builtins</div>
+              <div class="boxes">
+                <div class="box">present_files</div>
+                <div class="box">ask_clarification</div>
+                <div class="box">view_image</div>
+                <div class="box">review_skill_package</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">配置工具 config.yaml</div>
+              <div class="boxes">
+                <div class="box">bash</div>
+                <div class="box">read_file</div>
+                <div class="box">write_file</div>
+                <div class="box">str_replace</div>
+                <div class="box">ls</div>
+                <div class="box">web_search</div>
+                <div class="box">web_fetch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 2：沙箱系统 -->
+      <div class="subservice">
+        <div class="subservice-label bar-sandbox">沙箱系统</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">SandboxProvider</div>
+              <div class="boxes">
+                <div class="box">LocalSandbox (开发)</div>
+                <div class="box">AioSandbox (生产 Docker)</div>
+                <div class="box">OpenSandbox</div>
+                <div class="box">E2B / Boxlite</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">Sandbox 接口</div>
+              <div class="boxes">
+                <div class="box">execute_command</div>
+                <div class="box">read_file</div>
+                <div class="box">write_file</div>
+                <div class="box">list_dir</div>
+                <div class="box">虚拟路径映射</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 3：模型工厂 -->
+      <div class="subservice">
+        <div class="subservice-label bar-model">模型工厂</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">支持 Provider</div>
+              <div class="boxes">
+                <div class="box">OpenAI</div>
+                <div class="box">Anthropic</div>
+                <div class="box">DeepSeek</div>
+                <div class="box">自定义 LangChain</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">模型能力</div>
+              <div class="boxes">
+                <div class="box">create_chat_model</div>
+                <div class="box">resolve_class 反射</div>
+                <div class="box">思考模式</div>
+                <div class="box">视觉支持</div>
+                <div class="box">环境变量密钥</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 4：技能系统 -->
+      <div class="subservice">
+        <div class="subservice-label bar-skill">技能系统</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">技能目录</div>
+              <div class="boxes">
+                <div class="box">skills/public (已提交)</div>
+                <div class="box">skills/custom (私有)</div>
+                <div class="box">integrations/skills (托管)</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">加载机制</div>
+              <div class="boxes">
+                <div class="box">懒加载发现</div>
+                <div class="box">slash 激活</div>
+                <div class="box">SKILL.md 解析</div>
+                <div class="box">skill-reviewer 评审</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 5：MCP 集成 -->
+      <div class="subservice">
+        <div class="subservice-label bar-mcp">MCP 集成</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">传输协议</div>
+              <div class="boxes">
+                <div class="box">stdio</div>
+                <div class="box">SSE</div>
+                <div class="box">HTTP</div>
+                <div class="box">MultiServerMCPClient</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">长时任务 McpTaskService</div>
+              <div class="boxes">
+                <div class="box">DB 租约行</div>
+                <div class="box">后台轮询循环</div>
+                <div class="box">submit/status/cancel</div>
+                <div class="box">死信队列</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 6：记忆系统 -->
+      <div class="subservice">
+        <div class="subservice-label bar-memory">记忆系统</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">记忆流程</div>
+              <div class="boxes">
+                <div class="box">记忆提取</div>
+                <div class="box">记忆队列</div>
+                <div class="box">记忆检索</div>
+                <div class="box">记忆合并</div>
+                <div class="box">上下文压缩</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">存储后端</div>
+              <div class="boxes">
+                <div class="box">Markdown</div>
+                <div class="box">SQLite</div>
+                <div class="box">PostgreSQL</div>
+                <div class="box">Mem0 / Honcho</div>
+                <div class="box">OpenViking</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 7：子 Agent 委派 -->
+      <div class="subservice">
+        <div class="subservice-label bar-sub">子 Agent 委派</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">委派引擎</div>
+              <div class="boxes">
+                <div class="box">SubagentExecutor</div>
+                <div class="box">注册中心 registry</div>
+                <div class="box">后台执行 execution_id</div>
+                <div class="box">tool_call_id 关联</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">生命周期</div>
+              <div class="boxes">
+                <div class="box">polling 轮询</div>
+                <div class="box">cancellation 取消</div>
+                <div class="box">timeout 超时</div>
+                <div class="box">token 用量归集</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子服务 8：扩展与配置 -->
+      <div class="subservice">
+        <div class="subservice-label bar-ext">扩展与配置</div>
+        <div class="subservice-body">
+          <div class="groups">
+            <div class="group">
+              <div class="group-title">扩展系统 extensions/</div>
+              <div class="boxes">
+                <div class="box">插件加载</div>
+                <div class="box">注册中心</div>
+                <div class="box">放置保证</div>
+                <div class="box">隔离机制</div>
+                <div class="box">extension-api 契约</div>
+              </div>
+            </div>
+            <div class="group">
+              <div class="group-title">配置系统 config/</div>
+              <div class="boxes">
+                <div class="box">config.yaml (:ro)</div>
+                <div class="box">extensions_config.json</div>
+                <div class="box">运行时热更新</div>
+                <div class="box">scheduler 调度器</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ 图例 ============ -->
+<div class="legend">
+  <div class="legend-title">图例说明</div>
+  <div class="legend-items">
+    <div class="legend-item"><span class="legend-swatch" style="background:#66bb6a"></span>接入层：Web / SDK / IM 多渠道入口</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#ec87b8"></span>前端应用层 / 核心能力层</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#fdd835"></span>网关运行时层：Nginx + Gateway + Agent Runtime</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#fb8c00"></span>工具系统</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#42a5f5"></span>沙箱系统</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#ab47bc"></span>模型工厂</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#26c6da"></span>MCP 集成</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#ef5350"></span>记忆系统</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#26a69a"></span>子 Agent 委派</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#8d6e63"></span>扩展与配置</div>
+  </div>
+</div>
+
+</body>
+</html>
