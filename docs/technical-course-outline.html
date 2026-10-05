@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DeerFlow 技术实现教程 · 教学大纲</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6fa;
+    color: #333;
+    padding: 24px;
+    line-height: 1.6;
+  }
+  h1 { text-align: center; font-size: 24px; margin-bottom: 6px; }
+  .subtitle { text-align: center; font-size: 13px; color: #888; margin-bottom: 24px; }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* 顶部架构映射说明 */
+  .map-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .map-card h2 { font-size: 16px; margin-bottom: 12px; color: #333; }
+  .map-layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .map-layer {
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 13px;
+  }
+  .map-layer .num { font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .map-layer .mlist { font-size: 11.5px; line-height: 1.7; opacity: .95; }
+  .ml-ingress { background: #66bb6a; }
+  .ml-frontend { background: #ec87b8; }
+  .ml-gateway { background: #fdd835; color: #5d4037; }
+  .ml-core { background: #ab47bc; }
+
+  /* 篇 */
+  .part {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .part-header {
+    padding: 14px 22px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .part-header .badge {
+    background: rgba(255,255,255,.25);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .ph-ingress { background: #66bb6a; }
+  .ph-frontend { background: #ec87b8; }
+  .ph-gateway { background: #fdd835; color: #5d4037; }
+  .ph-core { background: #ab47bc; }
+  .ph-govern { background: #546e7a; }
+  .ph-intro { background: #37474f; }
+
+  /* 模块 */
+  .module {
+    border-top: 1px solid #eee;
+    padding: 16px 22px;
+  }
+  .module:first-child { border-top: none; }
+  .module-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .module-id {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .module-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .module-arch {
+    font-size: 12px;
+    color: #888;
+    margin-left: auto;
+  }
+  .module-arch code {
+    background: #f0f0f0;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #555;
+  }
+
+  .module-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .col h4 {
+    font-size: 12.5px;
+    color: #555;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  .col ul { padding-left: 18px; font-size: 12.5px; color: #444; }
+  .col li { margin-bottom: 2px; }
+  .col.src ul { list-style: none; padding-left: 0; }
+  .col.src li {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11.5px;
+    background: #fafafa;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    color: #555;
+    border-left: 3px solid #90caf9;
+  }
+
+  .practice {
+    margin-top: 10px;
+    background: #fff8e1;
+    border-left: 3px solid #fdd835;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: #5d4037;
+    border-radius: 0 4px 4px 0;
+  }
+  .practice strong { color: #f57f17; }
+
+  /* 底部统计 */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .stat {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat .num { font-size: 22px; font-weight: 700; color: #1565c0; }
+  .stat .lbl { font-size: 12px; color: #888; margin-top: 2px; }
+
+  @media (max-width: 860px) {
+    .map-layers { grid-template-columns: 1fr 1fr; }
+    .module-body { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<h1>DeerFlow 技术实现教程 · 教学大纲</h1>
+<div class="subtitle">对照 DeerFlow 四层总体架构图设计 · 每个架构组件对应一个教学模块 · 从外到内逐层深入</div>
+
+<div class="container">
+
+  <!-- 架构映射总览 -->
+  <div class="map-card">
+    <h2>📐 架构 → 教学模块映射</h2>
+    <div class="map-layers">
+      <div class="map-layer ml-ingress">
+        <span class="num">第 1 层 · 接入层</span>
+        <div class="mlist">Web 浏览器 / SDK / TUI<br/>9 大 IM 通道</div>
+      </div>
+      <div class="map-layer ml-frontend">
+        <span class="num">第 2 层 · 前端应用层</span>
+        <div class="mlist">用户工作台 / 配置管理<br/>Next.js + 流式状态</div>
+      </div>
+      <div class="map-layer ml-gateway">
+        <span class="num">第 3 层 · 网关运行时层</span>
+        <div class="mlist">Nginx / Gateway API<br/>Agent 运行时 / 中间件 / Checkpoint</div>
+      </div>
+      <div class="map-layer ml-core">
+        <span class="num">第 4 层 · 核心能力支撑层</span>
+        <div class="mlist">工具 / 沙箱 / 模型 / 技能<br/>MCP / 记忆 / 子Agent / 扩展</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 导论篇 ============ -->
+  <div class="part">
+    <div class="part-header ph-intro">导论篇 <span class="badge">建立全局认知</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M0</span>
+        <span class="module-title">课程导论与 DeerFlow 架构总览</span>
+        <span class="module-arch">对应：全架构图</span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>理解 DeerFlow 的定位与核心能力</li>
+            <li>掌握四层架构的整体心智模型</li>
+            <li>建立「请求如何从入口流到核心」的全局视角</li>
+          </ul>
+        </div>
+        <div class="col">
+          <h4>核心知识点</h4>
+          <ul>
+            <li>LangGraph 超级 Agent 的设计哲学</li>
+            <li>服务拓扑：Nginx(2026) / Gateway(8001) / Frontend(3000) / Provisioner(8002)</li>
+            <li>Harness/App 单向依赖边界</li>
+            <li>一次请求的完整旅程</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>启动本地 DeerFlow，对照架构图标出每一层的实际组件位置。</div>
+    </div>
+  </div>
+
+  <!-- ============ 第一篇：接入层 ============ -->
+  <div class="part">
+    <div class="part-header ph-ingress">第一篇 · 接入层 <span class="badge">M1–M2</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M1</span>
+        <span class="module-title">多渠道接入架构：Web / SDK / TUI 统一入口</span>
+        <span class="module-arch">架构组件：<code>客户端接入</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>理解三种接入方式如何复用同一 Agent Runtime</li>
+            <li>掌握 LangGraph SDK 兼容层的设计</li>
+            <li>读懂 DeerFlowClient 内嵌客户端的实现</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/client.py</li>
+            <li>app/gateway/app.py</li>
+            <li>deerflow/tui/</li>
+            <li>docker/nginx/nginx.conf</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>用 DeerFlowClient 在 Python 脚本中发起一次对话，对比 HTTP 调用的差异。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M2</span>
+        <span class="module-title">IM 通道服务实现：9 大平台接入同一 Agent</span>
+        <span class="module-arch">架构组件：<code>IM 平台通道</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>理解 Channel Service 的统一抽象</li>
+            <li>掌握消息去重、积压保护、用户隔离机制</li>
+            <li>读懂飞书/Slack/Telegram 等平台适配器</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>app/channels/service.py</li>
+            <li>app/channels/base.py</li>
+            <li>app/channels/feishu.py · slack.py · telegram.py</li>
+            <li>app/channels/dedupe_store.py</li>
+            <li>app/channels/runtime_config_store.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>接入飞书机器人，验证消息去重与文件上传的用户隔离。</div>
+    </div>
+  </div>
+
+  <!-- ============ 第二篇：前端应用层 ============ -->
+  <div class="part">
+    <div class="part-header ph-frontend">第二篇 · 前端应用层 <span class="badge">M3–M4</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M3</span>
+        <span class="module-title">前端架构与状态管理：Next.js + TanStack Query</span>
+        <span class="module-arch">架构组件：<code>用户工作台 / 配置管理 / 基础功能</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 App Router 路由结构与 core/ 业务域划分</li>
+            <li>理解线程状态如何由 TanStack Query 管理</li>
+            <li>读懂 workspace/ 聊天组件的数据绑定</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>frontend/src/app/</li>
+            <li>frontend/src/core/threads/</li>
+            <li>frontend/src/core/api/</li>
+            <li>frontend/src/components/workspace/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>在 core/ 新增一个域，跟踪对话的 token 用量并展示在 UI。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M4</span>
+        <span class="module-title">流式数据链路：SSE 事件归一化与渲染</span>
+        <span class="module-arch">架构组件：<code>前端核心 core/</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>理解 messages / values / task_* 三类 SSE 事件</li>
+            <li>掌握 LangGraph SDK 订阅与事件归一化</li>
+            <li>读懂产物 delta 的批量流式传输</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>frontend/src/core/threads/</li>
+            <li>deerflow/runtime/stream_bridge/</li>
+            <li>deerflow/runtime/stream_modes.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>用 DevTools 跟踪一次对话的 SSE 事件，画出事件时间线。</div>
+    </div>
+  </div>
+
+  <!-- ============ 第三篇：网关运行时层 ============ -->
+  <div class="part">
+    <div class="part-header ph-gateway">第三篇 · 网关运行时层 <span class="badge">M5–M9</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M5</span>
+        <span class="module-title">Nginx 路由与统一入口契约</span>
+        <span class="module-arch">架构组件：<code>Nginx 反向代理 :2026</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 /api/langgraph/* 重写、/api/* 转发、/* 静态 的路由契约</li>
+            <li>理解 loopback-by-default 入口安全策略</li>
+            <li>读懂 Gateway 8001 不对外暴露的设计</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>docker/nginx/nginx.conf</li>
+            <li>docker/nginx/nginx.local.conf</li>
+            <li>backend/tests/test_nginx_*.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>修改 nginx 配置增加一个新路由，用 curl 验证转发行为。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M6</span>
+        <span class="module-title">Gateway API 路由体系</span>
+        <span class="module-arch">架构组件：<code>Gateway API 路由（12 组）</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 FastAPI 应用结构与路由器划分</li>
+            <li>理解认证授权中间件与工具级权限过滤</li>
+            <li>读懂 LangGraph 兼容路由的实现</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>app/gateway/app.py</li>
+            <li>app/gateway/routers/</li>
+            <li>app/gateway/authz.py</li>
+            <li>app/gateway/auth_middleware.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>新增一个自定义 API 路由，实现对话标题的批量修改。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M7</span>
+        <span class="module-title">Agent 运行时：RunManager / run_agent / StreamBridge</span>
+        <span class="module-arch">架构组件：<code>Agent 运行时</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 RunManager 的 run 生命周期与并发控制</li>
+            <li>理解 run_agent() 如何组装 agent 并执行图</li>
+            <li>读懂 StreamBridge 的 LangGraph → SSE 转换</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/runtime/runs/manager.py</li>
+            <li>deerflow/runtime/runs/worker.py</li>
+            <li>deerflow/runtime/stream_bridge/</li>
+            <li>deerflow/agents/lead_agent/agent.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>给 run_agent 加一个计时中间件，统计每步耗时并输出到日志。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M8</span>
+        <span class="module-title">Checkpoint 系统实现：full/delta 模式与缓存</span>
+        <span class="module-arch">架构组件：<code>检查点 Checkpoint</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>理解 full 与 delta 两种 checkpoint 模式</li>
+            <li>掌握后端选择（memory/sqlite/postgres）与同步/异步双路径</li>
+            <li>读懂 CachedHistorySaver 的正确性论证与递归 compose</li>
+            <li>掌握模式安全门禁（fail-closed）与 full→delta 迁移</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/runtime/checkpointer/{provider,async_provider}.py</li>
+            <li>deerflow/runtime/checkpoint_mode.py</li>
+            <li>deerflow/runtime/checkpoint_state.py</li>
+            <li>deerflow/runtime/checkpointer/cached_saver.py</li>
+            <li>deerflow/agents/thread_state.py</li>
+            <li>deerflow/checkpoint_patches.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>对比 full/delta 模式下同一条对话的 checkpoint 存储差异；验证 full 模式读 delta 线程抛出 CheckpointModeMismatchError。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M9</span>
+        <span class="module-title">中间件链机制：8 层中间件如何编排</span>
+        <span class="module-arch">架构组件：<code>中间件链（8 层）</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 AgentMiddleware 接口（before/after/around_model_call）</li>
+            <li>理解 8 层中间件的顺序与职责边界</li>
+            <li>读懂中间件如何修改 state、注入工具、拦截模型调用</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/agents/middlewares/</li>
+            <li>deerflow/agents/middlewares/AGENTS.md</li>
+            <li>ThreadData / Uploads / Sandbox / Summarization</li>
+            <li>Title / TodoList / ViewImage / Clarification</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>开发一个自定义中间件，在模型调用前记录 prompt 长度并注入到 state。</div>
+    </div>
+  </div>
+
+  <!-- ============ 第四篇：核心能力支撑层 ============ -->
+  <div class="part">
+    <div class="part-header ph-core">第四篇 · 核心能力支撑层 <span class="badge">M10–M17</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M10</span>
+        <span class="module-title">工具系统：三类工具合并与执行</span>
+        <span class="module-arch">架构组件：<code>内置工具 / 配置工具</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 get_available_tools() 三类来源合并逻辑</li>
+            <li>理解工具 schema 生成与鉴权过滤</li>
+            <li>读懂 deferred tool 与 auto-promote 机制</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/tools/__init__.py</li>
+            <li>deerflow/tools/builtins/</li>
+            <li>deerflow/sandbox/tools.py</li>
+            <li>deerflow/community/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>新增一个配置工具，让 Agent 能调用系统时间查询。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M11</span>
+        <span class="module-title">沙箱系统：Provider 抽象与隔离执行</span>
+        <span class="module-arch">架构组件：<code>SandboxProvider / Sandbox 接口</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 SandboxProvider 抽象（acquire/get/release）</li>
+            <li>对比 LocalSandbox 与 AioSandbox 的实现差异</li>
+            <li>理解虚拟路径映射与路径遍历防护</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/sandbox/sandbox.py</li>
+            <li>deerflow/sandbox/local/</li>
+            <li>deerflow/community/aio_sandbox/</li>
+            <li>deerflow/sandbox/middleware.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>切换到 Docker 沙箱，验证 Agent 在容器内只能看到 /mnt 映射目录。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M12</span>
+        <span class="module-title">模型工厂：反射加载与多 Provider</span>
+        <span class="module-arch">架构组件：<code>模型工厂</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 create_chat_model() 与 resolve_class() 反射机制</li>
+            <li>理解思考模式与视觉支持的能力协商</li>
+            <li>读懂环境变量密钥解析</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/models/factory.py</li>
+            <li>deerflow/reflection/</li>
+            <li>deerflow/config/app_config.py (models)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>接入一个自定义 LangChain Provider，验证模型能正常对话。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M13</span>
+        <span class="module-title">技能系统：懒加载与权限边界</span>
+        <span class="module-arch">架构组件：<code>技能目录 / 加载机制</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 SKILL.md 规范与 allowed-tools 权限控制</li>
+            <li>理解懒加载发现与 slash 激活机制</li>
+            <li>读懂 skill-reviewer 质量评审与 deferred_discovery</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/skills/loader.py</li>
+            <li>deerflow/skills/AGENTS.md</li>
+            <li>skills/public/skill-reviewer/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>编写一个技能，限定只能使用 read_file，验证 allowed-tools 权限生效。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M14</span>
+        <span class="module-title">MCP 集成：传输协议与长时任务</span>
+        <span class="module-arch">架构组件：<code>MCP 集成</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 MultiServerMCPClient 与 stdio/SSE/HTTP 传输</li>
+            <li>理解 MCP 工具缓存与 mtime 失效</li>
+            <li>读懂 McpTaskService 长时任务：租约、轮询、死信</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/mcp/manager.py</li>
+            <li>deerflow/mcp/cache.py</li>
+            <li>deerflow/mcp/tasks/ (McpTaskService)</li>
+            <li>app/subagent_batches/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>接入 GitHub MCP，让 Agent 读取指定仓库的 README。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M15</span>
+        <span class="module-title">记忆系统：提取/队列/检索/压缩</span>
+        <span class="module-arch">架构组件：<code>记忆系统</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握记忆流水线：提取 → 队列 → 检索 → 合并</li>
+            <li>理解多存储后端（Markdown/SQLite/PG/Mem0）</li>
+            <li>读懂上下文压缩（SummarizationMiddleware）与手动 compact</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/agents/memory/</li>
+            <li>deerflow/runtime/context_compaction.py</li>
+            <li>deerflow/agents/middlewares/summarization*</li>
+            <li>deerflow/persistence/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>开启记忆功能，跨两个 Thread 验证 Agent 记住用户偏好。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M16</span>
+        <span class="module-title">子 Agent 委派：双 ID 设计与生命周期</span>
+        <span class="module-arch">架构组件：<code>子 Agent 委派</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 tool_call_id（关联键）vs execution_id（服务端所有权）双 ID 设计</li>
+            <li>理解 SubagentExecutor 的后台执行、轮询、取消、超时</li>
+            <li>读懂 SSE 命名空间（values|&lt;ns&gt;）与 token 用量归集</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/subagents/executor.py</li>
+            <li>deerflow/subagents/registry.py</li>
+            <li>deerflow/subagents/status_contract.py</li>
+            <li>deerflow/agents/middlewares/subagent_limit_middleware.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>触发一个子 Agent 任务，跟踪 tool_call_id 与 execution_id 的关联关系。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M17</span>
+        <span class="module-title">扩展与配置：插件加载与热更新边界</span>
+        <span class="module-arch">架构组件：<code>扩展系统 / 配置系统</code></span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 extension-api 契约与五种贡献类型</li>
+            <li>理解扩展加载顺序、放置保证与隔离机制</li>
+            <li>读懂配置热更新边界（STARTUP_ONLY_FIELDS）</li>
+            <li>掌握 scheduler 调度器复用 run 生命周期的设计</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/extensions/</li>
+            <li>backend/packages/extension-api/</li>
+            <li>deerflow/config/reload_boundary.py</li>
+            <li>app/scheduler/service.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>参考示例扩展，开发一个添加自定义中间件的扩展并加载运行。</div>
+    </div>
+  </div>
+
+  <!-- ============ 第五篇：扩展与治理 ============ -->
+  <div class="part">
+    <div class="part-header ph-govern">第五篇 · 安全与运维 <span class="badge">M18–M20</span></div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M18</span>
+        <span class="module-title">安全模型：五层隔离与权限过滤</span>
+        <span class="module-arch">跨切面</span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握五层隔离：线程 / 沙箱 / MCP / 入口 / 上传</li>
+            <li>理解认证授权（OIDC / 内部认证 / 工具级权限）</li>
+            <li>读懂 loopback-by-default 入口与 config.yaml :ro 策略</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>app/gateway/authz.py</li>
+            <li>app/gateway/auth_middleware.py</li>
+            <li>deerflow/sandbox/ (path 校验)</li>
+            <li>app/gateway/uploads/ (原子替换)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>尝试路径遍历攻击上传，验证被拦截。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M19</span>
+        <span class="module-title">持久化与多实例并发</span>
+        <span class="module-arch">跨切面</span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握 Store 抽象与 SQLite/PostgreSQL schema</li>
+            <li>理解多 worker 并发：run_ownership + 心跳 + 租约</li>
+            <li>读懂检查点与 run events 的分离存储</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>deerflow/persistence/</li>
+            <li>deerflow/persistence/migrations/</li>
+            <li>deerflow/runtime/store/</li>
+            <li>deerflow/runtime/runs/store/</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>启动两个 Gateway 实例，验证 run 所有权不会冲突。</div>
+    </div>
+
+    <div class="module">
+      <div class="module-head">
+        <span class="module-id">M20</span>
+        <span class="module-title">部署运维与测试策略</span>
+        <span class="module-arch">跨切面</span>
+      </div>
+      <div class="module-body">
+        <div class="col">
+          <h4>学习目标</h4>
+          <ul>
+            <li>掌握本地开发 / Docker Dev / Docker Prod 三种部署模式</li>
+            <li>理解 TDD 强制要求与边界测试（harness/app 分离、并发、重启恢复）</li>
+            <li>读懂回放测试（replay）与阻塞 IO 检测</li>
+          </ul>
+        </div>
+        <div class="col src">
+          <h4>关键源码路径</h4>
+          <ul>
+            <li>docker/docker-compose.yaml</li>
+            <li>backend/tests/ (test_harness_boundary.py)</li>
+            <li>backend/tests/blocking_io/</li>
+            <li>backend/tests/replay_provider.py</li>
+          </ul>
+        </div>
+      </div>
+      <div class="practice"><strong>实践：</strong>用 Docker Compose 部署生产环境，验证只有 2026 端口对外暴露。</div>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats">
+    <div class="stat"><div class="num">5</div><div class="lbl">教学篇</div></div>
+    <div class="stat"><div class="num">21</div><div class="lbl">教学模块（M0–M20）</div></div>
+    <div class="stat"><div class="num">4</div><div class="lbl">架构层全覆盖</div></div>
+    <div class="stat"><div class="num">100%</div><div class="lbl">架构组件映射</div></div>
+    <div class="stat"><div class="num">21</div><div class="lbl">配套实践作业</div></div>
+  </div>
+
+</div>
+
+</body>
+</html>
