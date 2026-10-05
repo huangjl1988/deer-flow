@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>M1 · 多渠道接入架构：Web / SDK / TUI 统一入口</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6fa; color: #333; padding: 24px; line-height: 1.7;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .meta { font-size: 12.5px; color: #888; margin-bottom: 20px; }
+  .meta code { background:#eef; padding:1px 6px; border-radius:3px; }
+
+  .card {
+    background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 18px 22px; margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 16px; color: #1565c0; margin-bottom: 10px;
+    padding-left: 10px; border-left: 4px solid #1565c0;
+  }
+  .card h3 { font-size: 14px; color: #37474f; margin: 14px 0 8px; }
+  .card p { font-size: 13.5px; color: #444; margin-bottom: 8px; }
+  .card ul, .card ol { padding-left: 22px; font-size: 13.5px; color: #444; }
+  .card li { margin-bottom: 4px; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0; }
+  th, td { border: 1px solid #e0e0e0; padding: 7px 10px; text-align: left; }
+  th { background: #f0f7ff; color: #1565c0; font-weight: 600; }
+  td code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+
+  /* 代码块 */
+  pre {
+    background: #263238; color: #e0e0e0; padding: 14px 16px;
+    border-radius: 6px; overflow-x: auto; font-size: 12.5px;
+    line-height: 1.55; margin: 8px 0;
+  }
+  pre code { font-family: "SF Mono", Consolas, monospace; }
+  .cm { color: #6a9955; }
+  .kw { color: #569cd6; }
+  .str { color: #ce9178; }
+  .fn { color: #dcdcaa; }
+
+  /* 提示框 */
+  .tip {
+    background: #e8f5e9; border-left: 4px solid #43a047;
+    padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 13px;
+    color: #1b5e20; margin: 10px 0;
+  }
+  .warn {
+    background: #fff3e0; border-left: 4px solid #fb8c00;
+    padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 13px;
+    color: #e65100; margin: 10px 0;
+  }
+  .key {
+    background: #e3f2fd; border-left: 4px solid #1e88e5;
+    padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 13px;
+    color: #0d47a1; margin: 10px 0;
+  }
+
+  /* 架构图盒子 */
+  .arch-box {
+    background: #fafafa; border: 1px dashed #bbb; border-radius: 6px;
+    padding: 14px; margin: 10px 0; font-size: 12.5px;
+  }
+  .arch-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .arch-node {
+    background: #fff; border: 1.5px solid #90caf9; border-radius: 4px;
+    padding: 6px 12px; font-size: 12px; text-align: center; min-width: 100px;
+  }
+  .arch-node.core { border-color: #42a5f5; background: #e3f2fd; font-weight: 600; }
+  .arrow { display: flex; align-items: center; color: #888; font-size: 18px; }
+
+  /* 源码路径标签 */
+  .src-list { list-style: none; padding: 0; }
+  .src-list li {
+    font-family: "SF Mono", Consolas, monospace; font-size: 11.5px;
+    background: #fafafa; padding: 4px 10px; border-radius: 3px;
+    margin-bottom: 4px; color: #555; border-left: 3px solid #90caf9;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>M1 · 多渠道接入架构：Web / SDK / TUI 统一入口</h1>
+<div class="meta">
+  对应架构组件：<code>接入层 → 客户端接入</code> ｜
+  预计课时：2 课时 ｜
+  前置：M0 架构总览
+</div>
+
+<!-- 学习目标 -->
+<div class="card">
+  <h2>🎯 学习目标</h2>
+  <ol>
+    <li>理解 DeerFlow 为什么要提供 Web、SDK、内嵌客户端、TUI 四种接入方式</li>
+    <li>掌握四种接入方式如何<strong>复用同一套 Agent Runtime</strong>（make_lead_agent → run_agent）</li>
+    <li>读懂 Nginx 的路由契约（<code>/api/langgraph/*</code> 重写、<code>/api/*</code> 转发、<code>/*</code> 静态）</li>
+    <li>掌握 Gateway <code>langgraph_runtime</code> lifespan 的启动初始化流程</li>
+    <li>读懂 <code>DeerFlowClient</code> 内嵌客户端的 <code>chat()</code>/<code>stream()</code> API 与 Gateway 的对齐关系</li>
+    <li>理解 TUI 如何通过 <code>threads_meta</code> 写入让终端会话出现在 Web UI</li>
+  </ol>
+</div>
+
+<!-- 1. 设计背景 -->
+<div class="card">
+  <h2>1. 设计背景：为什么需要多渠道统一入口</h2>
+  <p>DeerFlow 的核心是<strong>一个 Agent Runtime</strong>，但不同用户有不同的使用场景：</p>
+  <table>
+    <tr><th>接入方式</th><th>典型用户</th><th>是否依赖 HTTP 服务</th></tr>
+    <tr><td>Web 浏览器</td><td>终端用户</td><td>是（Nginx :2026）</td></tr>
+    <tr><td>LangGraph SDK</td><td>开发者 / 第三方集成</td><td>是（Nginx :2026 → /api/langgraph/*）</td></tr>
+    <tr><td>DeerFlowClient 内嵌</td><td>Python 脚本 / 库集成</td><td>否（进程内直接调用）</td></tr>
+    <tr><td>TUI 终端</td><td>命令行用户 / 运维</td><td>否（基于 DeerFlowClient）</td></tr>
+  </table>
+  <div class="key">
+    <strong>核心设计原则：</strong>所有接入方式最终都汇聚到同一个 Agent 执行路径
+    <code>make_lead_agent() → assemble_lead_agent() → run_agent()</code>，
+    不在接入层复制 Agent 逻辑。TUI 和 DeerFlowClient 是<strong>UI shell / 编程壳</strong>，不 fork agent 行为。
+  </div>
+</div>
+
+<!-- 2. 整体架构 -->
+<div class="card">
+  <h2>2. 整体架构：四条路径汇聚到同一 Runtime</h2>
+  <div class="arch-box">
+    <div class="arch-row">
+      <div class="arch-node">🌐 Web 浏览器</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">Next.js :3000</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">Nginx :2026</div>
+      <div class="arrow">↘</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-node">📦 LangGraph SDK</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">/api/langgraph/*</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">(重写为 /api/*)</div>
+      <div class="arrow">↘</div>
+    </div>
+    <div class="arch-row" style="justify-content:center;">
+      <div class="arch-node core">Gateway :8001<br/>FastAPI + 内嵌 Runtime</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-node">🐍 DeerFlowClient</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">进程内直接调用</div>
+      <div class="arrow">↗</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-node">💻 TUI 终端</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">封装 DeerFlowClient</div>
+      <div class="arrow">↗</div>
+    </div>
+  </div>
+  <p>Web 和 SDK 路径走 HTTP（经 Nginx 到 Gateway）；DeerFlowClient 和 TUI 路径直接在进程内复用 harness 的 agent 组装与执行逻辑，<strong>不启动 Gateway 服务</strong>。</p>
+</div>
+
+<!-- 3. Nginx 路由契约 -->
+<div class="card">
+  <h2>3. Nginx 路由契约（真实配置）</h2>
+  <p>Nginx 是唯一对外暴露的入口（端口 <code>2026</code>），Gateway 的 <code>8001</code> 端口<strong>不对外发布</strong>。关键路由规则来自 <code>docker/nginx/nginx.conf</code>：</p>
+  <table>
+    <tr><th>路径</th><th>目标</th><th>说明</th></tr>
+    <tr><td><code>/api/langgraph/*</code></td><td>Gateway :8001</td><td>重写为 <code>/api/*</code> 再转发（LangGraph 兼容层）</td></tr>
+    <tr><td><code>/api/*</code>（其它）</td><td>Gateway :8001</td><td>Gateway REST 路由直接转发</td></tr>
+    <tr><td><code>/api/sandboxes</code></td><td>Provisioner :8002</td><td>沙箱管理（K8s/provisioner 模式）</td></tr>
+    <tr><td><code>/health</code></td><td>Gateway :8001</td><td>健康检查</td></tr>
+    <tr><td><code>/*</code></td><td>Frontend :3000</td><td>Next.js 静态与页面</td></tr>
+  </table>
+  <h3>LangGraph 兼容层的重写规则</h3>
+  <pre><code><span class="cm"># docker/nginx/nginx.conf</span>
+location /api/langgraph/ {
+    rewrite ^/api/langgraph/(.*) /api/$1 break;  <span class="cm"># 去掉 langgraph 前缀</span>
+    proxy_pass http://gateway:8001;
+    proxy_set_header Connection '';              <span class="cm"># SSE 流式支持</span>
+    proxy_set_header X-Accel-Buffering no;
+    client_max_body_size 20M;                    <span class="cm"># 长 prompt 支持</span>
+    proxy_request_buffering off;
+    proxy_read_timeout 600s;                     <span class="cm"># 长对话超时</span>
+}</code></pre>
+  <div class="tip">
+    <strong>为什么需要重写？</strong>LangGraph SDK 客户端默认请求 <code>/api/langgraph/*</code>，
+    而 Gateway 的路由是 <code>/api/*</code>。Nginx 在转发前去掉 <code>langgraph</code> 前缀，
+    让同一套 Gateway 路由同时服务 Web UI 和 LangGraph SDK。
+  </div>
+</div>
+
+<!-- 4. Gateway Runtime 启动 -->
+<div class="card">
+  <h2>4. Gateway Runtime 启动：langgraph_runtime lifespan</h2>
+  <p>Gateway 在 FastAPI lifespan 中通过 <code>langgraph_runtime()</code> 一次性初始化所有运行时单例。这些单例是<strong>重启生效</strong>的（持有连接/文件句柄），不随 <code>config.yaml</code> 热更新。</p>
+  <h3>启动顺序（来自 <code>app/gateway/deps.py</code>）</h3>
+  <ol>
+    <li><strong>多 worker 安全门</strong>：<code>GATEWAY_WORKERS &gt; 1</code> 时拒绝 SQLite（写锁不支持多进程）</li>
+    <li><code>freeze_checkpoint_channel_mode()</code> — 冻结 checkpoint 模式（full/delta）</li>
+    <li><code>make_stream_bridge()</code> — SSE 流桥（memory / redis）</li>
+    <li><code>init_engine_from_config()</code> — 初始化持久化引擎（先于 checkpointer，确保 PG 自动建库）</li>
+    <li><code>make_checkpointer()</code> — LangGraph checkpointer（memory/sqlite/postgres）</li>
+    <li><code>make_store()</code> — LangGraph Store</li>
+    <li>初始化仓库：<code>RunRepository</code>、<code>FeedbackRepository</code> 等</li>
+  </ol>
+  <pre><code><span class="cm"># app/gateway/deps.py::langgraph_runtime (简化)</span>
+<span class="kw">async with</span> AsyncExitStack() <span class="kw">as</span> stack:
+    app.state.checkpoint_channel_mode = freeze_checkpoint_channel_mode(...)
+    app.state.stream_bridge = <span class="kw">await</span> stack.enter_async_context(make_stream_bridge(config))
+    <span class="kw">await</span> init_engine_from_config(config.database)
+    app.state.checkpointer = <span class="kw">await</span> stack.enter_async_context(make_checkpointer(config))
+    app.state.store = <span class="kw">await</span> stack.enter_async_context(make_store(config))
+    <span class="cm"># ... 仓库初始化</span></code></pre>
+  <div class="warn">
+    <strong>重启边界：</strong><code>database</code>、<code>checkpointer</code>、<code>stream_bridge</code>、<code>sandbox</code> 等字段属于
+    <code>STARTUP_ONLY_FIELDS</code>，运行时修改 <code>config.yaml</code> 不会生效，必须重启 Gateway。
+    而 <code>models</code>、<code>tools</code>、<code>summarization</code> 等字段每次请求通过 <code>get_app_config()</code> 热加载。
+  </div>
+</div>
+
+<!-- 5. LangGraph 兼容层 -->
+<div class="card">
+  <h2>5. LangGraph 兼容层：SDK 如何接入</h2>
+  <p><code>langgraph.json</code> 声明了 LangGraph Server / Studio 的入口配置：</p>
+  <pre><code><span class="cm"># backend/langgraph.json</span>
+{
+  <span class="str">"graphs"</span>: { <span class="str">"lead_agent"</span>: <span class="str">"deerflow.agents:make_lead_agent"</span> },
+  <span class="str">"auth"</span>:   { <span class="str">"path"</span>: <span class="str">"./app/gateway/langgraph_auth.py:auth"</span> },
+  <span class="str">"http"</span>:   { <span class="str">"app"</span>: <span class="str">"./app/gateway/langgraph_studio.py:langgraph_app"</span> },
+  <span class="str">"checkpointer"</span>: { <span class="str">"path"</span>: <span class="str">".../checkpointer/async_provider.py:make_checkpointer"</span> }
+}</code></pre>
+  <h3>SDK 调用链路</h3>
+  <div class="arch-box">
+    <div class="arch-row">
+      <div class="arch-node">LangGraph SDK</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">POST /api/langgraph/threads/{id}/runs/stream</div>
+      <div class="arrow">→</div>
+      <div class="arch-node">Nginx 重写为 /api/threads/{id}/runs/stream</div>
+      <div class="arrow">→</div>
+      <div class="arch-node core">Gateway thread_runs 路由<br/>→ RunManager → run_agent()</div>
+    </div>
+  </div>
+  <p>Gateway 的 <code>thread_runs</code> 路由（<code>POST /api/threads/{id}/runs/stream</code>）兼容 LangGraph SDK 的 run 创建协议，返回 SSE 流。LangGraph SDK 客户端无需感知 DeerFlow 的内部实现。</p>
+</div>
+
+<!-- 6. DeerFlowClient 内嵌客户端 -->
+<div class="card">
+  <h2>6. DeerFlowClient：进程内嵌客户端（不走 HTTP）</h2>
+  <p><code>DeerFlowClient</code> 提供不依赖 Gateway 服务的编程接入方式，直接导入 harness 的 agent 组装逻辑。适合 Python 脚本、库集成、测试。</p>
+  <h3>核心 API</h3>
+  <table>
+    <tr><th>方法</th><th>签名</th><th>返回</th></tr>
+    <tr><td><code>chat()</code></td><td><code>chat(message, *, thread_id=None, **kwargs) -> str</code></td><td>最后一条 AI 消息的累积文本</td></tr>
+    <tr><td><code>stream()</code></td><td><code>stream(message, *, thread_id=None, **kwargs) -> Generator[StreamEvent]</code></td><td>流式事件（values / messages-tuple / custom / end）</td></tr>
+    <tr><td><code>list_models()</code></td><td>—</td><td>模型列表（与 Gateway <code>/api/models</code> 对齐）</td></tr>
+    <tr><td><code>list_skills()</code></td><td>—</td><td>技能列表</td></tr>
+    <tr><td><code>get_mcp_config()</code> / <code>update_mcp_config()</code></td><td>—</td><td>MCP 配置读写</td></tr>
+    <tr><td><code>upload_files()</code></td><td>—</td><td>文件上传（接收 Path 对象，非 HTTP UploadFile）</td></tr>
+  </table>
+  <h3>chat() 实现原理</h3>
+  <p><code>chat()</code> 是 <code>stream()</code> 的便利封装：按消息 id 累积 <code>messages-tuple</code> 的 delta，最后返回最后一条 AI 消息的拼接文本。</p>
+  <pre><code><span class="cm"># deerflow/client.py::chat (简化)</span>
+<span class="kw">def</span> <span class="fn">chat</span>(self, message, *, thread_id=None, **kwargs) -> str:
+    chunks: dict[str, list[str]] = {}
+    last_id = <span class="str">""</span>
+    <span class="kw">for</span> event <span class="kw">in</span> self.stream(message, thread_id=thread_id, **kwargs):
+        <span class="kw">if</span> event.type == <span class="str">"messages-tuple"</span> <span class="kw">and</span> event.data.get(<span class="str">"type"</span>) == <span class="str">"ai"</span>:
+            msg_id = event.data.get(<span class="str">"id"</span>) <span class="kw">or</span> <span class="str">""</span>
+            delta = event.data.get(<span class="str">"content"</span>, <span class="str">""</span>)
+            <span class="kw">if</span> delta:
+                chunks.setdefault(msg_id, []).append(delta)
+                last_id = msg_id
+    <span class="kw">return</span> <span class="str">""</span>.join(chunks.get(last_id, ()))</code></pre>
+  <div class="tip">
+    <strong>多轮对话需要 checkpointer：</strong>不传 <code>checkpointer</code> 时每次调用是无状态的，
+    <code>thread_id</code> 仅用于文件隔离（uploads / artifacts）。要实现多轮上下文，需传入 checkpointer 实例。
+  </div>
+</div>
+
+<!-- 7. TUI 终端 -->
+<div class="card">
+  <h2>7. TUI 终端：基于 DeerFlowClient 的终端 UI</h2>
+  <p>TUI（<code>deerflow</code> 控制台脚本）是 <code>DeerFlowClient</code> 之上的终端 UI 壳，<strong>不 fork agent 行为</strong>。核心分层（全部除 <code>app.py</code> 外均为纯函数，可单测）：</p>
+  <table>
+    <tr><th>模块</th><th>职责</th></tr>
+    <tr><td><code>cli.py</code></td><td>启动模式决策（TTY→TUI，非 TTY→headless help）、<code>--print</code>/<code>--json</code></td></tr>
+    <tr><td><code>session.py</code></td><td>构建 <code>DeerFlowClient</code> + checkpointer，线程解析（<code>--resume</code>/<code>--continue</code>）</td></tr>
+    <tr><td><code>runtime.py</code></td><td><code>translate(StreamEvent) → [Action]</code> 纯函数 + <code>stream_actions()</code> 驱动</td></tr>
+    <tr><td><code>view_state.py</code></td><td><code>ViewState</code> + <code>reduce(state, action)</code>，可测核心</td></tr>
+    <tr><td><code>app.py</code></td><td>Textual App，worker 线程跑 <code>client.stream()</code>，UI 线程 apply action</td></tr>
+    <tr><td><code>persistence.py</code></td><td>写 <code>threads_meta</code> 表，让 TUI 会话出现在 Web UI</td></tr>
+  </table>
+  <h3>关键设计：TUI 会话如何出现在 Web UI</h3>
+  <p>Web UI 的侧边栏线程列表来自 <code>threads_meta</code> SQL 表（用户域），而非 checkpointer。TUI 的 <code>persistence.py</code> 通过 <code>init_engine_from_config()</code> 在默认用户（<code>"default"</code>）下写入 <code>threads_meta</code> 行，使用与 Gateway 相同的数据库——因此 TUI 创建的会话无需启动 Gateway 也能在 Web UI 看到。</p>
+  <div class="warn">
+    <strong>无 SQL 后端时降级：</strong>当 <code>database.backend</code> 为 <code>memory</code> 时，<code>threads_meta</code> 写入是 no-op，
+    TUI 会话不会出现在 Web UI。
+  </div>
+</div>
+
+<!-- 8. 关键源码路径 -->
+<div class="card">
+  <h2>8. 关键源码路径</h2>
+  <ul class="src-list">
+    <li>deerflow/client.py — DeerFlowClient 内嵌客户端</li>
+    <li>app/gateway/app.py — FastAPI 应用与 lifespan</li>
+    <li>app/gateway/deps.py — langgraph_runtime 启动初始化</li>
+    <li>app/gateway/routers/thread_runs.py — LangGraph 兼容 run 路由</li>
+    <li>docker/nginx/nginx.conf — 路由契约（重写 + 转发）</li>
+    <li>backend/langgraph.json — LangGraph Server/Studio 入口声明</li>
+    <li>deerflow/tui/cli.py · session.py · runtime.py · app.py · persistence.py</li>
+    <li>deerflow/runtime/runs/manager.py — RunManager（M7 详述）</li>
+    <li>deerflow/runtime/stream_bridge/ — SSE 流桥（M7 详述）</li>
+  </ul>
+</div>
+
+<!-- 9. 实践作业 -->
+<div class="card">
+  <h2>9. 实践作业</h2>
+  <ol>
+    <li><strong>对比 HTTP 与内嵌调用：</strong>用 <code>DeerFlowClient</code> 在 Python 脚本中发起一次对话（不传 checkpointer），再用 <code>curl</code> 调用 <code>http://localhost:2026/api/threads/{id}/runs/wait</code>，对比两者的输出结构是否一致。</li>
+    <li><strong>验证 Nginx 重写：</strong>用 <code>curl -v http://localhost:2026/api/langgraph/threads</code>，确认请求到达 Gateway 时路径为 <code>/api/threads</code>（查看 Gateway 日志或抓包）。</li>
+    <li><strong>TUI 会话可见性：</strong>用 TUI 创建一个会话，然后打开 Web UI，确认该会话出现在侧边栏（需 <code>database.backend: sqlite</code> 或 <code>postgres</code>）。</li>
+    <li><strong>无 checkpointer 的无状态验证：</strong>用 <code>DeerFlowClient</code>（不传 checkpointer）连续发两条消息，验证第二条无法记住第一条的上下文。</li>
+  </ol>
+</div>
+
+<!-- 10. 小结与思考题 -->
+<div class="card">
+  <h2>10. 小结与思考题</h2>
+  <p><strong>小结：</strong>DeerFlow 通过「HTTP 路径（Web/SDK）+ 进程内路径（Client/TUI）」两条路径复用同一 Agent Runtime。Nginx 用路径重写实现 LangGraph SDK 兼容；Gateway lifespan 一次性初始化运行时单例；DeerFlowClient 提供与 Gateway API 对齐的编程接口；TUI 在 Client 之上加终端 UI 并通过 threads_meta 实现跨端可见。</p>
+  <h3>思考题</h3>
+  <ol>
+    <li>为什么 Gateway 的 <code>8001</code> 端口不对外发布，只暴露 Nginx 的 <code>2026</code>？</li>
+    <li><code>DeerFlowClient</code> 的 <code>chat()</code> 为什么按 <code>id</code> 累积 delta 而不是直接拼接字符串？（提示：长响应的 O(n²) 问题）</li>
+    <li>如果要新增一种接入方式（例如 gRPC），应该在哪一层扩展，才能不复制 Agent 逻辑？</li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>
