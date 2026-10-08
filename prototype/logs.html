@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Logs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-header {
+    padding: 20px 24px 16px;
+    flex-shrink: 0;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     LOGS LAYOUT (inner sidebar + stream)
+     ============================================================ */
+  .logs-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 0 24px 20px;
+    gap: 16px;
+  }
+
+  .logs-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .logs-sidebar-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .log-level-list {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .log-level-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .log-level-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .log-level-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 7px 9px;
+  }
+
+  .log-level-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .log-level-dot.all { background: var(--text-primary); box-shadow: 0 0 6px var(--text-primary); }
+  .log-level-dot.error { background: var(--accent-coral); box-shadow: 0 0 6px var(--accent-coral); }
+  .log-level-dot.warn { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+  .log-level-dot.info { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
+  .log-level-dot.debug { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
+
+  .log-level-count {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 1px 5px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+  }
+
+  .log-level-item.active .log-level-count {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan-dim);
+  }
+
+  /* Service filter section */
+  .logs-sidebar-section {
+    padding: 12px 14px 8px;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .service-list {
+    padding: 0 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .service-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .service-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .service-item input[type="checkbox"] {
+    accent-color: var(--accent-cyan);
+    width: 12px;
+    height: 12px;
+  }
+
+  /* ============================================================
+     LOG STREAM
+     ============================================================ */
+  .logs-stream-container {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .logs-stream-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .logs-stream-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent-green);
+  }
+
+  .live-indicator .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .live-indicator.paused {
+    color: var(--text-tertiary);
+  }
+
+  .live-indicator.paused .live-dot {
+    background: var(--text-tertiary);
+    box-shadow: none;
+    animation: none;
+  }
+
+  .pause-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .pause-play-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .pause-play-btn svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .logs-stream-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stream-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .stream-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .stream-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  /* Log entries */
+  .logs-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 4px 14px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+    position: relative;
+  }
+
+  .log-entry:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .log-entry::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  .log-entry:hover::before {
+    opacity: 1;
+  }
+
+  .log-entry.error::before { background: var(--accent-coral); }
+  .log-entry.warn::before { background: var(--accent-amber); }
+  .log-entry.info::before { background: var(--accent-cyan); }
+  .log-entry.debug::before { background: var(--accent-purple); }
+
+  .log-timestamp {
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: 140px;
+  }
+
+  .log-level {
+    width: 55px;
+    flex-shrink: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .log-level.error { color: var(--accent-coral); }
+  .log-level.warn { color: var(--accent-amber); }
+  .log-level.info { color: var(--accent-cyan); }
+  .log-level.debug { color: var(--accent-purple); }
+
+  .log-service {
+    width: 100px;
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+  }
+
+  .log-message {
+    flex: 1;
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+
+  .log-message .log-key {
+    color: var(--accent-cyan-dim);
+  }
+
+  .log-message .log-string {
+    color: var(--accent-green);
+  }
+
+  .log-message .log-number {
+    color: var(--accent-amber);
+  }
+
+  .log-message .log-error-msg {
+    color: var(--accent-coral);
+  }
+
+  /* New log highlight animation */
+  @keyframes logHighlight {
+    0% { background: rgba(0, 229, 255, 0.1); }
+    100% { background: transparent; }
+  }
+
+  .log-entry.new {
+    animation: logHighlight 1.5s ease-out;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>observability</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Logs</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" placeholder="Search logs, errors, services..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-ghost" title="Clear">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Clear
+      </button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <div class="content-header">
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">
+            <span class="title-prefix">//</span>
+            Logs
+          </h1>
+          <p class="page-subtitle">
+            <span class="status-indicator"></span>
+            Real-time log streaming &middot; 1,247 entries in last hour
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="logs-container">
+      <!-- Logs Sidebar (Level + Service Filter) -->
+      <div class="logs-sidebar">
+        <div class="logs-sidebar-header">Log Level</div>
+        <div class="log-level-list">
+          <div class="log-level-item active" data-level="all">
+            <span class="log-level-dot all"></span>
+            <span>All</span>
+            <span class="log-level-count">1,247</span>
+          </div>
+          <div class="log-level-item" data-level="error">
+            <span class="log-level-dot error"></span>
+            <span>Error</span>
+            <span class="log-level-count">23</span>
+          </div>
+          <div class="log-level-item" data-level="warn">
+            <span class="log-level-dot warn"></span>
+            <span>Warn</span>
+            <span class="log-level-count">87</span>
+          </div>
+          <div class="log-level-item" data-level="info">
+            <span class="log-level-dot info"></span>
+            <span>Info</span>
+            <span class="log-level-count">892</span>
+          </div>
+          <div class="log-level-item" data-level="debug">
+            <span class="log-level-dot debug"></span>
+            <span>Debug</span>
+            <span class="log-level-count">245</span>
+          </div>
+        </div>
+
+        <div class="logs-sidebar-section">Services</div>
+        <div class="service-list">
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>agent</span>
+          </label>
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>models</span>
+          </label>
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>tools</span>
+          </label>
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>memory</span>
+          </label>
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>workflow</span>
+          </label>
+          <label class="service-item">
+            <input type="checkbox" checked>
+            <span>api</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Log Stream -->
+      <div class="logs-stream-container">
+        <div class="logs-stream-toolbar">
+          <div class="logs-stream-left">
+            <div class="live-indicator" id="liveIndicator">
+              <span class="live-dot"></span>
+              <span id="liveText">LIVE</span>
+            </div>
+            <button class="pause-play-btn" id="pausePlayBtn">
+              <svg id="pausePlayIcon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              <span id="pausePlayText">Pause</span>
+            </button>
+          </div>
+          <div class="logs-stream-right">
+            <button class="stream-btn" title="Scroll to bottom">
+              <svg viewBox="0 0 24 24"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>
+            </button>
+            <button class="stream-btn" title="Wrap lines">
+              <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="logs-stream" id="logsStream">
+          <!-- Log entries will be populated here -->
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ============================================================
+  // LOG DATA
+  // ============================================================
+  const logMessages = [
+    { level: 'info', service: 'agent', msg: 'Agent <span class="log-string">"code-assistant"</span> initialized successfully' },
+    { level: 'debug', service: 'models', msg: 'Loading model <span class="log-key">gpt-4-turbo</span> with context window <span class="log-number">128000</span>' },
+    { level: 'info', service: 'tools', msg: 'Registered tool: <span class="log-string">search_codebase</span> (v1.2.0)' },
+    { level: 'info', service: 'tools', msg: 'Registered tool: <span class="log-string">execute_code</span> (v2.0.1)' },
+    { level: 'warn', service: 'memory', msg: 'Vector store <span class="log-string">"prod-docs"</span> approaching capacity: <span class="log-number">87%</span>' },
+    { level: 'info', service: 'agent', msg: 'Run <span class="log-key">run_01HX7Z8Y9W</span> started by agent <span class="log-string">"code-assistant"</span>' },
+    { level: 'debug', service: 'workflow', msg: 'Executing step 1/5: <span class="log-string">analyze_request</span>' },
+    { level: 'info', service: 'tools', msg: 'Tool call: <span class="log-string">search_codebase</span> query="<span class="log-string">authentication flow</span>"' },
+    { level: 'debug', service: 'tools', msg: 'Search returned <span class="log-number">42</span> results in <span class="log-number">0.42s</span>' },
+    { level: 'info', service: 'models', msg: 'LLM request started: model=<span class="log-key">gpt-4-turbo</span>, tokens=<span class="log-number">2048</span>' },
+    { level: 'debug', service: 'models', msg: 'Context assembly: <span class="log-number">1847</span> tokens, chunks=<span class="log-number">12</span>' },
+    { level: 'info', service: 'models', msg: 'LLM response received in <span class="log-number">1.88s</span> (<span class="log-number">4821</span> total tokens)' },
+    { level: 'warn', service: 'api', msg: 'Rate limit approaching: <span class="log-number">847</span>/1000 requests in current window' },
+    { level: 'error', service: 'agent', msg: '<span class="log-error-msg">Failed to execute tool "web_fetch": timeout after 30s</span>' },
+    { level: 'debug', service: 'agent', msg: 'Retrying tool call (attempt 2/3)...' },
+    { level: 'info', service: 'tools', msg: 'Tool call succeeded on retry: <span class="log-string">web_fetch</span>' },
+    { level: 'debug', service: 'workflow', msg: 'Executing step 3/5: <span class="log-string">generate_response</span>' },
+    { level: 'info', service: 'models', msg: 'LLM request started: model=<span class="log-key">gpt-4-turbo</span>, tokens=<span class="log-number">4096</span>' },
+    { level: 'error', service: 'memory', msg: '<span class="log-error-msg">Redis connection lost. Attempting reconnection...</span>' },
+    { level: 'warn', service: 'memory', msg: 'Falling back to in-memory cache for vector operations' },
+    { level: 'info', service: 'memory', msg: 'Redis reconnected successfully after <span class="log-number">2.3s</span>' },
+    { level: 'info', service: 'models', msg: 'LLM response received in <span class="log-number">2.15s</span> (<span class="log-number">6789</span> total tokens)' },
+    { level: 'debug', service: 'workflow', msg: 'Executing step 4/5: <span class="log-string">format_output</span>' },
+    { level: 'info', service: 'agent', msg: 'Run <span class="log-key">run_01HX7Z8Y9W</span> completed with status <span class="log-string">"success"</span>' },
+    { level: 'debug', service: 'api', msg: 'Request processed: <span class="log-number">200 OK</span> in <span class="log-number">3.42s</span>' },
+    { level: 'info', service: 'agent', msg: 'Agent <span class="log-string">"data-analyst"</span> processing batch job <span class="log-number">#4821</span>' },
+    { level: 'warn', service: 'models', msg: 'Token usage high: <span class="log-number">12450</span> tokens in single request' },
+    { level: 'debug', service: 'tools', msg: 'Executing SQL query on dataset <span class="log-string">"sales_2024"</span>' },
+    { level: 'info', service: 'tools', msg: 'Query returned <span class="log-number">15,847</span> rows in <span class="log-number">0.89s</span>' },
+    { level: 'error', service: 'workflow', msg: '<span class="log-error-msg">Step "validate_output" failed: schema mismatch in column "revenue"</span>' },
+    { level: 'debug', service: 'workflow', msg: 'Auto-repair triggered: attempting schema coercion' },
+    { level: 'info', service: 'workflow', msg: 'Schema repair successful, continuing execution' },
+    { level: 'info', service: 'agent', msg: 'Run <span class="log-key">run_01HX7Z7X8V</span> completed with status <span class="log-string">"success"</span>' },
+    { level: 'debug', service: 'memory', msg: 'Vector store sync: <span class="log-number">256</span> embeddings updated' },
+    { level: 'info', service: 'api', msg: 'Health check passed: all services operational' },
+    { level: 'warn', service: 'agent', msg: 'Agent <span class="log-string">"customer-support"</span> queue depth: <span class="log-number">12</span> pending' },
+    { level: 'debug', service: 'models', msg: 'Cache hit rate: <span class="log-number">67.3%</span> (last 5 min)' },
+    { level: 'info', service: 'tools', msg: 'New tool registered: <span class="log-string">image_analyze</span> (v0.9.0 beta)' },
+    { level: 'error', service: 'api', msg: '<span class="log-error-msg">429 Too Many Requests from IP 192.168.1.45</span>' },
+    { level: 'info', service: 'agent', msg: 'Agent <span class="log-string">"research-agent"</span> started deep research task' },
+  ];
+
+  // ============================================================
+  // LOG STREAM RENDERING
+  // ============================================================
+  const logsStream = document.getElementById('logsStream');
+  let isPaused = false;
+  let logIndex = 0;
+
+  function formatTime(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+  }
+
+  function createLogEntry(level, service, msg) {
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${level} new`;
+    const now = new Date();
+    entry.innerHTML = `
+      <span class="log-timestamp">${formatTime(now)}</span>
+      <span class="log-level ${level}">${level.toUpperCase()}</span>
+      <span class="log-service">${service}</span>
+      <span class="log-message">${msg}</span>
+    `;
+    return entry;
+  }
+
+  function addLog() {
+    if (isPaused) return;
+
+    const log = logMessages[logIndex % logMessages.length];
+    const entry = createLogEntry(log.level, log.service, log.msg);
+    logsStream.appendChild(entry);
+
+    // Auto-scroll to bottom
+    logsStream.scrollTop = logsStream.scrollHeight;
+
+    // Remove "new" class after animation
+    setTimeout(() => entry.classList.remove('new'), 1500);
+
+    // Limit number of log entries
+    const maxEntries = 100;
+    while (logsStream.children.length > maxEntries) {
+      logsStream.removeChild(logsStream.firstChild);
+    }
+
+    logIndex++;
+  }
+
+  // Initial logs - populate with some history
+  function initLogs() {
+    const now = new Date();
+    for (let i = 0; i < 25; i++) {
+      const log = logMessages[i % logMessages.length];
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${log.level}`;
+      const pastTime = new Date(now.getTime() - (25 - i) * 2000);
+      entry.innerHTML = `
+        <span class="log-timestamp">${formatTime(pastTime)}</span>
+        <span class="log-level ${log.level}">${log.level.toUpperCase()}</span>
+        <span class="log-service">${log.service}</span>
+        <span class="log-message">${log.msg}</span>
+      `;
+      logsStream.appendChild(entry);
+    }
+    logIndex = 25;
+    logsStream.scrollTop = logsStream.scrollHeight;
+  }
+
+  // ============================================================
+  // PAUSE/PLAY
+  // ============================================================
+  const pausePlayBtn = document.getElementById('pausePlayBtn');
+  const liveIndicator = document.getElementById('liveIndicator');
+  const liveText = document.getElementById('liveText');
+  const pausePlayText = document.getElementById('pausePlayText');
+  const pausePlayIcon = document.getElementById('pausePlayIcon');
+
+  pausePlayBtn.addEventListener('click', function() {
+    isPaused = !isPaused;
+    if (isPaused) {
+      liveIndicator.classList.add('paused');
+      liveText.textContent = 'PAUSED';
+      pausePlayText.textContent = 'Play';
+      pausePlayIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    } else {
+      liveIndicator.classList.remove('paused');
+      liveText.textContent = 'LIVE';
+      pausePlayText.textContent = 'Pause';
+      pausePlayIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      logsStream.scrollTop = logsStream.scrollHeight;
+    }
+  });
+
+  // ============================================================
+  // LOG LEVEL FILTER
+  // ============================================================
+  document.querySelectorAll('.log-level-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.log-level-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // INITIALIZE
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    initLogs();
+
+    // Simulate real-time log streaming
+    setInterval(() => {
+      if (!isPaused && Math.random() > 0.3) {
+        addLog();
+      }
+    }, 1500);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Developer Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --rightbar-width: 300px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr var(--rightbar-width);
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar rightbar"
+      "sidebar main rightbar";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search.focused::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-cyan));
+    background-size: 200% 100%;
+    opacity: 0.5;
+    z-index: -1;
+    filter: blur(8px);
+    animation: search-glow 2s linear infinite;
+  }
+
+  @keyframes search-glow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-search kbd {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: rgba(46, 213, 115, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: rgba(255, 165, 2, 0.1);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .stat-sparkline {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100px;
+    height: 40px;
+    opacity: 0.4;
+  }
+
+  .stat-sparkline svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ============================================================
+     SECTION HEADER
+     ============================================================ */
+  .section {
+    margin-bottom: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .section-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .section-title .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-panel-2);
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    font-weight: 400;
+  }
+
+  .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 4px 9px;
+  }
+
+  /* ============================================================
+     AGENTS GRID
+     ============================================================ */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .agent-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .agent-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 229, 255, 0.08);
+  }
+
+  .agent-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .agent-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .agent-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .agent-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+    position: relative;
+  }
+
+  .agent-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+  }
+
+  .agent-icon.gradient-1 {
+    background: linear-gradient(135deg, #00e5ff, #0066ff);
+  }
+
+  .agent-icon.gradient-2 {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  }
+
+  .agent-icon.gradient-3 {
+    background: linear-gradient(135deg, #2ed573, #009432);
+  }
+
+  .agent-icon.gradient-4 {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+  }
+
+  .agent-icon.gradient-5 {
+    background: linear-gradient(135deg, #ffa502, #ff6348);
+  }
+
+  .agent-icon.gradient-6 {
+    background: linear-gradient(135deg, #1e90ff, #3742fa);
+  }
+
+  .agent-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .agent-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .status-badge .status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+
+  .status-badge.active {
+    background: rgba(46, 213, 115, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .status-badge.active .status-dot {
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-badge.idle {
+    background: rgba(136, 146, 176, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .status-badge.idle .status-dot {
+    background: var(--text-tertiary);
+  }
+
+  .status-badge.error {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .status-badge.error .status-dot {
+    background: var(--accent-coral);
+    box-shadow: 0 0 5px var(--accent-coral);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .agent-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .agent-card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 12px;
+  }
+
+  .agent-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .agent-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .agent-stat-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .agent-stat-value.mono-dim {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ============================================================
+     RECENT RUNS TABLE
+     ============================================================ */
+  .runs-table-container {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .runs-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .runs-table thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+    white-space: nowrap;
+  }
+
+  .runs-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+
+  .runs-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .runs-table tbody tr {
+    transition: background 0.15s ease;
+    cursor: pointer;
+  }
+
+  .runs-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .runs-table tbody tr.selected {
+    background: rgba(0, 229, 255, 0.06);
+    box-shadow: inset 2px 0 0 var(--accent-cyan), 0 0 0 1px var(--border-strong), 0 0 12px rgba(0, 229, 255, 0.15);
+    position: relative;
+  }
+
+  .runs-table tbody tr.selected td:first-child {
+    border-left: 2px solid var(--accent-cyan);
+    padding-left: 14px;
+  }
+
+  .run-agent-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .run-agent-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .run-agent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .run-agent-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .run-id {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .run-status-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .run-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .run-status-pill.success {
+    background: rgba(46, 213, 115, 0.08);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.15);
+  }
+
+  .run-status-pill.success::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 4px var(--accent-green);
+  }
+
+  .run-status-pill.running {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .run-status-pill.running::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 4px var(--accent-cyan);
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+
+  .run-status-pill.failed {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .run-status-pill.failed::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 4px var(--accent-coral);
+  }
+
+  .run-duration {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .run-tokens {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .run-tokens .token-bar {
+    width: 40px;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .run-tokens .token-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    border-radius: 2px;
+  }
+
+  .run-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .run-action-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0;
+  }
+
+  .runs-table tbody tr:hover .run-action-btn {
+    opacity: 1;
+  }
+
+  .run-action-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--accent-cyan);
+  }
+
+  .run-action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     RIGHT SIDEBAR - SYSTEM STATUS
+     ============================================================ */
+  .rightbar {
+    grid-area: rightbar;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-subtle);
+    overflow-y: auto;
+    padding: 16px;
+    position: relative;
+  }
+
+  .rightbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-coral-glow) 30%, var(--accent-coral-glow) 70%, transparent 100%);
+    opacity: 0.4;
+  }
+
+  .rightbar-section {
+    margin-bottom: 20px;
+  }
+
+  .rightbar-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .rightbar-section-title h3 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rightbar-section-title h3::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  .rightbar-section-title .refresh-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s ease;
+  }
+
+  .rightbar-section-title .refresh-btn:hover {
+    color: var(--accent-cyan);
+  }
+
+  .rightbar-section-title .refresh-btn svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Model Availability */
+  .model-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .model-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .model-item:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-elevated);
+  }
+
+  .model-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .model-indicator.online {
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2.5s ease-in-out infinite;
+  }
+
+  .model-indicator.degraded {
+    background: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+  }
+
+  .model-indicator.offline {
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
+  .model-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .model-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .model-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .model-meta .dot {
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .model-latency {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .model-latency.good {
+    color: var(--accent-green);
+  }
+
+  .model-latency.warn {
+    color: var(--accent-amber);
+  }
+
+  /* Sandbox Pool */
+  .sandbox-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .sandbox-stat {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+  }
+
+  .sandbox-stat-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .sandbox-stat-value.cyan { color: var(--accent-cyan); }
+  .sandbox-stat-value.green { color: var(--accent-green); }
+  .sandbox-stat-value.amber { color: var(--accent-amber); }
+  .sandbox-stat-value.coral { color: var(--accent-coral); }
+
+  .sandbox-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .sandbox-visual {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+
+  .sandbox-grid-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .sandbox-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+  }
+
+  .sandbox-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .sandbox-cell.active {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
+    animation: cell-pulse 3s ease-in-out infinite;
+  }
+
+  .sandbox-cell.idle {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .sandbox-cell.busy {
+    background: var(--accent-amber);
+    opacity: 0.8;
+  }
+
+  .sandbox-cell.error {
+    background: var(--accent-coral);
+    opacity: 0.8;
+  }
+
+  .sandbox-cell:hover {
+    transform: scale(1.2);
+    z-index: 1;
+  }
+
+  @keyframes cell-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Resource usage */
+  .resource-item {
+    margin-bottom: 12px;
+  }
+
+  .resource-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .resource-label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .resource-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .resource-value {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+
+  .resource-bar {
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .resource-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    position: relative;
+    transition: width 0.5s ease;
+  }
+
+  .resource-bar-fill.cyan {
+    background: linear-gradient(90deg, var(--accent-cyan), #00a8cc);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+  }
+
+  .resource-bar-fill.coral {
+    background: linear-gradient(90deg, var(--accent-coral), #ee5a24);
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.3);
+  }
+
+  .resource-bar-fill.green {
+    background: linear-gradient(90deg, var(--accent-green), #00b894);
+    box-shadow: 0 0 8px rgba(46, 213, 115, 0.3);
+  }
+
+  /* Activity feed */
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .activity-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .activity-timeline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .activity-timeline-dot::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: calc(100% + 12px);
+    background: var(--border-subtle);
+  }
+
+  .activity-item:last-child .activity-timeline-dot::after {
+    display: none;
+  }
+
+  .activity-timeline-dot.cyan {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 4px var(--accent-cyan);
+  }
+
+  .activity-timeline-dot.green {
+    background: var(--accent-green);
+    box-shadow: 0 0 4px var(--accent-green);
+  }
+
+  .activity-timeline-dot.coral {
+    background: var(--accent-coral);
+    box-shadow: 0 0 4px var(--accent-coral);
+  }
+
+  .activity-timeline-dot.amber {
+    background: var(--accent-amber);
+    box-shadow: 0 0 4px var(--accent-amber);
+  }
+
+  .activity-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .activity-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 2px;
+  }
+
+  .activity-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .activity-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     TERMINAL / CODE ACCENT
+     ============================================================ */
+  .terminal-prompt {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    margin-top: 12px;
+  }
+
+  .terminal-prompt .prompt-symbol {
+    color: var(--accent-green);
+    font-weight: 600;
+  }
+
+  .terminal-prompt .prompt-cursor {
+    width: 7px;
+    height: 13px;
+    background: var(--accent-cyan);
+    animation: blink-cursor 1s step-end infinite;
+    margin-left: 2px;
+  }
+
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ============================================================
+     ANIMATIONS ON LOAD
+     ============================================================ */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-in {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  .animate-in.delay-1 { animation-delay: 0.05s; }
+  .animate-in.delay-2 { animation-delay: 0.1s; }
+  .animate-in.delay-3 { animation-delay: 0.15s; }
+  .animate-in.delay-4 { animation-delay: 0.2s; }
+  .animate-in.delay-5 { animation-delay: 0.25s; }
+  .animate-in.delay-6 { animation-delay: 0.3s; }
+
+  /* ============================================================
+     SCAN LINE EFFECT (subtle)
+     ============================================================ */
+  .scanline-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(0, 0, 0, 0.03) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.3;
+  }
+
+  /* ============================================================
+     RESPONSIVE (basic)
+     ============================================================ */
+  @media (max-width: 1400px) {
+    :root {
+      --rightbar-width: 260px;
+    }
+    .agents-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+<div class="scanline-overlay"></div>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JL</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">dev@forge.local</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>workspace</span>
+      <span class="crumb-sep">/</span>
+      <span>projects</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">production-agents</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" placeholder="Search agents, runs, skills..." />
+      <kbd>⌘K</kbd>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="API Keys">
+        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </button>
+      <button class="topbar-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Agent
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header animate-in">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Dashboard Overview
+        </h1>
+        <div class="page-subtitle">
+          <span class="status-indicator"></span>
+          All systems operational &middot; Last synced 2s ago
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <!-- Stat 1 -->
+      <div class="stat-card animate-in delay-1">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </div>
+        <div class="stat-card-label">Total Agents</div>
+        <div class="stat-card-value">12<span class="value-suffix">units</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            +3
+          </span>
+          <span class="stat-period">this month</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="spark1" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,30 L15,25 L30,28 L45,18 L60,20 L75,12 L90,15 L100,8 L100,40 L0,40 Z" fill="url(#spark1)"/>
+            <path d="M0,30 L15,25 L30,28 L45,18 L60,20 L75,12 L90,15 L100,8" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="stat-card animate-in delay-2">
+        <div class="stat-card-icon coral">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="stat-card-label">Active Runs</div>
+        <div class="stat-card-value">47<span class="value-suffix">live</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            12.4%
+          </span>
+          <span class="stat-period">vs last hour</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="spark2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,20 L15,22 L30,15 L45,25 L60,10 L75,18 L90,8 L100,14 L100,40 L0,40 Z" fill="url(#spark2)"/>
+            <path d="M0,20 L15,22 L30,15 L45,25 L60,10 L75,18 L90,8 L100,14" stroke="#ff6b6b" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="stat-card animate-in delay-3">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="stat-card-label">Token Usage</div>
+        <div class="stat-card-value">2.4<span class="value-suffix">M</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend down">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+            3.2%
+          </span>
+          <span class="stat-period">this month</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="spark3" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffa502;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#ffa502;stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,10 L15,12 L30,8 L45,14 L60,16 L75,22 L90,20 L100,28 L100,40 L0,40 Z" fill="url(#spark3)"/>
+            <path d="M0,10 L15,12 L30,8 L45,14 L60,16 L75,22 L90,20 L100,28" stroke="#ffa502" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stat 4 -->
+      <div class="stat-card animate-in delay-4">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Success Rate</div>
+        <div class="stat-card-value">98.7<span class="value-suffix">%</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            0.8%
+          </span>
+          <span class="stat-period">last 24h</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="spark4" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#2ed573;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#2ed573;stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,25 L15,22 L30,20 L45,18 L60,15 L75,10 L90,8 L100,5 L100,40 L0,40 Z" fill="url(#spark4)"/>
+            <path d="M0,25 L15,22 L30,20 L45,18 L60,15 L75,10 L90,8 L100,5" stroke="#2ed573" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Agents Section -->
+    <section class="section animate-in delay-4">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="title-bracket">[</span>
+          My Agents
+          <span class="count">12 total</span>
+          <span class="title-bracket">]</span>
+        </h2>
+        <div class="section-actions">
+          <div class="filter-tabs">
+            <span class="filter-tab active">All</span>
+            <span class="filter-tab">Active</span>
+            <span class="filter-tab">Idle</span>
+            <span class="filter-tab">Error</span>
+          </div>
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Sort
+          </button>
+        </div>
+      </div>
+
+      <div class="agents-grid">
+        <!-- Agent Card 1 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-1">&#129302;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                CodeReview Pro
+                <span class="status-badge active">
+                  <span class="status-dot"></span>
+                  Active
+                </span>
+              </div>
+              <div class="agent-desc">Automated code review agent with PR analysis, style enforcement, and security scanning.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">2m ago</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">1,247</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Card 2 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-2">&#128269;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                DataScout
+                <span class="status-badge active">
+                  <span class="status-dot"></span>
+                  Active
+                </span>
+              </div>
+              <div class="agent-desc">Research and data extraction agent. Crawls sources and structures findings into JSON.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">47s ago</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">892</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Card 3 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-3">&#128221;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                DocWriter
+                <span class="status-badge idle">
+                  <span class="status-dot"></span>
+                  Idle
+                </span>
+              </div>
+              <div class="agent-desc">Generates technical documentation from codebase analysis. Supports MD, HTML, and PDF.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">3h ago</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">564</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Card 4 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-4">&#128640;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                DeployBot
+                <span class="status-badge active">
+                  <span class="status-dot"></span>
+                  Active
+                </span>
+              </div>
+              <div class="agent-desc">CI/CD pipeline orchestrator. Manages build, test, and deploy workflows across environments.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">12m ago</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">2,103</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Card 5 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-5">&#9888;&#65039;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                BugHunter
+                <span class="status-badge error">
+                  <span class="status-dot"></span>
+                  Error
+                </span>
+              </div>
+              <div class="agent-desc">Automated bug detection and triage agent. Scans logs and creates tickets for anomalies.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">Failed</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">731</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Card 6 -->
+        <div class="agent-card">
+          <div class="agent-card-header">
+            <div class="agent-icon gradient-6">&#128172;</div>
+            <div class="agent-meta">
+              <div class="agent-name">
+                SupportMate
+                <span class="status-badge active">
+                  <span class="status-dot"></span>
+                  Active
+                </span>
+              </div>
+              <div class="agent-desc">Customer support automation agent. Handles tier-1 tickets and escalates complex issues.</div>
+            </div>
+          </div>
+          <div class="agent-card-stats">
+            <div class="agent-stat">
+              <span class="agent-stat-label">Last Run</span>
+              <span class="agent-stat-value mono-dim">5m ago</span>
+            </div>
+            <div class="agent-stat">
+              <span class="agent-stat-label">Total Runs</span>
+              <span class="agent-stat-value">3,847</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Runs Section -->
+    <section class="section animate-in delay-5">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="title-bracket">[</span>
+          Recent Runs
+          <span class="count">47 active &middot; 1,248 today</span>
+          <span class="title-bracket">]</span>
+        </h2>
+        <div class="section-actions">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Refresh
+          </button>
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            View All
+          </button>
+        </div>
+      </div>
+
+      <div class="runs-table-container">
+        <table class="runs-table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Status</th>
+              <th>Duration</th>
+              <th>Tokens</th>
+              <th>Started</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #00e5ff, #0066ff);">&#129302;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">CodeReview Pro</div>
+                    <div class="run-id">run_8x2k9m4n</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill success">Completed</span></td>
+              <td><span class="run-duration">12.4s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 65%"></div></div>
+                  48.2k
+                </div>
+              </td>
+              <td><span class="run-time">2m 14s ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">&#128269;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">DataScout</div>
+                    <div class="run-id">run_7p1q3r8t</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill running">Running</span></td>
+              <td><span class="run-duration">45.2s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 82%"></div></div>
+                  124.8k
+                </div>
+              </td>
+              <td><span class="run-time">47s ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">&#128640;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">DeployBot</div>
+                    <div class="run-id">run_3w5v7x9y</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill success">Completed</span></td>
+              <td><span class="run-duration">3m 28s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 45%"></div></div>
+                  32.1k
+                </div>
+              </td>
+              <td><span class="run-time">12m 03s ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #ffa502, #ff6348);">&#9888;&#65039;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">BugHunter</div>
+                    <div class="run-id">run_9a4b6c2d</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill failed">Failed</span></td>
+              <td><span class="run-duration">8.7s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 15%; background: linear-gradient(90deg, #ff6b6b, #ee5a24);"></div></div>
+                  12.4k
+                </div>
+              </td>
+              <td><span class="run-time">18m 45s ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #1e90ff, #3742fa);">&#128172;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">SupportMate</div>
+                    <div class="run-id">run_2z8x6w4q</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill running">Running</span></td>
+              <td><span class="run-duration">1m 15s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 55%"></div></div>
+                  67.3k
+                </div>
+              </td>
+              <td><span class="run-time">5m 22s ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="run-agent-cell">
+                  <div class="run-agent-icon" style="background: linear-gradient(135deg, #2ed573, #009432);">&#128221;</div>
+                  <div class="run-agent-info">
+                    <div class="run-agent-name">DocWriter</div>
+                    <div class="run-id">run_5m3n7p1r</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="run-status-pill success">Completed</span></td>
+              <td><span class="run-duration">25.6s</span></td>
+              <td>
+                <div class="run-tokens">
+                  <div class="token-bar"><div class="token-bar-fill" style="width: 38%"></div></div>
+                  28.9k
+                </div>
+              </td>
+              <td><span class="run-time">3h 14m ago</span></td>
+              <td style="text-align: right;">
+                <button class="run-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Terminal prompt accent -->
+      <div class="terminal-prompt animate-in delay-6">
+        <span class="prompt-symbol">$</span>
+        <span>agentforge run --all --watch --verbose</span>
+        <span class="prompt-cursor"></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       RIGHT SIDEBAR - SYSTEM STATUS
+       ============================================================ -->
+  <aside class="rightbar">
+    <!-- Model Availability -->
+    <div class="rightbar-section">
+      <div class="rightbar-section-title">
+        <h3>Model Availability</h3>
+        <button class="refresh-btn">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          sync
+        </button>
+      </div>
+      <div class="model-list">
+        <div class="model-item">
+          <div class="model-indicator online"></div>
+          <div class="model-info">
+            <div class="model-name">GPT-4 Turbo</div>
+            <div class="model-meta">128K ctx <span class="dot"></span> 4K rate</div>
+          </div>
+          <div class="model-latency good">42ms</div>
+        </div>
+        <div class="model-item">
+          <div class="model-indicator online"></div>
+          <div class="model-info">
+            <div class="model-name">Claude 3.5</div>
+            <div class="model-meta">200K ctx <span class="dot"></span> 2K rate</div>
+          </div>
+          <div class="model-latency good">68ms</div>
+        </div>
+        <div class="model-item">
+          <div class="model-indicator degraded"></div>
+          <div class="model-info">
+            <div class="model-name">GPT-4o</div>
+            <div class="model-meta">128K ctx <span class="dot"></span> vision</div>
+          </div>
+          <div class="model-latency warn">215ms</div>
+        </div>
+        <div class="model-item">
+          <div class="model-indicator online"></div>
+          <div class="model-info">
+            <div class="model-name">Llama 3.1 70B</div>
+            <div class="model-meta">128K ctx <span class="dot"></span> self-hosted</div>
+          </div>
+          <div class="model-latency good">89ms</div>
+        </div>
+        <div class="model-item">
+          <div class="model-indicator offline"></div>
+          <div class="model-info">
+            <div class="model-name">Gemini Pro 1.5</div>
+            <div class="model-meta">1M ctx <span class="dot"></span> degraded</div>
+          </div>
+          <div class="model-latency" style="color: var(--accent-coral);">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sandbox Pool -->
+    <div class="rightbar-section">
+      <div class="rightbar-section-title">
+        <h3>Sandbox Pool</h3>
+        <button class="refresh-btn">48 nodes</button>
+      </div>
+      <div class="sandbox-stats">
+        <div class="sandbox-stat">
+          <div class="sandbox-stat-value cyan">32</div>
+          <div class="sandbox-stat-label">Active</div>
+        </div>
+        <div class="sandbox-stat">
+          <div class="sandbox-stat-value green">12</div>
+          <div class="sandbox-stat-label">Idle</div>
+        </div>
+        <div class="sandbox-stat">
+          <div class="sandbox-stat-value amber">3</div>
+          <div class="sandbox-stat-label">Busy</div>
+        </div>
+        <div class="sandbox-stat">
+          <div class="sandbox-stat-value coral">1</div>
+          <div class="sandbox-stat-label">Error</div>
+        </div>
+      </div>
+      <div class="sandbox-visual">
+        <div class="sandbox-grid-label">
+          <span>Node Grid</span>
+          <span style="color: var(--text-muted);">8x6</span>
+        </div>
+        <div class="sandbox-grid" id="sandboxGrid">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Resource Usage -->
+    <div class="rightbar-section">
+      <div class="rightbar-section-title">
+        <h3>Resource Usage</h3>
+      </div>
+      <div class="resource-item">
+        <div class="resource-label-row">
+          <span class="resource-name">CPU</span>
+          <span class="resource-value">67%</span>
+        </div>
+        <div class="resource-bar">
+          <div class="resource-bar-fill cyan" style="width: 67%"></div>
+        </div>
+      </div>
+      <div class="resource-item">
+        <div class="resource-label-row">
+          <span class="resource-name">Memory</span>
+          <span class="resource-value">54%</span>
+        </div>
+        <div class="resource-bar">
+          <div class="resource-bar-fill green" style="width: 54%"></div>
+        </div>
+      </div>
+      <div class="resource-item">
+        <div class="resource-label-row">
+          <span class="resource-name">GPU Queue</span>
+          <span class="resource-value">82%</span>
+        </div>
+        <div class="resource-bar">
+          <div class="resource-bar-fill coral" style="width: 82%"></div>
+        </div>
+      </div>
+      <div class="resource-item">
+        <div class="resource-label-row">
+          <span class="resource-name">Storage</span>
+          <span class="resource-value">38%</span>
+        </div>
+        <div class="resource-bar">
+          <div class="resource-bar-fill cyan" style="width: 38%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="rightbar-section">
+      <div class="rightbar-section-title">
+        <h3>Live Activity</h3>
+      </div>
+      <div class="activity-feed">
+        <div class="activity-item">
+          <div class="activity-timeline-dot cyan"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>CodeReview Pro</strong> completed run on PR #2847</div>
+            <div class="activity-time">just now</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-timeline-dot green"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>DeployBot</strong> deployed to staging env</div>
+            <div class="activity-time">12s ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-timeline-dot amber"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>DataScout</strong> rate limit warning — throttling</div>
+            <div class="activity-time">45s ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-timeline-dot coral"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>BugHunter</strong> failed — OOM on sandbox-12</div>
+            <div class="activity-time">18m ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-timeline-dot green"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>SupportMate</strong> resolved 3 tickets automatically</div>
+            <div class="activity-time">22m ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  // ============================================================
+  // SANDBOX GRID GENERATION
+  // ============================================================
+  (function() {
+    const grid = document.getElementById('sandboxGrid');
+    if (!grid) return;
+
+    const totalCells = 48;
+    const activeCount = 32;
+    const idleCount = 12;
+    const busyCount = 3;
+    const errorCount = 1;
+
+    const cells = [];
+    for (let i = 0; i < activeCount; i++) cells.push('active');
+    for (let i = 0; i < idleCount; i++) cells.push('idle');
+    for (let i = 0; i < busyCount; i++) cells.push('busy');
+    for (let i = 0; i < errorCount; i++) cells.push('error');
+
+    // Shuffle
+    for (let i = cells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+
+    cells.forEach(state => {
+      const cell = document.createElement('div');
+      cell.className = `sandbox-cell ${state}`;
+      cell.title = state.charAt(0).toUpperCase() + state.slice(1);
+      grid.appendChild(cell);
+    });
+  })();
+
+  // ============================================================
+  // FILTER TAB INTERACTION
+  // ============================================================
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      this.parentElement.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // NAV ITEM INTERACTION
+  // ============================================================
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // RECENT RUNS TABLE - ROW CLICK SELECTION
+  // ============================================================
+  document.querySelectorAll('.runs-table tbody tr').forEach(row => {
+    row.addEventListener('click', function(e) {
+      // Don't toggle if clicking the action button
+      if (e.target.closest('.run-action-btn')) return;
+      
+      const isSelected = this.classList.contains('selected');
+      document.querySelectorAll('.runs-table tbody tr').forEach(r => r.classList.remove('selected'));
+      if (!isSelected) {
+        this.classList.add('selected');
+      }
+    });
+  });
+
+  // ============================================================
+  // STATS CARD COUNT-UP ANIMATION
+  // ============================================================
+  (function animateCountUp() {
+    const statValues = document.querySelectorAll('.stat-card-value');
+    
+    statValues.forEach((el, index) => {
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffixText = suffixEl ? suffixEl.textContent : '';
+      const fullText = el.textContent.trim();
+      const valueStr = fullText.replace(suffixText, '').trim();
+      const targetValue = parseFloat(valueStr);
+      const isDecimal = valueStr.includes('.');
+      const decimalPlaces = isDecimal ? valueStr.split('.')[1].length : 0;
+      
+      const duration = 1500 + index * 200;
+      const startTime = performance.now() + index * 150;
+      
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        if (elapsed < 0) {
+          requestAnimationFrame(update);
+          return;
+        }
+        
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = targetValue * easeProgress;
+        
+        let displayValue;
+        if (isDecimal) {
+          displayValue = currentValue.toFixed(decimalPlaces);
+        } else {
+          displayValue = Math.floor(currentValue).toLocaleString();
+        }
+        
+        if (suffixEl) {
+          el.innerHTML = displayValue + '<span class="value-suffix">' + suffixText + '</span>';
+        } else {
+          el.textContent = displayValue;
+        }
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      requestAnimationFrame(update);
+    });
+  })();
+
+  // ============================================================
+  // SUBTLE SANDBOX ANIMATION - random state changes
+  // ============================================================
+  (function() {
+    const states = ['active', 'idle', 'busy', 'error'];
+    const stateWeights = {
+      active: 0.55,
+      idle: 0.30,
+      busy: 0.12,
+      error: 0.03
+    };
+
+    function getRandomState() {
+      const rand = Math.random();
+      let cumulative = 0;
+      for (const state of states) {
+        cumulative += stateWeights[state];
+        if (rand < cumulative) return state;
+      }
+      return 'idle';
+    }
+
+    function updateSandboxStats() {
+      const cells = document.querySelectorAll('.sandbox-cell');
+      if (cells.length === 0) return;
+      
+      let active = 0, idle = 0, busy = 0, error = 0;
+      cells.forEach(cell => {
+        const state = cell.className.replace('sandbox-cell ', '');
+        if (state === 'active') active++;
+        else if (state === 'idle') idle++;
+        else if (state === 'busy') busy++;
+        else if (state === 'error') error++;
+      });
+      
+      const statValues = document.querySelectorAll('.sandbox-stat-value');
+      if (statValues.length >= 4) {
+        statValues[0].textContent = active;
+        statValues[1].textContent = idle;
+        statValues[2].textContent = busy;
+        statValues[3].textContent = error;
+      }
+    }
+
+    setInterval(() => {
+      const cells = document.querySelectorAll('.sandbox-cell');
+      if (cells.length === 0) return;
+
+      // Change 2-4 random cells each tick
+      const numChanges = Math.floor(Math.random() * 3) + 2;
+      const changedIndices = new Set();
+      
+      for (let i = 0; i < numChanges; i++) {
+        let idx;
+        do {
+          idx = Math.floor(Math.random() * cells.length);
+        } while (changedIndices.has(idx));
+        changedIndices.add(idx);
+        
+        const cell = cells[idx];
+        const newState = getRandomState();
+        cell.className = `sandbox-cell ${newState}`;
+        cell.title = newState.charAt(0).toUpperCase() + newState.slice(1);
+      }
+      
+      updateSandboxStats();
+    }, 2000);
+  })();
+
+  // ============================================================
+  // KEYBOARD SHORTCUT - FOCUS SEARCH ON CMD+K
+  // ============================================================
+  document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('.topbar-search input');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  });
+
+  // ============================================================
+  // NOTIFICATION BELL - TOGGLE RED DOT
+  // ============================================================
+  (function() {
+    const notifBtn = document.querySelector('.topbar-btn .notif-dot');
+    if (!notifBtn) return;
+    
+    const bellBtn = notifBtn.parentElement;
+    bellBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const dot = this.querySelector('.notif-dot');
+      if (dot) {
+        dot.style.display = dot.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+  })();
+
+  // ============================================================
+  // SEARCH BOX - FOCUS GLOW EFFECT
+  // ============================================================
+  (function() {
+    const searchWrapper = document.querySelector('.topbar-search');
+    const searchInput = searchWrapper ? searchWrapper.querySelector('input') : null;
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('focus', function() {
+      searchWrapper.classList.add('focused');
+    });
+    
+    searchInput.addEventListener('blur', function() {
+      searchWrapper.classList.remove('focused');
+    });
+  })();
+
+  // ============================================================
+  // AGENT CARD HOVER GLOW EFFECT
+  // ============================================================
+  document.querySelectorAll('.agent-card').forEach(card => {
+    card.addEventListener('mousemove', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Multi-layer radial glow for depth
+      this.style.background = `
+        radial-gradient(circle at ${x}px ${y}px, rgba(0, 229, 255, 0.12) 0%, rgba(0, 229, 255, 0.06) 30%, transparent 60%),
+        var(--bg-panel)
+      `;
+      
+      // Subtle border glow following mouse
+      this.style.boxShadow = `
+        0 8px 32px rgba(0, 229, 255, 0.08),
+        inset 0 0 30px rgba(0, 229, 255, 0.02)
+      `;
+    });
+
+    card.addEventListener('mouseleave', function() {
+      this.style.background = 'var(--bg-panel)';
+      this.style.boxShadow = '';
+    });
+  });
+
+  // ============================================================
+  // STAT CARD HOVER GLOW
+  // ============================================================
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('mousemove', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Determine accent color from icon
+      const icon = this.querySelector('.stat-card-icon');
+      let glowColor = 'rgba(0, 229, 255, 0.08)';
+      if (icon && icon.classList.contains('coral')) {
+        glowColor = 'rgba(255, 107, 107, 0.08)';
+      } else if (icon && icon.classList.contains('green')) {
+        glowColor = 'rgba(46, 213, 115, 0.08)';
+      } else if (icon && icon.classList.contains('amber')) {
+        glowColor = 'rgba(255, 165, 2, 0.08)';
+      }
+
+      this.style.background = `
+        radial-gradient(circle at ${x}px ${y}px, ${glowColor}, transparent 50%),
+        var(--bg-panel)
+      `;
+    });
+
+    card.addEventListener('mouseleave', function() {
+      this.style.background = 'var(--bg-panel)';
+    });
+  });
+
+  // ============================================================
+  // LIVE ACTIVITY FEED - simulated new entries
+  // ============================================================
+  (function() {
+    const activities = [
+      { icon: 'cyan', text: '<strong>DataScout</strong> started deep research crawl', time: 'just now' },
+      { icon: 'green', text: '<strong>CodeReview Pro</strong> approved PR #2848', time: 'just now' },
+      { icon: 'amber', text: '<strong>SupportMate</strong> escalated ticket #8921', time: 'just now' },
+      { icon: 'cyan', text: '<strong>DocWriter</strong> generated API docs v2.4', time: 'just now' },
+    ];
+
+    let activityIdx = 0;
+
+    setInterval(() => {
+      const feed = document.querySelector('.activity-feed');
+      if (!feed) return;
+
+      const activity = activities[activityIdx % activities.length];
+      activityIdx++;
+
+      const item = document.createElement('div');
+      item.className = 'activity-item';
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(-5px)';
+      item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      item.innerHTML = `
+        <div class="activity-timeline-dot ${activity.icon}"></div>
+        <div class="activity-content">
+          <div class="activity-text">${activity.text}</div>
+          <div class="activity-time">${activity.time}</div>
+        </div>
+      `;
+
+      feed.insertBefore(item, feed.firstChild);
+
+      // Remove old items to keep list at 5
+      while (feed.children.length > 5) {
+        feed.removeChild(feed.lastChild);
+      }
+
+      // Animate in
+      requestAnimationFrame(() => {
+        item.style.opacity = '1';
+        item.style.transform = 'translateY(0)';
+      });
+    }, 8000);
+  })();
+</script>
+</body>
+</html>
