@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Skills Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59, 130, 246, 0.6);
+    --accent-blue-glow: rgba(59, 130, 246, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 14px 10px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .nav-item-badge.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-cyan-dim);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 24px 28px;
+    position: relative;
+  }
+
+  /* ============================================================
+     PAGE HEADER (Skills Toolbar)
+     ============================================================ */
+  .skills-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+
+  .skills-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .skills-page-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .skills-page-title .title-bracket {
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .skills-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .skills-search input {
+    width: 100%;
+    height: 36px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 36px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .skills-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .skills-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .skills-search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  .skills-search:focus-within .skills-search-icon {
+    color: var(--accent-cyan);
+  }
+
+  .skills-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .skills-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 4px 9px;
+  }
+
+  /* Sort dropdown */
+  .sort-dropdown {
+    position: relative;
+  }
+
+  .sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .sort-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .sort-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.2s ease;
+  }
+
+  .sort-dropdown.open .sort-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .sort-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .sort-dropdown.open .sort-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .sort-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .sort-menu-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .sort-menu-item.active {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .sort-menu-item .check {
+    margin-left: auto;
+    opacity: 0;
+  }
+
+  .sort-menu-item.active .check {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     FEATURED HERO SECTION
+     ============================================================ */
+  .featured-section {
+    margin-bottom: 24px;
+  }
+
+  .featured-card {
+    position: relative;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .featured-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 12px 40px rgba(0, 229, 255, 0.1);
+  }
+
+  .featured-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 229, 255, 0.08), transparent 50%);
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .featured-card:hover::before {
+    opacity: 1;
+  }
+
+  .featured-card-glow {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+  }
+
+  .featured-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .featured-badge svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .featured-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .featured-info {
+    min-width: 0;
+  }
+
+  .featured-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+
+  .featured-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .featured-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+  }
+
+  .featured-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: var(--bg-deep);
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .featured-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .featured-title .pro-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--bg-deep);
+    background: linear-gradient(135deg, var(--accent-amber), var(--accent-coral));
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+
+  .featured-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .featured-author-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--bg-deep);
+  }
+
+  .featured-author-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .featured-author-name .verified {
+    color: var(--accent-cyan);
+    margin-left: 4px;
+  }
+
+  .featured-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+
+  .featured-tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .featured-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+  }
+
+  .featured-stats {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .featured-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .featured-stat-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .featured-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .featured-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .featured-rating .stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .featured-rating .star {
+    color: var(--accent-amber);
+  }
+
+  .featured-rating .star svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+
+  .featured-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .featured-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 22px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .featured-install-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .featured-install-btn:hover::before {
+    left: 100%;
+  }
+
+  .featured-install-btn:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .featured-install-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .featured-install-btn.installed {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+  }
+
+  .featured-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  /* ============================================================
+     SKILLS GRID
+     ============================================================ */
+  .skills-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .skills-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .skills-section-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .skills-section-title .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-panel);
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    font-weight: 400;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .skill-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 229, 255, 0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .skill-card:hover::before {
+    opacity: 1;
+  }
+
+  .skill-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 229, 255, 0.08);
+  }
+
+  .skill-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .skill-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .skill-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+  }
+
+  .skill-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .skill-icon.research {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.05));
+    color: var(--accent-cyan);
+  }
+
+  .skill-icon.development {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
+    color: var(--accent-purple);
+  }
+
+  .skill-icon.data {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.05));
+    color: var(--accent-green);
+  }
+
+  .skill-icon.writing {
+    background: linear-gradient(135deg, rgba(255, 165, 2, 0.2), rgba(255, 165, 2, 0.05));
+    color: var(--accent-amber);
+  }
+
+  .skill-icon.productivity {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
+    color: var(--accent-blue);
+  }
+
+  .skill-icon.testing {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.05));
+    color: var(--accent-coral);
+  }
+
+  .skill-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .skill-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .category-badge.research {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .category-badge.development {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+  }
+
+  .category-badge.data {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+  }
+
+  .category-badge.writing {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.3);
+  }
+
+  .category-badge.productivity {
+    background: var(--accent-blue-glow);
+    color: var(--accent-blue-dim);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .category-badge.testing {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .skill-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .skill-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
+    z-index: 1;
+  }
+
+  .skill-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .skill-author-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--bg-deep);
+  }
+
+  .skill-author-avatar.a1 { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); }
+  .skill-author-avatar.a2 { background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan)); }
+  .skill-author-avatar.a3 { background: linear-gradient(135deg, var(--accent-amber), var(--accent-coral)); }
+  .skill-author-avatar.a4 { background: linear-gradient(135deg, var(--accent-purple), var(--accent-coral)); }
+  .skill-author-avatar.a5 { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); }
+  .skill-author-avatar.a6 { background: linear-gradient(135deg, var(--accent-coral), var(--accent-purple)); }
+
+  .skill-author-name {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+  }
+
+  .skill-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .skill-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .skill-stat svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .skill-stat.installs {
+    color: var(--text-secondary);
+  }
+
+  .skill-stat.rating {
+    color: var(--accent-amber);
+  }
+
+  .skill-stat.rating svg {
+    fill: currentColor;
+  }
+
+  .skill-version {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    padding: 2px 6px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .skill-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
+    z-index: 1;
+  }
+
+  .skill-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--bg-panel-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .skill-install-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .skill-install-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .skill-install-btn.installed {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+    cursor: default;
+  }
+
+  .skill-install-btn.installing {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .skill-install-btn .check-icon {
+    animation: check-pop 0.3s ease;
+  }
+
+  @keyframes check-pop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .installed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .installed-badge svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* Star rating interactive */
+  .stars-display {
+    display: flex;
+    gap: 1px;
+    cursor: pointer;
+  }
+
+  .stars-display .star {
+    color: var(--text-muted);
+    transition: color 0.15s ease;
+  }
+
+  .stars-display .star.filled {
+    color: var(--accent-amber);
+  }
+
+  .stars-display .star svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+
+  .stars-display:hover .star {
+    color: var(--accent-amber);
+  }
+
+  .stars-display .star:hover ~ .star {
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .skill-card {
+    animation: fadeInUp 0.4s ease backwards;
+  }
+
+  .skill-card:nth-child(1) { animation-delay: 0.02s; }
+  .skill-card:nth-child(2) { animation-delay: 0.05s; }
+  .skill-card:nth-child(3) { animation-delay: 0.08s; }
+  .skill-card:nth-child(4) { animation-delay: 0.11s; }
+  .skill-card:nth-child(5) { animation-delay: 0.14s; }
+  .skill-card:nth-child(6) { animation-delay: 0.17s; }
+  .skill-card:nth-child(7) { animation-delay: 0.20s; }
+  .skill-card:nth-child(8) { animation-delay: 0.23s; }
+  .skill-card:nth-child(9) { animation-delay: 0.26s; }
+  .skill-card:nth-child(10) { animation-delay: 0.29s; }
+  .skill-card:nth-child(11) { animation-delay: 0.32s; }
+  .skill-card:nth-child(12) { animation-delay: 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge coral">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/><path d="M9 9h.01M15 9h.01M10 14h4"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>workspace</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Skills</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="topbar-btn" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+
+    <!-- Skills Toolbar -->
+    <div class="skills-header">
+      <div class="skills-header-left">
+        <div class="skills-page-title">
+          <span class="title-bracket">[</span>
+          Skills Marketplace
+          <span class="title-bracket">]</span>
+        </div>
+        <div class="skills-search">
+          <span class="skills-search-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="text" id="skillSearch" placeholder="Search skills, authors, tags..." />
+        </div>
+      </div>
+      <div class="skills-header-right">
+        <div class="filter-tabs">
+          <div class="filter-tab active" data-filter="all">All</div>
+          <div class="filter-tab" data-filter="installed">Installed</div>
+          <div class="filter-tab" data-filter="official">Official</div>
+          <div class="filter-tab" data-filter="community">Community</div>
+          <div class="filter-tab" data-filter="custom">Custom</div>
+        </div>
+        <div class="sort-dropdown" id="sortDropdown">
+          <button class="sort-btn" id="sortBtn">
+            <span>Most Popular</span>
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sort-menu">
+            <div class="sort-menu-item active" data-sort="popular">Most Popular<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="recent">Recently Added<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="rating">Top Rated<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="installs">Most Installs<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="updated">Recently Updated<span class="check">✓</span></div>
+          </div>
+        </div>
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Install Skill
+        </button>
+      </div>
+    </div>
+
+    <!-- Featured Hero Section -->
+    <div class="featured-section">
+      <div class="featured-card" id="featuredCard">
+        <div class="featured-card-glow"></div>
+        <div class="featured-badge">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Featured Skill
+        </div>
+        <div class="featured-content">
+          <div class="featured-info">
+            <div class="featured-title-row">
+              <div class="featured-icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11l2 2 4-4"/></svg>
+              </div>
+              <div>
+                <div class="featured-title">
+                  Deep Research Pro
+                  <span class="pro-badge">PRO</span>
+                </div>
+              </div>
+            </div>
+            <div class="featured-author">
+              <div class="featured-author-avatar">AF</div>
+              <span class="featured-author-name">
+                AgentForge Team
+                <span class="verified">✓ Verified</span>
+              </span>
+            </div>
+            <p class="featured-description">
+              Advanced research skill that performs deep web investigation, multi-source cross-referencing, and structured report generation. Powered by autonomous browsing with citation verification and fact-checking across 50+ sources.
+            </p>
+            <div class="featured-tags">
+              <span class="featured-tag">web-research</span>
+              <span class="featured-tag">reporting</span>
+              <span class="featured-tag">fact-checking</span>
+              <span class="featured-tag">multi-source</span>
+              <span class="featured-tag">citations</span>
+            </div>
+            <div class="featured-stats">
+              <div class="featured-stat">
+                <span class="featured-stat-value">24.8k</span>
+                <span class="featured-stat-label">Installs</span>
+              </div>
+              <div class="featured-stat">
+                <div class="featured-rating">
+                  <div class="stars">
+                    <span class="star"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <span class="star"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <span class="star"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <span class="star"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <span class="star"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                  </div>
+                  <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text-primary);">4.9</span>
+                </div>
+                <span class="featured-stat-label">Rating (1.2k reviews)</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-action">
+            <button class="featured-install-btn" id="featuredInstallBtn">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Install Now
+            </button>
+            <span class="featured-version">v3.2.1 • 2 days ago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Grid -->
+    <div class="skills-section-header">
+      <div class="skills-section-title">
+        <span class="title-bracket">[</span>
+        All Skills
+        <span class="count" id="skillCount">12</span>
+        <span class="title-bracket">]</span>
+      </div>
+    </div>
+
+    <div class="skills-grid" id="skillsGrid">
+
+      <!-- Deep Research -->
+      <div class="skill-card" data-category="research" data-source="official" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon research">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11l2 2 4-4"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Deep Research
+              <span class="category-badge research">Research</span>
+            </div>
+            <p class="skill-desc">Autonomous web research with multi-source verification and structured insights.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a1">AF</div>
+            <span class="skill-author-name">agentforge</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              24.8k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.9
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v2.4.0</span>
+          <button class="skill-install-btn" data-skill="deep-research">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Review -->
+      <div class="skill-card" data-category="development" data-source="official" data-installed="true">
+        <div class="skill-card-header">
+          <div class="skill-icon development">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Code Review
+              <span class="category-badge development">Dev</span>
+            </div>
+            <p class="skill-desc">AI-powered code review with bug detection, style analysis, and best practice suggestions.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a2">DV</div>
+            <span class="skill-author-name">devteam</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              18.3k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.7
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v1.8.2</span>
+          <div class="installed-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Analysis -->
+      <div class="skill-card" data-category="data" data-source="official" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon data">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Data Analysis
+              <span class="category-badge data">Data</span>
+            </div>
+            <p class="skill-desc">Statistical analysis, trend detection, and insight extraction from structured datasets.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a3">DS</div>
+            <span class="skill-author-name">datasci</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              15.6k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.8
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v2.1.0</span>
+          <button class="skill-install-btn" data-skill="data-analysis">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Writing -->
+      <div class="skill-card" data-category="writing" data-source="community" data-installed="true">
+        <div class="skill-card-header">
+          <div class="skill-icon writing">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Report Writing
+              <span class="category-badge writing">Writing</span>
+            </div>
+            <p class="skill-desc">Professional report generation with executive summaries, data visualization, and citations.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a4">RW</div>
+            <span class="skill-author-name">wordsmith</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              12.1k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.6
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v1.5.3</span>
+          <div class="installed-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed
+          </div>
+        </div>
+      </div>
+
+      <!-- API Tester -->
+      <div class="skill-card" data-category="testing" data-source="official" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon testing">
+            <svg viewBox="0 0 24 24"><path d="M10 2v7.527a2 2 0 01-2.1 2 2 2 0 01-1.9-2V2H5v7.527a2 2 0 01-2.1 2 2 2 0 01-1.9-2V2H0v14a2 2 0 002 2h11a2 2 0 002-2V2h-5z"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              API Tester
+              <span class="category-badge testing">Testing</span>
+            </div>
+            <p class="skill-desc">Automated API testing with request generation, response validation, and contract testing.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a5">QA</div>
+            <span class="skill-author-name">qalab</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              9.7k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.5
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v3.0.1</span>
+          <button class="skill-install-btn" data-skill="api-tester">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Doc Generator -->
+      <div class="skill-card" data-category="development" data-source="community" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon development">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Doc Generator
+              <span class="category-badge development">Dev</span>
+            </div>
+            <p class="skill-desc">Auto-generate API docs, READMEs, and code documentation from source code analysis.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a6">DG</div>
+            <span class="skill-author-name">docgen</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              8.4k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.4
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v2.2.0</span>
+          <button class="skill-install-btn" data-skill="doc-generator">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart Builder -->
+      <div class="skill-card" data-category="data" data-source="official" data-installed="true">
+        <div class="skill-card-header">
+          <div class="skill-icon data">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Chart Builder
+              <span class="category-badge data">Data</span>
+            </div>
+            <p class="skill-desc">Create beautiful charts and data visualizations from raw data with smart chart type selection.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a1">CB</div>
+            <span class="skill-author-name">chartlab</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              11.2k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.7
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v1.9.4</span>
+          <div class="installed-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed
+          </div>
+        </div>
+      </div>
+
+      <!-- Web Scraper -->
+      <div class="skill-card" data-category="productivity" data-source="community" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon productivity">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Web Scraper
+              <span class="category-badge productivity">Productivity</span>
+            </div>
+            <p class="skill-desc">Intelligent web scraping with JS rendering, anti-bot detection bypass, and structured output.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a2">WS</div>
+            <span class="skill-author-name">scrapehub</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              13.5k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.6
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v4.1.0</span>
+          <button class="skill-install-btn" data-skill="web-scraper">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Email Drafter -->
+      <div class="skill-card" data-category="writing" data-source="official" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon writing">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Email Drafter
+              <span class="category-badge writing">Writing</span>
+            </div>
+            <p class="skill-desc">Context-aware email composition with tone adjustment, follow-ups, and smart reply suggestions.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a3">ED</div>
+            <span class="skill-author-name">inboxai</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              7.8k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.3
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v1.3.2</span>
+          <button class="skill-install-btn" data-skill="email-drafter">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Meeting Notes -->
+      <div class="skill-card" data-category="productivity" data-source="community" data-installed="true">
+        <div class="skill-card-header">
+          <div class="skill-icon productivity">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Meeting Notes
+              <span class="category-badge productivity">Productivity</span>
+            </div>
+            <p class="skill-desc">Transcribe meetings, extract action items, generate summaries, and track decisions automatically.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a4">MN</div>
+            <span class="skill-author-name">meetwise</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              10.6k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.8
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v2.0.5</span>
+          <div class="installed-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Generator -->
+      <div class="skill-card" data-category="testing" data-source="official" data-installed="false">
+        <div class="skill-card-header">
+          <div class="skill-icon testing">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Test Generator
+              <span class="category-badge testing">Testing</span>
+            </div>
+            <p class="skill-desc">Auto-generate unit tests, integration tests, and edge cases from code analysis and specs.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a5">TG</div>
+            <span class="skill-author-name">testforge</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              8.9k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.5
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v1.7.1</span>
+          <button class="skill-install-btn" data-skill="test-generator">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Formatter -->
+      <div class="skill-card" data-category="development" data-source="custom" data-installed="true">
+        <div class="skill-card-header">
+          <div class="skill-icon development">
+            <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+          </div>
+          <div class="skill-meta">
+            <div class="skill-name">
+              Code Formatter
+              <span class="category-badge development">Dev</span>
+            </div>
+            <p class="skill-desc">Multi-language code formatting with custom style rules, import sorting, and cleanup.</p>
+          </div>
+        </div>
+        <div class="skill-card-footer">
+          <div class="skill-author">
+            <div class="skill-author-avatar a6">CF</div>
+            <span class="skill-author-name">formatkit</span>
+          </div>
+          <div class="skill-stats">
+            <div class="skill-stat installs">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+              6.2k
+            </div>
+            <div class="skill-stat rating">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              4.2
+            </div>
+          </div>
+        </div>
+        <div class="skill-card-bottom">
+          <span class="skill-version">v3.1.0</span>
+          <div class="installed-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // ============================================================
+  // 1. Sidebar nav click toggles active state
+  // ============================================================
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // 2. Filter tabs click to switch active tab and filter cards
+  // ============================================================
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  const skillCards = document.querySelectorAll('.skill-card');
+  const skillCount = document.getElementById('skillCount');
+
+  function updateSkillCount() {
+    const visible = document.querySelectorAll('.skill-card:not([style*="display: none"])');
+    skillCount.textContent = visible.length;
+  }
+
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Update active tab
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const filter = tab.dataset.filter;
+
+      // Filter cards
+      skillCards.forEach(card => {
+        if (filter === 'all') {
+          card.style.display = '';
+        } else if (filter === 'installed') {
+          card.style.display = card.dataset.installed === 'true' ? '' : 'none';
+        } else if (filter === 'official') {
+          card.style.display = card.dataset.source === 'official' ? '' : 'none';
+        } else if (filter === 'community') {
+          card.style.display = card.dataset.source === 'community' ? '' : 'none';
+        } else if (filter === 'custom') {
+          card.style.display = card.dataset.source === 'custom' ? '' : 'none';
+        }
+      });
+
+      updateSkillCount();
+    });
+  });
+
+  // ============================================================
+  // 3. Install button click changes to "Installed" state
+  // ============================================================
+  document.querySelectorAll('.skill-install-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (this.classList.contains('installed') || this.classList.contains('installing')) return;
+
+      this.classList.add('installing');
+      this.innerHTML = `
+        <svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+          <path d="M21 12a9 9 0 11-6.219-8.56" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        </svg>
+        Installing...
+      `;
+
+      setTimeout(() => {
+        this.classList.remove('installing');
+        this.classList.add('installed');
+        this.closest('.skill-card').dataset.installed = 'true';
+        this.innerHTML = `
+          <svg class="check-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Installed
+        `;
+
+        // If currently on "Installed" filter, make sure card stays visible
+        const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+        if (activeFilter === 'installed') {
+          this.closest('.skill-card').style.display = '';
+          updateSkillCount();
+        }
+      }, 800);
+    });
+  });
+
+  // Featured install button
+  const featuredInstallBtn = document.getElementById('featuredInstallBtn');
+  featuredInstallBtn.addEventListener('click', function() {
+    if (this.classList.contains('installed')) return;
+
+    this.classList.add('installing');
+    this.innerHTML = `
+      <svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+        <path d="M21 12a9 9 0 11-6.219-8.56" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      </svg>
+      Installing...
+    `;
+
+    setTimeout(() => {
+      this.classList.remove('installing');
+      this.classList.add('installed');
+      this.innerHTML = `
+        <svg class="check-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Installed
+      `;
+    }, 1200);
+  });
+
+  // Add spin animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ============================================================
+  // 4. Search input focus glow (handled via CSS :focus-within)
+  // ============================================================
+
+  // Search functionality
+  const searchInput = document.getElementById('skillSearch');
+  searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+
+    skillCards.forEach(card => {
+      const name = card.querySelector('.skill-name').textContent.toLowerCase();
+      const desc = card.querySelector('.skill-desc').textContent.toLowerCase();
+      const author = card.querySelector('.skill-author-name').textContent.toLowerCase();
+      const matchesSearch = name.includes(query) || desc.includes(query) || author.includes(query);
+
+      let matchesFilter = true;
+      if (activeFilter === 'installed') {
+        matchesFilter = card.dataset.installed === 'true';
+      } else if (activeFilter === 'official') {
+        matchesFilter = card.dataset.source === 'official';
+      } else if (activeFilter === 'community') {
+        matchesFilter = card.dataset.source === 'community';
+      } else if (activeFilter === 'custom') {
+        matchesFilter = card.dataset.source === 'custom';
+      }
+
+      card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+    });
+
+    updateSkillCount();
+  });
+
+  // ============================================================
+  // 5. Card hover with mouse-follow glow effect
+  // ============================================================
+  document.querySelectorAll('.skill-card').forEach(card => {
+    card.addEventListener('mousemove', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      this.style.setProperty('--mouse-x', x + '%');
+      this.style.setProperty('--mouse-y', y + '%');
+    });
+  });
+
+  // ============================================================
+  // 6. Featured card parallax hover effect
+  // ============================================================
+  const featuredCard = document.getElementById('featuredCard');
+  featuredCard.addEventListener('mousemove', function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    this.style.setProperty('--mouse-x', x + '%');
+    this.style.setProperty('--mouse-y', y + '%');
+
+    // Parallax tilt effect
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const rotateX = (mouseY - centerY) / centerY * -2;
+    const rotateY = (mouseX - centerX) / centerX * 2;
+
+    const icon = this.querySelector('.featured-icon');
+    if (icon) {
+      icon.style.transform = `translateX(${(mouseX - centerX) / 30}px) translateY(${(mouseY - centerY) / 30}px)`;
+    }
+  });
+
+  featuredCard.addEventListener('mouseleave', function() {
+    const icon = this.querySelector('.featured-icon');
+    if (icon) {
+      icon.style.transform = '';
+    }
+  });
+
+  // ============================================================
+  // 7. Sort dropdown open/close
+  // ============================================================
+  const sortDropdown = document.getElementById('sortDropdown');
+  const sortBtn = document.getElementById('sortBtn');
+  const sortMenuItems = document.querySelectorAll('.sort-menu-item');
+
+  sortBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sortDropdown.classList.toggle('open');
+  });
+
+  sortMenuItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      sortMenuItems.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      sortBtn.querySelector('span').textContent = this.textContent.replace('✓', '').trim();
+      sortDropdown.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    sortDropdown.classList.remove('open');
+  });
+
+  // ============================================================
+  // 8. Star rating visual interaction
+  // ============================================================
+  // Stars are currently static for the skill cards (display-only rating)
+  // Adding interactive hover effect to all star displays
+  document.querySelectorAll('.skill-stat.rating').forEach(rating => {
+    rating.style.cursor = 'pointer';
+    rating.addEventListener('mouseenter', function() {
+      this.style.filter = 'brightness(1.2)';
+    });
+    rating.addEventListener('mouseleave', function() {
+      this.style.filter = '';
+    });
+  });
+</script>
+
+</body>
+</html>
