@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Traces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     FILTER BAR
+     ============================================================ */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .filter-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 5px 13px;
+  }
+
+  .filter-tab .tab-count {
+    font-size: 10px;
+    padding: 1px 5px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+  }
+
+  .filter-tab.active .tab-count {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan-dim);
+  }
+
+  .filter-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dropdown {
+    position: relative;
+  }
+
+  .dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .dropdown-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .dropdown-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.15s ease;
+  }
+
+  .dropdown.open .dropdown-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .dropdown.open .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .dropdown-item.active {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     TRACES TABLE
+     ============================================================ */
+  .table-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .table-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .table-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .table-title .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-panel-2);
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    font-weight: 400;
+  }
+
+  .table-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .traces-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .traces-table thead th {
+    text-align: left;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--bg-panel-2);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  .traces-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+  }
+
+  .traces-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .traces-table tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+
+  .trace-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .trace-id .trace-expand-icon {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    transition: transform 0.15s ease;
+  }
+
+  .trace-expand-icon svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  tr.expanded .trace-expand-icon {
+    transform: rotate(90deg);
+    color: var(--accent-cyan);
+  }
+
+  .agent-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .agent-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+    flex-shrink: 0;
+  }
+
+  .agent-name {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .duration-cell {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .token-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .time-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  /* Status Badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+
+  .status-badge.success {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.25);
+  }
+
+  .status-badge.running {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.25);
+  }
+
+  .status-badge.failed {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.25);
+  }
+
+  .status-badge.pending {
+    background: rgba(90, 101, 128, 0.15);
+    color: var(--text-tertiary);
+    border: 1px solid rgba(90, 101, 128, 0.25);
+  }
+
+  .status-badge .status-icon {
+    width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-badge .status-icon svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* ============================================================
+     SPAN TREE (expanded row)
+     ============================================================ */
+  .span-tree-row {
+    display: none;
+    background: var(--bg-panel-2);
+  }
+
+  tr.expanded + .span-tree-row {
+    display: table-row;
+  }
+
+  .span-tree-cell {
+    padding: 0 !important;
+  }
+
+  .span-tree-container {
+    padding: 16px 16px 16px 40px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .span-tree {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .span-item {
+    position: relative;
+    padding: 8px 0 8px 24px;
+    border-left: 1px solid var(--border-subtle);
+    margin-left: 8px;
+  }
+
+  .span-item::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 14px;
+    width: 12px;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+
+  .span-item:last-child {
+    border-left-color: transparent;
+  }
+
+  .span-item:last-child::before {
+    left: -1px;
+    width: 12px;
+  }
+
+  .span-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+
+  .span-dot {
+    position: absolute;
+    left: -28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+    z-index: 1;
+  }
+
+  .span-dot.root {
+    background: var(--accent-purple);
+    box-shadow: 0 0 6px var(--accent-purple);
+    width: 10px;
+    height: 10px;
+    left: -29px;
+  }
+
+  .span-dot.error {
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
+  .span-name {
+    color: var(--text-primary);
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .span-service {
+    color: var(--text-tertiary);
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .span-duration {
+    color: var(--text-secondary);
+    font-size: 10px;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .span-bar {
+    width: 120px;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .span-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    border-radius: 2px;
+  }
+
+  .span-bar-fill.error {
+    background: linear-gradient(90deg, var(--accent-coral), var(--accent-amber));
+  }
+
+  .span-children {
+    margin-top: 2px;
+  }
+
+  /* Table footer */
+  .table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .table-footer-info {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .table-pagination {
+    display: flex;
+    gap: 4px;
+  }
+
+  .page-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    transition: all 0.15s ease;
+  }
+
+  .page-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .page-btn.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border-color: var(--border-strong);
+  }
+
+  .page-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>observability</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Traces</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" placeholder="Search traces, spans, IDs..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Traces
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Traces
+        </h1>
+        <p class="page-subtitle">
+          <span class="status-indicator"></span>
+          Distributed tracing &amp; span analysis &middot; 24 active traces
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Total Traces</div>
+        <div class="stat-card-value">1,284<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            12.4%
+          </span>
+          <span class="stat-period">last 24h</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Success Rate</div>
+        <div class="stat-card-value">98.2<span class="value-suffix">%</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            0.8%
+          </span>
+          <span class="stat-period">vs last 24h</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Avg Duration</div>
+        <div class="stat-card-value">2.4<span class="value-suffix">s</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend down">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+            5.2%
+          </span>
+          <span class="stat-period">faster</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon purple">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="stat-card-label">Total Spans</div>
+        <div class="stat-card-value">8,462<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            18.7%
+          </span>
+          <span class="stat-period">last 24h</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-left">
+        <!-- Status Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active">
+            All
+            <span class="tab-count">1,284</span>
+          </button>
+          <button class="filter-tab">
+            <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Success
+            <span class="tab-count">1,261</span>
+          </button>
+          <button class="filter-tab">
+            <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Running
+            <span class="tab-count">24</span>
+          </button>
+          <button class="filter-tab">
+            <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Failed
+            <span class="tab-count">23</span>
+          </button>
+        </div>
+
+        <!-- Time Range Dropdown -->
+        <div class="dropdown">
+          <button class="dropdown-btn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Last 24 hours
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item">Last 15 minutes</div>
+            <div class="dropdown-item">Last 1 hour</div>
+            <div class="dropdown-item">Last 6 hours</div>
+            <div class="dropdown-item active">Last 24 hours</div>
+            <div class="dropdown-item">Last 7 days</div>
+            <div class="dropdown-item">Last 30 days</div>
+            <div class="dropdown-item">Custom range...</div>
+          </div>
+        </div>
+
+        <!-- Agent Filter Dropdown -->
+        <div class="dropdown">
+          <button class="dropdown-btn">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+            All Agents
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item active">All Agents</div>
+            <div class="dropdown-item">code-assistant</div>
+            <div class="dropdown-item">data-analyst</div>
+            <div class="dropdown-item">research-agent</div>
+            <div class="dropdown-item">customer-support</div>
+            <div class="dropdown-item">content-writer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Traces Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">
+          <span class="title-bracket">[</span>
+          Trace List
+          <span class="count">1,284 traces</span>
+        </div>
+        <div class="table-actions">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+            Columns
+          </button>
+        </div>
+      </div>
+
+      <table class="traces-table">
+        <thead>
+          <tr>
+            <th style="width: 36px;"></th>
+            <th>Trace ID</th>
+            <th>Agent</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Tokens</th>
+            <th>Spans</th>
+            <th>Started</th>
+          </tr>
+        </thead>
+        <tbody id="tracesTableBody">
+          <!-- Row 1 - Expanded by default -->
+          <tr class="expanded" data-trace-id="tr_01HX7Z8Y9W">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z8Y9W</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot"></span>
+                <span class="agent-name">code-assistant</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">3.42s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">4,821</span></td>
+            <td><span class="token-cell">8</span></td>
+            <td><span class="time-cell">2024-01-15 14:32:18</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <!-- Root Span -->
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / code-assistant</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">3.42s</span>
+                    </div>
+                    <div class="span-children">
+                      <div class="span-item">
+                        <div class="span-header">
+                          <span class="span-dot"></span>
+                          <span class="span-name">tool.call / search_codebase</span>
+                          <span class="span-service">tools</span>
+                          <div class="span-bar"><div class="span-bar-fill" style="width: 35%"></div></div>
+                          <span class="span-duration">1.20s</span>
+                        </div>
+                      </div>
+                      <div class="span-item">
+                        <div class="span-header">
+                          <span class="span-dot"></span>
+                          <span class="span-name">llm.generate / gpt-4-turbo</span>
+                          <span class="span-service">models</span>
+                          <div class="span-bar"><div class="span-bar-fill" style="width: 55%"></div></div>
+                          <span class="span-duration">1.88s</span>
+                        </div>
+                        <div class="span-children">
+                          <div class="span-item">
+                            <div class="span-header">
+                              <span class="span-dot"></span>
+                              <span class="span-name">token.calculate</span>
+                              <span class="span-service">models</span>
+                              <div class="span-bar"><div class="span-bar-fill" style="width: 8%"></div></div>
+                              <span class="span-duration">0.27s</span>
+                            </div>
+                          </div>
+                          <div class="span-item">
+                            <div class="span-header">
+                              <span class="span-dot"></span>
+                              <span class="span-name">context.retrieval</span>
+                              <span class="span-service">memory</span>
+                              <div class="span-bar"><div class="span-bar-fill" style="width: 15%"></div></div>
+                              <span class="span-duration">0.51s</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="span-item">
+                        <div class="span-header">
+                          <span class="span-dot"></span>
+                          <span class="span-name">output.format</span>
+                          <span class="span-service">agent</span>
+                          <div class="span-bar"><div class="span-bar-fill" style="width: 5%"></div></div>
+                          <span class="span-duration">0.18s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 2 -->
+          <tr data-trace-id="tr_01HX7Z7X8V">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z7X8V</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple);"></span>
+                <span class="agent-name">data-analyst</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">5.87s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">12,450</span></td>
+            <td><span class="token-cell">15</span></td>
+            <td><span class="time-cell">2024-01-15 14:30:42</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / data-analyst</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">5.87s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 3 - Running -->
+          <tr data-trace-id="tr_01HX7Z6W7U">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z6W7U</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green);"></span>
+                <span class="agent-name">research-agent</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">8.23s</span></td>
+            <td><span class="status-badge running"><span class="status-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg></span>running</span></td>
+            <td><span class="token-cell">6,789</span></td>
+            <td><span class="token-cell">12</span></td>
+            <td><span class="time-cell">2024-01-15 14:29:55</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / research-agent</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">8.23s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 4 - Failed -->
+          <tr data-trace-id="tr_01HX7Z5T6S">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z5T6S</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-coral); box-shadow: 0 0 6px var(--accent-coral);"></span>
+                <span class="agent-name">customer-support</span>
+              </div>
+            </td>
+            <td><span class="duration-cell" style="color: var(--accent-coral);">1.24s</span></td>
+            <td><span class="status-badge failed"><span class="status-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>failed</span></td>
+            <td><span class="token-cell">892</span></td>
+            <td><span class="token-cell">3</span></td>
+            <td><span class="time-cell">2024-01-15 14:28:10</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root error"></span>
+                      <span class="span-name" style="color: var(--accent-coral);">agent.run / customer-support</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill error" style="width: 100%"></div></div>
+                      <span class="span-duration" style="color: var(--accent-coral);">1.24s</span>
+                    </div>
+                    <div class="span-children">
+                      <div class="span-item">
+                        <div class="span-header">
+                          <span class="span-dot"></span>
+                          <span class="span-name">tool.call / lookup_kb</span>
+                          <span class="span-service">tools</span>
+                          <div class="span-bar"><div class="span-bar-fill" style="width: 40%"></div></div>
+                          <span class="span-duration">0.50s</span>
+                        </div>
+                      </div>
+                      <div class="span-item">
+                        <div class="span-header">
+                          <span class="span-dot error"></span>
+                          <span class="span-name" style="color: var(--accent-coral);">llm.generate / gpt-4</span>
+                          <span class="span-service">models</span>
+                          <div class="span-bar"><div class="span-bar-fill error" style="width: 60%"></div></div>
+                          <span class="span-duration" style="color: var(--accent-coral);">0.74s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 5 -->
+          <tr data-trace-id="tr_01HX7Z4R5Q">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z4R5Q</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber);"></span>
+                <span class="agent-name">content-writer</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">7.12s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">8,341</span></td>
+            <td><span class="token-cell">6</span></td>
+            <td><span class="time-cell">2024-01-15 14:25:33</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / content-writer</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">7.12s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 6 -->
+          <tr data-trace-id="tr_01HX7Z3P4O">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z3P4O</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot"></span>
+                <span class="agent-name">code-assistant</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">2.15s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">3,210</span></td>
+            <td><span class="token-cell">5</span></td>
+            <td><span class="time-cell">2024-01-15 14:22:08</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / code-assistant</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">2.15s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 7 -->
+          <tr data-trace-id="tr_01HX7Z2N3M">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z2N3M</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple);"></span>
+                <span class="agent-name">data-analyst</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">4.67s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">9,876</span></td>
+            <td><span class="token-cell">11</span></td>
+            <td><span class="time-cell">2024-01-15 14:18:45</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / data-analyst</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">4.67s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 8 -->
+          <tr data-trace-id="tr_01HX7Z1L2K">
+            <td>
+              <span class="trace-expand-icon">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </td>
+            <td>
+              <div class="trace-id">tr_01HX7Z1L2K</div>
+            </td>
+            <td>
+              <div class="agent-cell">
+                <span class="agent-dot" style="background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green);"></span>
+                <span class="agent-name">research-agent</span>
+              </div>
+            </td>
+            <td><span class="duration-cell">12.84s</span></td>
+            <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>success</span></td>
+            <td><span class="token-cell">15,234</span></td>
+            <td><span class="token-cell">22</span></td>
+            <td><span class="time-cell">2024-01-15 14:15:20</span></td>
+          </tr>
+          <tr class="span-tree-row">
+            <td colspan="8" class="span-tree-cell">
+              <div class="span-tree-container">
+                <div class="span-tree">
+                  <div class="span-item">
+                    <div class="span-header">
+                      <span class="span-dot root"></span>
+                      <span class="span-name">agent.run / research-agent</span>
+                      <span class="span-service">agent</span>
+                      <div class="span-bar"><div class="span-bar-fill" style="width: 100%"></div></div>
+                      <span class="span-duration">12.84s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table Footer -->
+      <div class="table-footer">
+        <div class="table-footer-info">
+          Showing 1–8 of 1,284 traces
+        </div>
+        <div class="table-pagination">
+          <button class="page-btn">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">4</button>
+          <button class="page-btn">5</button>
+          <button class="page-btn">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ============================================================
+  // TRACE ROW EXPAND/COLLAPSE
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    const traceRows = document.querySelectorAll('#tracesTableBody tr[data-trace-id]');
+
+    traceRows.forEach(row => {
+      row.addEventListener('click', function() {
+        const isExpanded = this.classList.contains('expanded');
+
+        // Toggle current row
+        if (isExpanded) {
+          this.classList.remove('expanded');
+        } else {
+          this.classList.add('expanded');
+        }
+      });
+    });
+
+    // ============================================================
+    // DROPDOWNS
+    // ============================================================
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdown = this.closest('.dropdown');
+        document.querySelectorAll('.dropdown.open').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        dropdown.classList.toggle('open');
+      });
+    });
+
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    });
+
+    // ============================================================
+    // FILTER TABS
+    // ============================================================
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        this.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  });
+</script>
+</body>
+</html>

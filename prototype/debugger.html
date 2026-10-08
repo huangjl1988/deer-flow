@@ -1,0 +1,3210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Debugger — research-agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59, 130, 246, 0.6);
+    --accent-blue-glow: rgba(59, 130, 246, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+    --statusbar-height: 32px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     SCAN LINE EFFECT (subtle)
+     ============================================================ */
+  .scanline-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(0, 0, 0, 0.03) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.3;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr var(--statusbar-height);
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main"
+      "sidebar statusbar";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR (DEBUGGER)
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .run-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.3);
+  }
+
+  .run-status-badge .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+    animation: pulse-amber 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-amber {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px var(--accent-amber); }
+    50% { opacity: 0.7; transform: scale(1.3); box-shadow: 0 0 12px var(--accent-amber); }
+  }
+
+  .topbar-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .debug-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .debug-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .debug-btn:active {
+    transform: scale(0.95);
+  }
+
+  .debug-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .debug-btn.play {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border-color: var(--border-strong);
+  }
+
+  .debug-btn.play:hover {
+    box-shadow: var(--shadow-glow-cyan);
+  }
+
+  .debug-btn.play svg {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .debug-btn.stop {
+    color: var(--accent-coral);
+  }
+
+  .debug-btn.stop:hover {
+    background: var(--accent-coral-glow);
+    border-color: rgba(255, 107, 107, 0.3);
+  }
+
+  .debug-btn.stop svg {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .debug-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    border: 1px solid var(--border-medium);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .speed-selector {
+    display: flex;
+    align-items: center;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .speed-btn {
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .speed-btn:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .speed-btn.active {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .breakpoint-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .breakpoint-count .bp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
+  .btn-clear {
+    height: 30px;
+    padding: 0 12px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-clear:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  /* ============================================================
+     MAIN CONTENT (DEBUGGER LAYOUT)
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas:
+      "timeline inspector"
+      "timeline tooldetails";
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel {
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel-timeline {
+    grid-area: timeline;
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .panel-inspector {
+    grid-area: inspector;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .panel-tooldetails {
+    grid-area: tooldetails;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel);
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title .title-icon {
+    color: var(--accent-cyan);
+  }
+
+  .panel-title .title-icon svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .panel-action-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .panel-action-btn:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+    border-color: var(--border-subtle);
+  }
+
+  .panel-action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     RESIZABLE DIVIDERS
+     ============================================================ */
+  .divider-vertical {
+    position: absolute;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 10;
+    transition: background 0.15s ease;
+  }
+
+  .divider-vertical:hover {
+    background: var(--accent-cyan-glow);
+  }
+
+  .divider-horizontal {
+    position: absolute;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    cursor: row-resize;
+    z-index: 10;
+    transition: background 0.15s ease;
+  }
+
+  .divider-horizontal:hover {
+    background: var(--accent-cyan-glow);
+  }
+
+  /* ============================================================
+     EXECUTION TIMELINE
+     ============================================================ */
+  .timeline-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .timeline-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0 16px 20px;
+  }
+
+  .timeline-list {
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .timeline-list::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--border-subtle), var(--border-medium), var(--border-subtle));
+  }
+
+  .timeline-step {
+    position: relative;
+    padding: 8px 12px 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  .timeline-step:nth-child(1) { animation-delay: 0.05s; }
+  .timeline-step:nth-child(2) { animation-delay: 0.1s; }
+  .timeline-step:nth-child(3) { animation-delay: 0.15s; }
+  .timeline-step:nth-child(4) { animation-delay: 0.2s; }
+  .timeline-step:nth-child(5) { animation-delay: 0.25s; }
+  .timeline-step:nth-child(6) { animation-delay: 0.3s; }
+  .timeline-step:nth-child(7) { animation-delay: 0.35s; }
+  .timeline-step:nth-child(8) { animation-delay: 0.4s; }
+  .timeline-step:nth-child(9) { animation-delay: 0.45s; }
+  .timeline-step:nth-child(10) { animation-delay: 0.5s; }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .timeline-step:hover .step-content {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .step-dot {
+    position: absolute;
+    left: -28px;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 2px solid var(--border-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: all 0.2s ease;
+  }
+
+  .step-dot svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .timeline-step.llm .step-dot {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .timeline-step.tool .step-dot {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+  }
+
+  .timeline-step.subagent .step-dot {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+  }
+
+  .timeline-step.middleware .step-dot {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: var(--accent-blue-glow);
+  }
+
+  .timeline-step.error .step-dot {
+    border-color: var(--accent-coral);
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+    animation: coral-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes coral-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(255, 107, 107, 0); }
+  }
+
+  .timeline-step.current .step-dot {
+    border-color: var(--accent-cyan);
+    color: var(--bg-deep);
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px rgba(0, 229, 255, 0.3);
+    animation: cyan-pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes cyan-pulse-glow {
+    0%, 100% { box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px rgba(0, 229, 255, 0.3); }
+    50% { box-shadow: 0 0 20px var(--accent-cyan), 0 0 40px rgba(0, 229, 255, 0.2); }
+  }
+
+  .breakpoint-marker {
+    position: absolute;
+    left: -36px;
+    top: 14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+    z-index: 3;
+  }
+
+  .step-content {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+  }
+
+  .timeline-step.current .step-content {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.15);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .step-number {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    background: var(--bg-panel-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .timeline-step.current .step-number {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .step-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .timeline-step.llm .step-type {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+  }
+
+  .timeline-step.tool .step-type {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .timeline-step.subagent .step-type {
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .timeline-step.middleware .step-type {
+    color: var(--accent-blue);
+    background: var(--accent-blue-glow);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .timeline-step.error .step-type {
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .step-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .step-duration {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .step-tokens {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .step-tokens svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .step-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .step-expand-icon {
+    margin-left: auto;
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease;
+  }
+
+  .timeline-step.expanded .step-expand-icon {
+    transform: rotate(90deg);
+  }
+
+  .step-expand-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Step details (expanded) */
+  .step-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, margin-top 0.3s ease;
+  }
+
+  .timeline-step.expanded .step-details {
+    max-height: 500px;
+    margin-top: 10px;
+  }
+
+  .step-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .step-detail-section {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .step-detail-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .step-detail-content {
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .step-detail-content .highlight {
+    color: var(--accent-cyan);
+  }
+
+  /* Sub-agent nested timeline */
+  .subagent-timeline {
+    margin-top: 10px;
+    margin-left: 16px;
+    padding-left: 24px;
+    position: relative;
+    border-left: 1px dashed var(--border-medium);
+  }
+
+  .subagent-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: var(--radius-sm);
+  }
+
+  .subagent-header-icon {
+    color: var(--accent-purple);
+  }
+
+  .subagent-header-icon svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .subagent-header-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-purple);
+  }
+
+  .subagent-header-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+  }
+
+  .sub-step {
+    position: relative;
+    padding: 4px 0;
+  }
+
+  .sub-step-dot {
+    position: absolute;
+    left: -24px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 2px solid var(--border-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sub-step.llm .sub-step-dot {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  .sub-step.tool .sub-step-dot {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  .sub-step.current .sub-step-dot {
+    border-color: var(--accent-purple);
+    background: var(--accent-purple);
+    color: var(--bg-deep);
+    box-shadow: 0 0 8px var(--accent-purple);
+  }
+
+  .sub-step-dot svg {
+    width: 7px;
+    height: 7px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .sub-step-content {
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+
+  .sub-step.current .sub-step-content {
+    color: var(--text-primary);
+  }
+
+  /* ============================================================
+     TIMELINE MINIMAP
+     ============================================================ */
+  .timeline-minimap {
+    width: 24px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-subtle);
+    position: relative;
+    padding: 16px 4px;
+    flex-shrink: 0;
+  }
+
+  .minimap-track {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: var(--bg-panel-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .minimap-step {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 3px;
+    border-radius: 1px;
+    opacity: 0.6;
+  }
+
+  .minimap-step.llm { background: var(--accent-cyan); }
+  .minimap-step.tool { background: var(--accent-green); }
+  .minimap-step.subagent { background: var(--accent-purple); }
+  .minimap-step.middleware { background: var(--accent-blue); }
+  .minimap-step.error { background: var(--accent-coral); }
+  .minimap-step.current {
+    opacity: 1;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .minimap-viewport {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 30%;
+    height: 25%;
+    border: 1px solid var(--accent-cyan);
+    border-radius: 2px;
+    background: var(--accent-cyan-glow);
+    opacity: 0.3;
+  }
+
+  /* ============================================================
+     TABS (State Inspector)
+     ============================================================ */
+  .tabs {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel);
+    flex-shrink: 0;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .tab:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .tab.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+  }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .tab-count {
+    margin-left: 6px;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    color: var(--text-tertiary);
+  }
+
+  .tab.active .tab-count {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+  }
+
+  .tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  /* ============================================================
+     MESSAGES LIST
+     ============================================================ */
+  .messages-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .message-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .message-item:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-panel-2);
+  }
+
+  .message-item.selected {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .message-role {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  .message-role.user {
+    color: var(--accent-blue);
+    background: var(--accent-blue-glow);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .message-role.assistant {
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .message-role.tool {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .message-role.system {
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .message-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .message-content {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .message-content code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 4px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    color: var(--accent-cyan);
+  }
+
+  /* ============================================================
+     TOOL CALL DETAILS
+     ============================================================ */
+  .tooldetails-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tool-call-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .tool-call-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tool-call-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .tool-call-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tool-call-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .tool-call-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .tool-call-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .tool-call-status .status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+  }
+
+  .detail-section {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .detail-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .detail-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-section-title svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .detail-section-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .detail-section-actions button {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .detail-section-actions button:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+    border-color: var(--border-subtle);
+  }
+
+  .detail-section-actions button svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .detail-section-body {
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.7;
+    max-height: 180px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+  }
+
+  .json-key {
+    color: var(--accent-cyan);
+  }
+
+  .json-string {
+    color: var(--accent-green);
+  }
+
+  .json-number {
+    color: var(--accent-amber);
+  }
+
+  .json-boolean {
+    color: var(--accent-purple);
+  }
+
+  .json-null {
+    color: var(--text-tertiary);
+  }
+
+  /* Metadata grid */
+  .metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .metadata-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .metadata-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .metadata-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .metadata-value.cyan { color: var(--accent-cyan); }
+  .metadata-value.green { color: var(--accent-green); }
+  .metadata-value.amber { color: var(--accent-amber); }
+
+  /* ============================================================
+     BOTTOM STATUS BAR
+     ============================================================ */
+  .statusbar {
+    grid-area: statusbar;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    position: relative;
+  }
+
+  .statusbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-glow), transparent);
+    opacity: 0.5;
+  }
+
+  .statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .statusbar-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .statusbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .status-item .status-label {
+    color: var(--text-muted);
+  }
+
+  .status-item .status-value {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .status-item .status-value.highlight {
+    color: var(--accent-cyan);
+  }
+
+  .status-indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-indicator-dot.connected {
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-indicator-dot.checkpoint {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 5px var(--accent-cyan);
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1400px) {
+    :root {
+      --sidebar-width: 220px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="scanline-overlay"></div>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 2L4 9v14l12 7 12-7V9L16 2z" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M16 2v28M4 9l12 7 12-7" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
+          <circle cx="16" cy="16" r="4" fill="#00e5ff" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">Agent<span>Forge</span></div>
+      <div class="sidebar-logo-tag">BETA</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- Footer / User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">admin</div>
+        </div>
+        <span class="user-more">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR (DEBUGGER)
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-breadcrumb">
+        <span>Agents</span>
+        <span class="crumb-sep">/</span>
+        <span>research-agent</span>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current">Debugger</span>
+      </div>
+      <div class="run-status-badge">
+        <span class="status-dot"></span>
+        PAUSED
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <button class="debug-btn play" title="Continue (F8)">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="debug-btn" title="Step Over (F10)">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/><line x1="19" y1="5" x2="19" y2="9"/></svg>
+      </button>
+      <button class="debug-btn" title="Step Into (F11)">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </button>
+      <button class="debug-btn" title="Step Out (Shift+F11)">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/><line x1="5" y1="19" x2="5" y2="15"/></svg>
+      </button>
+      <button class="debug-btn stop" title="Stop (Shift+F5)">
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+      </button>
+      <button class="debug-btn" title="Restart (Ctrl+Shift+F5)">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
+
+    <div class="topbar-right">
+      <div class="speed-selector">
+        <button class="speed-btn">0.5x</button>
+        <button class="speed-btn active">1x</button>
+        <button class="speed-btn">2x</button>
+      </div>
+      <div class="breakpoint-count">
+        <span class="bp-dot"></span>
+        3 breakpoints
+      </div>
+      <button class="btn-clear">Clear</button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT (DEBUGGER)
+       ============================================================ -->
+  <main class="main-content">
+
+    <!-- Execution Timeline (Left Panel) -->
+    <section class="panel panel-timeline">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="title-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          Execution Timeline
+        </div>
+        <div class="panel-actions">
+          <button class="panel-action-btn" title="Collapse all">
+            <svg viewBox="0 0 24 24"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+          </button>
+          <button class="panel-action-btn" title="Filter">
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          </button>
+          <button class="panel-action-btn" title="Search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="timeline-container">
+        <div class="timeline-scroll">
+          <div class="timeline-list">
+
+            <!-- Step 1: LLM Call -->
+            <div class="timeline-step llm">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">1</span>
+                  <span class="step-type">LLM Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">420ms</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      856
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">Initial system prompt + user query processing</div>
+              </div>
+            </div>
+
+            <!-- Step 2: Tool Call -->
+            <div class="timeline-step tool">
+              <div class="breakpoint-marker"></div>
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">2</span>
+                  <span class="step-type">Tool Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">1,240ms</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      340
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">web_search — "latest AI agent framework benchmarks 2026"</div>
+              </div>
+            </div>
+
+            <!-- Step 3: LLM Call -->
+            <div class="timeline-step llm">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">3</span>
+                  <span class="step-type">LLM Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">890ms</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      2,100
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">Analyze search results, determine research strategy</div>
+              </div>
+            </div>
+
+            <!-- Step 4: Middleware -->
+            <div class="timeline-step middleware">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">4</span>
+                  <span class="step-type">Middleware</span>
+                  <div class="step-meta">
+                    <span class="step-duration">15ms</span>
+                  </div>
+                </div>
+                <div class="step-description">rate_limit.check — tier: pro, remaining: 4,820</div>
+              </div>
+            </div>
+
+            <!-- Step 5: Tool Call -->
+            <div class="timeline-step tool">
+              <div class="breakpoint-marker"></div>
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">5</span>
+                  <span class="step-type">Tool Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">890ms</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      512
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">web_fetch — arxiv.org/pdf/2601.01234</div>
+              </div>
+            </div>
+
+            <!-- Step 6: Sub-Agent (CURRENT - expanded) -->
+            <div class="timeline-step subagent current expanded">
+              <div class="breakpoint-marker"></div>
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">6</span>
+                  <span class="step-type">Sub-Agent</span>
+                  <div class="step-meta">
+                    <span class="step-duration">2,340ms</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      4,850
+                    </span>
+                    <span class="step-expand-icon">
+                      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">researcher — Deep dive analysis on benchmark data</div>
+
+                <!-- Expanded details -->
+                <div class="step-details">
+                  <div class="step-details-grid">
+                    <div class="step-detail-section">
+                      <div class="step-detail-label">Input</div>
+                      <div class="step-detail-content"><span class="highlight">task:</span> Analyze benchmark results
+<span class="highlight">data:</span> 12 papers, 5 frameworks
+<span class="highlight">goal:</span> Rank by performance
+<span class="highlight">depth:</span> comprehensive</div>
+                    </div>
+                    <div class="step-detail-section">
+                      <div class="step-detail-label">Output</div>
+                      <div class="step-detail-content"><span class="highlight">status:</span> in progress
+<span class="highlight">steps_completed:</span> 3/7
+<span class="highlight">findings:</span> 4 key insights
+<span class="highlight">current:</span> cross-referencing...</div>
+                    </div>
+                  </div>
+
+                  <!-- Nested sub-agent timeline -->
+                  <div class="subagent-timeline">
+                    <div class="subagent-header">
+                      <span class="subagent-header-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"/></svg>
+                      </span>
+                      <span class="subagent-header-name">researcher agent</span>
+                      <span class="subagent-header-badge">3 steps • 2.3s</span>
+                    </div>
+
+                    <div class="sub-step llm">
+                      <div class="sub-step-dot">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      </div>
+                      <div class="sub-step-content">6.1 &nbsp; LLM — Analyze paper abstracts</div>
+                    </div>
+
+                    <div class="sub-step tool">
+                      <div class="sub-step-dot">
+                        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                      </div>
+                      <div class="sub-step-content">6.2 &nbsp; tool — csv_parse benchmark_results.csv</div>
+                    </div>
+
+                    <div class="sub-step current">
+                      <div class="sub-step-dot">
+                        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                      </div>
+                      <div class="sub-step-content">6.3 &nbsp; tool — web_search comparison data</div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 7: LLM Call -->
+            <div class="timeline-step llm">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">7</span>
+                  <span class="step-type">LLM Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">—</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      —
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">Synthesize findings from sub-agent research</div>
+              </div>
+            </div>
+
+            <!-- Step 8: Error -->
+            <div class="timeline-step error">
+              <div class="breakpoint-marker"></div>
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">8</span>
+                  <span class="step-type">Error</span>
+                  <div class="step-meta">
+                    <span class="step-duration">0ms</span>
+                  </div>
+                </div>
+                <div class="step-description">RateLimitExceeded — Too many requests, retry after 30s</div>
+              </div>
+            </div>
+
+            <!-- Step 9: Middleware -->
+            <div class="timeline-step middleware">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">9</span>
+                  <span class="step-type">Middleware</span>
+                  <div class="step-meta">
+                    <span class="step-duration">30,000ms</span>
+                  </div>
+                </div>
+                <div class="step-description">retry_handler — exponential backoff, attempt 2 of 3</div>
+              </div>
+            </div>
+
+            <!-- Step 10: Tool Call -->
+            <div class="timeline-step tool">
+              <div class="step-dot">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <div class="step-content">
+                <div class="step-header">
+                  <span class="step-number">10</span>
+                  <span class="step-type">Tool Call</span>
+                  <div class="step-meta">
+                    <span class="step-duration">—</span>
+                    <span class="step-tokens">
+                      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                      —
+                    </span>
+                  </div>
+                </div>
+                <div class="step-description">web_search — "agent framework performance comparison"</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Mini-map -->
+        <div class="timeline-minimap">
+          <div class="minimap-track">
+            <div class="minimap-step llm" style="top: 5%"></div>
+            <div class="minimap-step tool" style="top: 12%"></div>
+            <div class="minimap-step llm" style="top: 20%"></div>
+            <div class="minimap-step middleware" style="top: 28%"></div>
+            <div class="minimap-step tool" style="top: 35%"></div>
+            <div class="minimap-step subagent current" style="top: 43%"></div>
+            <div class="minimap-step llm" style="top: 55%"></div>
+            <div class="minimap-step error" style="top: 63%"></div>
+            <div class="minimap-step middleware" style="top: 72%"></div>
+            <div class="minimap-step tool" style="top: 80%"></div>
+            <div class="minimap-step llm" style="top: 88%"></div>
+            <div class="minimap-step tool" style="top: 94%"></div>
+            <div class="minimap-viewport"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- State Inspector (Right Top Panel) -->
+    <section class="panel panel-inspector">
+      <div class="tabs">
+        <div class="tab active">
+          Messages
+          <span class="tab-count">8</span>
+        </div>
+        <div class="tab">
+          Memory
+          <span class="tab-count">24</span>
+        </div>
+        <div class="tab">
+          Todos
+          <span class="tab-count">5</span>
+        </div>
+        <div class="tab">
+          Artifacts
+          <span class="tab-count">3</span>
+        </div>
+      </div>
+
+      <div class="tab-content">
+        <div class="messages-list">
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role system">System</span>
+              <span class="message-time">00:00:01</span>
+            </div>
+            <div class="message-content">You are a research agent. Your task is to investigate AI agent frameworks and produce a comprehensive comparison report. Use web_search and web_fetch tools to gather data.</div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role user">User</span>
+              <span class="message-time">00:00:02</span>
+            </div>
+            <div class="message-content">Compare the top 5 AI agent frameworks for production use in 2026. Focus on performance, reliability, and ecosystem.</div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role assistant">Assistant</span>
+              <span class="message-time">00:00:03</span>
+            </div>
+            <div class="message-content">I'll research the top AI agent frameworks. Let me start by searching for the latest benchmarks and comparisons. <code>web_search</code></div>
+          </div>
+
+          <div class="message-item selected">
+            <div class="message-header">
+              <span class="message-role tool">Tool</span>
+              <span class="message-time">00:00:04</span>
+            </div>
+            <div class="message-content"><strong>web_search result:</strong> Found 15 relevant results. Top frameworks: LangGraph, AutoGen, CrewAI, Semantic Kernel, AgentForge. Benchmark data from LMSYS Chatbot Arena...</div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role assistant">Assistant</span>
+              <span class="message-time">00:00:05</span>
+            </div>
+            <div class="message-content">I found initial data. Let me fetch the detailed benchmark paper from arXiv for more accurate metrics. <code>web_fetch</code></div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role tool">Tool</span>
+              <span class="message-time">00:00:06</span>
+            </div>
+            <div class="message-content"><strong>web_fetch result:</strong> Paper "AgentFrameworks 2026: A Comprehensive Evaluation" — 42 pages, 12 benchmarks, 7 frameworks compared. Key findings: AgentForge leads in tool call accuracy...</div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role assistant">Assistant</span>
+              <span class="message-time">00:00:08</span>
+            </div>
+            <div class="message-content">Now I'll delegate deep-dive analysis to a researcher sub-agent for cross-referencing all the data points. <code>sub_agent: researcher</code></div>
+          </div>
+
+          <div class="message-item">
+            <div class="message-header">
+              <span class="message-role tool">Tool</span>
+              <span class="message-time">00:00:10</span>
+            </div>
+            <div class="message-content"><strong>researcher:</strong> Analyzing benchmark data... 3 of 7 steps complete. Found 4 key insights so far. Currently cross-referencing with second source.</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Tool Call Details (Right Bottom Panel) -->
+    <section class="panel panel-tooldetails">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="title-icon">
+            <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </span>
+          Tool Call Details
+        </div>
+        <div class="panel-actions">
+          <button class="panel-action-btn" title="Copy">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+          <button class="panel-action-btn" title="Open in new tab">
+            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="tooldetails-content">
+
+        <div class="tool-call-header">
+          <div class="tool-call-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="tool-call-info">
+            <div class="tool-call-name">web_search</div>
+            <div class="tool-call-desc">Step 6.3 — researcher sub-agent</div>
+          </div>
+          <div class="tool-call-status">
+            <span class="status-dot"></span>
+            SUCCESS
+          </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <div class="detail-section-title">
+              <svg viewBox="0 0 24 24"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+              Input
+            </div>
+            <div class="detail-section-actions">
+              <button title="Copy input">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="detail-section-body">
+<span class="json-key">"query"</span>: <span class="json-string">"agent framework performance comparison 2026 benchmark"</span>,
+<span class="json-key">"num_results"</span>: <span class="json-number">10</span>,
+<span class="json-key">"search_depth"</span>: <span class="json-string">"advanced"</span>,
+<span class="json-key">"include_domains"</span>: [
+  <span class="json-string">"arxiv.org"</span>,
+  <span class="json-string">"github.com"</span>,
+  <span class="json-string">"paperswithcode.com"</span>
+],
+<span class="json-key">"time_range"</span>: <span class="json-string">"last_6_months"</span>
+          </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <div class="detail-section-title">
+              <svg viewBox="0 0 24 24"><path d="M8 6l6 6-6 6"/></svg>
+              Output
+            </div>
+            <div class="detail-section-actions">
+              <button title="Copy output">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+              <button title="Expand">
+                <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="detail-section-body">
+<span class="json-key">"results"</span>: [
+  {
+    <span class="json-key">"title"</span>: <span class="json-string">"AgentFrameworks 2026: A Comprehensive..."</span>,
+    <span class="json-key">"url"</span>: <span class="json-string">"arxiv.org/abs/2601.01234"</span>,
+    <span class="json-key">"snippet"</span>: <span class="json-string">"We evaluate 7 major agent frameworks across..."</span>,
+    <span class="json-key">"score"</span>: <span class="json-number">0.98</span>
+  },
+  {
+    <span class="json-key">"title"</span>: <span class="json-string">"LMSYS Agent Benchmark Results Q1 2026"</span>,
+    <span class="json-key">"url"</span>: <span class="json-string">"blog.lmsys.org/agent-bench-2026"</span>,
+    <span class="json-key">"snippet"</span>: <span class="json-string">"AgentForge leads in tool use accuracy at 94.2%..."</span>,
+    <span class="json-key">"score"</span>: <span class="json-number">0.95</span>
+  },
+  {
+    <span class="json-key">"title"</span>: <span class="json-string">"Production Agent Systems: A Field Study"</span>,
+    <span class="json-key">"url"</span>: <span class="json-string">"dl.acm.org/doi/10.1145/368.123"</span>,
+    <span class="json-key">"snippet"</span>: <span class="json-string">"Reliability analysis across 12 production deployments..."</span>,
+    <span class="json-key">"score"</span>: <span class="json-number">0.91</span>
+  }
+  <span class="text-muted">... and 7 more results</span>
+]
+          </div>
+        </div>
+
+        <!-- Metadata Section -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <div class="detail-section-title">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Metadata
+            </div>
+          </div>
+          <div class="metadata-grid">
+            <div class="metadata-item">
+              <span class="metadata-label">Latency</span>
+              <span class="metadata-value amber">2,340ms</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">Status</span>
+              <span class="metadata-value green">success</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">Tokens In</span>
+              <span class="metadata-value cyan">1,250</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">Tokens Out</span>
+              <span class="metadata-value cyan">800</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">Model</span>
+              <span class="metadata-value">gpt-4.1-turbo</span>
+            </div>
+            <div class="metadata-item">
+              <span class="metadata-label">Retry</span>
+              <span class="metadata-value">0 / 3</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       BOTTOM STATUS BAR
+       ============================================================ -->
+  <footer class="statusbar">
+    <div class="statusbar-left">
+      <div class="status-item">
+        <span class="status-label">Step</span>
+        <span class="status-value highlight">6</span>
+        <span class="status-label">of 23</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Total time:</span>
+        <span class="status-value">12.4s</span>
+      </div>
+    </div>
+    <div class="statusbar-center">
+      <div class="status-item">
+        <span class="status-label">Total tokens:</span>
+        <span class="status-value highlight">15,230</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Est. cost:</span>
+        <span class="status-value">$0.042</span>
+      </div>
+    </div>
+    <div class="statusbar-right">
+      <div class="status-item">
+        <span class="status-indicator-dot connected"></span>
+        <span class="status-value">Connected</span>
+      </div>
+      <div class="status-item">
+        <span class="status-indicator-dot checkpoint"></span>
+        <span class="status-value">Checkpointer: active</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">v0.8.2</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<style>
+  /* Additional interactive styles */
+  .debug-btn.play-btn.playing {
+    background: rgba(46, 213, 115, 0.15);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+  .debug-btn.play-btn.playing svg { color: var(--accent-green); }
+
+  .run-status-badge.running {
+    background: rgba(46, 213, 115, 0.15);
+    border-color: rgba(46, 213, 115, 0.4);
+    color: var(--accent-green);
+  }
+  .run-status-badge.running .status-pulse {
+    background: var(--accent-green);
+    animation: pulse-green 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--accent-green); }
+    50% { opacity: 0.5; box-shadow: 0 0 8px var(--accent-green); }
+  }
+
+  .timeline-step.current-step {
+    border-color: var(--accent-cyan) !important;
+    box-shadow: 0 0 0 1px var(--accent-cyan), 0 0 20px rgba(0, 229, 255, 0.2);
+  }
+  .timeline-step.current-step .step-dot {
+    box-shadow: 0 0 10px var(--accent-cyan), 0 0 20px rgba(0, 229, 255, 0.4);
+    animation: current-step-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes current-step-pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--accent-cyan), 0 0 16px rgba(0, 229, 255, 0.3); }
+    50% { box-shadow: 0 0 16px var(--accent-cyan), 0 0 32px rgba(0, 229, 255, 0.5); }
+  }
+
+  .tab-panel-content { display: none; }
+  .tab-panel-content.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .minimap-viewport {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    border-radius: 2px;
+    cursor: grab;
+    transition: top 0.1s ease, height 0.1s ease;
+  }
+  .minimap-viewport:active { cursor: grabbing; }
+
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    transform: translateX(400px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.success { border-left: 3px solid var(--accent-green); }
+  .toast.info { border-left: 3px solid var(--accent-cyan); }
+  .toast.warning { border-left: 3px solid var(--accent-amber); }
+</style>
+
+<script>
+(function() {
+  'use strict';
+
+  // ========== STATE ==========
+  const state = {
+    currentStepIndex: 5, // step 6 (0-indexed: 5)
+    isPlaying: false,
+    playInterval: null,
+    playSpeed: 1000, // ms per step at 1x
+    totalSteps: 10,
+    totalTime: 12.4,
+    totalTokens: 15230,
+    totalCost: 0.042,
+    breakpoints: new Set([1, 4, 7]) // step indices with breakpoints
+  };
+
+  // ========== TOAST ==========
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
+  }
+
+  // ========== SIDEBAR NAV ==========
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      if (this.getAttribute('href') && this.getAttribute('href') !== '#') return;
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ========== TIMELINE STEPS ==========
+  const steps = document.querySelectorAll('.timeline-step:not(.sub-step)');
+  state.totalSteps = steps.length;
+
+  // Set initial current step
+  function setCurrentStep(index) {
+    steps.forEach((s, i) => {
+      s.classList.toggle('current-step', i === index);
+      if (i === index) {
+        s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+    state.currentStepIndex = index;
+    updateStatusBar();
+    updateMinimap();
+  }
+
+  // Click step to select + expand
+  steps.forEach((step, index) => {
+    step.addEventListener('click', function(e) {
+      if (e.target.closest('.breakpoint-marker') || e.target.closest('.subagent-timeline')) return;
+      
+      // Toggle expanded
+      const wasExpanded = this.classList.contains('expanded');
+      steps.forEach(s => s.classList.remove('expanded'));
+      if (!wasExpanded) this.classList.add('expanded');
+      
+      // Set as current
+      setCurrentStep(index);
+    });
+  });
+
+  // ========== BREAKPOINTS ==========
+  document.querySelectorAll('.timeline-step').forEach((step, index) => {
+    const bpMarker = step.querySelector('.breakpoint-marker');
+    if (!bpMarker) {
+      // Add breakpoint marker if it doesn't exist
+      const dot = step.querySelector('.step-dot');
+      if (dot) {
+        const newBp = document.createElement('div');
+        newBp.className = 'breakpoint-marker';
+        newBp.style.display = 'none';
+        step.insertBefore(newBp, dot);
+      }
+    }
+  });
+
+  // Toggle breakpoint on dot click
+  steps.forEach((step, index) => {
+    const dot = step.querySelector('.step-dot');
+    const bpMarker = step.querySelector('.breakpoint-marker');
+    
+    if (dot && bpMarker) {
+      dot.style.cursor = 'pointer';
+      dot.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const hasBp = state.breakpoints.has(index);
+        if (hasBp) {
+          state.breakpoints.delete(index);
+          bpMarker.style.display = 'none';
+        } else {
+          state.breakpoints.add(index);
+          bpMarker.style.display = 'block';
+        }
+        updateBreakpointCount();
+      });
+    }
+  });
+
+  function updateBreakpointCount() {
+    const countEl = document.querySelector('.breakpoint-count');
+    if (countEl) {
+      const count = state.breakpoints.size;
+      countEl.innerHTML = `<span class="bp-dot"></span> ${count} breakpoint${count !== 1 ? 's' : ''}`;
+    }
+  }
+
+  // ========== DEBUG CONTROLS ==========
+  const playBtn = document.querySelector('.debug-btn[title*="Play"], .debug-btn[title*="Continue"], .debug-btn[title^="Play"]');
+  const debugBtns = document.querySelectorAll('.debug-btn');
+  
+  // Find play button by position (first button in controls)
+  const controlBtns = document.querySelectorAll('.debug-controls .debug-btn');
+  const playButton = controlBtns[0];
+  const stepOverBtn = controlBtns[1];
+  const stepIntoBtn = controlBtns[2];
+  const stepOutBtn = controlBtns[3];
+  const stopBtn = controlBtns[4];
+  const restartBtn = controlBtns[5];
+
+  if (playButton) {
+    playButton.classList.add('play-btn');
+    playButton.addEventListener('click', togglePlay);
+  }
+
+  if (stepOverBtn) {
+    stepOverBtn.addEventListener('click', stepForward);
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', stopPlay);
+  }
+
+  if (restartBtn) {
+    restartBtn.addEventListener('click', restartPlay);
+  }
+
+  // Step back - simulate with step back functionality
+  if (stepIntoBtn) {
+    stepIntoBtn.title = 'Step Back (F9)';
+    stepIntoBtn.addEventListener('click', stepBackward);
+  }
+
+  function togglePlay() {
+    if (state.isPlaying) {
+      pausePlay();
+    } else {
+      startPlay();
+    }
+  }
+
+  function startPlay() {
+    if (state.currentStepIndex >= state.totalSteps - 1) {
+      state.currentStepIndex = -1;
+    }
+    state.isPlaying = true;
+    updatePlayButton();
+    updateStatusBadge();
+    playNextStep();
+  }
+
+  function pausePlay() {
+    state.isPlaying = false;
+    if (state.playInterval) {
+      clearTimeout(state.playInterval);
+      state.playInterval = null;
+    }
+    updatePlayButton();
+    updateStatusBadge();
+  }
+
+  function stopPlay() {
+    state.isPlaying = false;
+    if (state.playInterval) {
+      clearTimeout(state.playInterval);
+      state.playInterval = null;
+    }
+    state.currentStepIndex = 0;
+    setCurrentStep(0);
+    steps.forEach(s => s.classList.remove('expanded'));
+    updatePlayButton();
+    updateStatusBadge();
+    showToast('Debugging stopped', 'info');
+  }
+
+  function restartPlay() {
+    stopPlay();
+    setTimeout(() => {
+      startPlay();
+      showToast('Restarting debug session', 'info');
+    }, 200);
+  }
+
+  function playNextStep() {
+    if (!state.isPlaying) return;
+    
+    if (state.currentStepIndex < state.totalSteps - 1) {
+      state.currentStepIndex++;
+      setCurrentStep(state.currentStepIndex);
+      
+      // Auto-expand current step briefly
+      steps.forEach(s => s.classList.remove('expanded'));
+      steps[state.currentStepIndex].classList.add('expanded');
+      
+      // Increment counters
+      state.totalTime += 0.8 + Math.random() * 1.5;
+      state.totalTokens += Math.floor(500 + Math.random() * 1500);
+      state.totalCost += (Math.random() * 0.005);
+      updateStatusBar();
+      
+      // Check for breakpoint
+      if (state.breakpoints.has(state.currentStepIndex)) {
+        pausePlay();
+        showToast(`Breakpoint hit at step ${state.currentStepIndex + 1}`, 'warning');
+        return;
+      }
+      
+      state.playInterval = setTimeout(playNextStep, state.playSpeed);
+    } else {
+      pausePlay();
+      showToast('Execution complete', 'success');
+    }
+  }
+
+  function stepForward() {
+    if (state.currentStepIndex < state.totalSteps - 1) {
+      if (state.isPlaying) pausePlay();
+      state.currentStepIndex++;
+      setCurrentStep(state.currentStepIndex);
+      steps.forEach(s => s.classList.remove('expanded'));
+      steps[state.currentStepIndex].classList.add('expanded');
+      state.totalTime += 0.5;
+      state.totalTokens += 800;
+      state.totalCost += 0.002;
+      updateStatusBar();
+    }
+  }
+
+  function stepBackward() {
+    if (state.currentStepIndex > 0) {
+      if (state.isPlaying) pausePlay();
+      state.currentStepIndex--;
+      setCurrentStep(state.currentStepIndex);
+      steps.forEach(s => s.classList.remove('expanded'));
+      steps[state.currentStepIndex].classList.add('expanded');
+    }
+  }
+
+  function updatePlayButton() {
+    if (playButton) {
+      if (state.isPlaying) {
+        playButton.classList.add('playing');
+        playButton.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        playButton.title = 'Pause (F8)';
+      } else {
+        playButton.classList.remove('playing');
+        playButton.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        playButton.title = 'Play / Continue (F8)';
+      }
+    }
+  }
+
+  function updateStatusBadge() {
+    const badge = document.querySelector('.run-status-badge');
+    if (badge) {
+      if (state.isPlaying) {
+        badge.classList.add('running');
+        const label = badge.querySelector('.status-label') || badge;
+        if (label && label.textContent) {
+          // Update text content
+          const pulse = badge.querySelector('.status-pulse');
+          if (pulse && badge.childNodes.length > 1) {
+            const textNode = Array.from(badge.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+            if (textNode) textNode.textContent = ' RUNNING ';
+          }
+        }
+      } else {
+        badge.classList.remove('running');
+        const textNode = Array.from(badge.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+        if (textNode && textNode.textContent.includes('RUNNING')) {
+          textNode.textContent = ' PAUSED ';
+        }
+      }
+    }
+  }
+
+  // ========== SPEED SELECTOR ==========
+  const speedBtns = document.querySelectorAll('.speed-btn');
+  speedBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      speedBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      const speed = this.textContent;
+      if (speed === '0.5x') state.playSpeed = 2000;
+      else if (speed === '1x') state.playSpeed = 1000;
+      else if (speed === '2x') state.playSpeed = 400;
+      
+      showToast(`Speed: ${speed}`, 'info');
+    });
+  });
+
+  // ========== STATUS BAR ==========
+  function updateStatusBar() {
+    const stepVal = document.querySelector('.statusbar-left .status-value.highlight');
+    if (stepVal) stepVal.textContent = state.currentStepIndex + 1;
+    
+    const timeVal = document.querySelectorAll('.statusbar-left .status-value')[1];
+    if (timeVal) timeVal.textContent = state.totalTime.toFixed(1) + 's';
+    
+    const tokenVal = document.querySelector('.statusbar-center .status-value.highlight');
+    if (tokenVal) tokenVal.textContent = state.totalTokens.toLocaleString();
+    
+    const costVal = document.querySelectorAll('.statusbar-center .status-value')[1];
+    if (costVal) costVal.textContent = '$' + state.totalCost.toFixed(3);
+  }
+
+  // ========== STATE INSPECTOR TABS ==========
+  const inspectorPanel = document.querySelector('.panel-stateinspector');
+  if (inspectorPanel) {
+    const tabs = inspectorPanel.querySelectorAll('.tab');
+    const tabContent = inspectorPanel.querySelector('.tab-content');
+    
+    // Create tab panels
+    const messagesHTML = tabContent.innerHTML;
+    
+    const memoryHTML = `
+      <div class="memory-list">
+        <div class="memory-item">
+          <div class="memory-fact">User prefers concise, data-driven answers</div>
+          <div class="memory-meta">
+            <span class="memory-confidence">confidence: 0.92</span>
+            <span class="memory-date">2 days ago</span>
+          </div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-fact">Working on AI agent framework comparison project</div>
+          <div class="memory-meta">
+            <span class="memory-confidence">confidence: 0.88</span>
+            <span class="memory-date">1 day ago</span>
+          </div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-fact">Likes markdown formatted output with citations</div>
+          <div class="memory-meta">
+            <span class="memory-confidence">confidence: 0.85</span>
+            <span class="memory-date">5 hours ago</span>
+          </div>
+        </div>
+        <div class="memory-item">
+          <div class="memory-fact">Primary focus: production readiness and reliability</div>
+          <div class="memory-meta">
+            <span class="memory-confidence">confidence: 0.78</span>
+            <span class="memory-date">3 hours ago</span>
+          </div>
+        </div>
+      </div>
+      <style>
+        .memory-list { display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+        .memory-item { padding: 10px 12px; background: var(--bg-panel-2); border: 1px solid var(--border-subtle); border-radius: 4px; transition: all 0.2s; cursor: pointer; }
+        .memory-item:hover { border-color: var(--border-medium); background: var(--bg-elevated); }
+        .memory-fact { font-size: 12px; color: var(--text-primary); line-height: 1.5; margin-bottom: 6px; }
+        .memory-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+        .memory-confidence { color: var(--accent-cyan); }
+      </style>
+    `;
+    
+    const todosHTML = `
+      <div class="todo-list">
+        <div class="todo-item done">
+          <span class="todo-checkbox">✓</span>
+          <span class="todo-text">Define research scope and frameworks</span>
+          <span class="todo-status">done</span>
+        </div>
+        <div class="todo-item done">
+          <span class="todo-checkbox">✓</span>
+          <span class="todo-text">Gather benchmark data from LMSYS</span>
+          <span class="todo-status">done</span>
+        </div>
+        <div class="todo-item in-progress">
+          <span class="todo-checkbox">◐</span>
+          <span class="todo-text">Deep-dive analysis via researcher sub-agent</span>
+          <span class="todo-status">in-progress</span>
+        </div>
+        <div class="todo-item pending">
+          <span class="todo-checkbox">○</span>
+          <span class="todo-text">Cross-validate with second data source</span>
+          <span class="todo-status">pending</span>
+        </div>
+        <div class="todo-item pending">
+          <span class="todo-checkbox">○</span>
+          <span class="todo-text">Generate comparison tables and charts</span>
+          <span class="todo-status">pending</span>
+        </div>
+      </div>
+      <style>
+        .todo-list { display: flex; flex-direction: column; gap: 6px; padding: 4px; }
+        .todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-panel-2); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 12px; }
+        .todo-checkbox { width: 16px; text-align: center; color: var(--text-tertiary); font-size: 11px; flex-shrink: 0; }
+        .todo-item.done .todo-checkbox { color: var(--accent-green); }
+        .todo-item.in-progress .todo-checkbox { color: var(--accent-amber); animation: todo-spin 2s linear infinite; }
+        @keyframes todo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .todo-text { flex: 1; color: var(--text-secondary); }
+        .todo-item.done .todo-text { color: var(--text-tertiary); text-decoration: line-through; }
+        .todo-item.in-progress .todo-text { color: var(--text-primary); }
+        .todo-status { font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; flex-shrink: 0; }
+        .todo-item.done .todo-status { background: rgba(46, 213, 115, 0.15); color: var(--accent-green); }
+        .todo-item.in-progress .todo-status { background: rgba(255, 165, 2, 0.15); color: var(--accent-amber); }
+        .todo-item.pending .todo-status { background: rgba(90, 101, 128, 0.2); color: var(--text-tertiary); }
+      </style>
+    `;
+    
+    const artifactsHTML = `
+      <div class="artifacts-list">
+        <div class="artifact-item">
+          <div class="artifact-icon" style="color: var(--accent-coral);">📄</div>
+          <div class="artifact-info">
+            <div class="artifact-name">framework_comparison.pdf</div>
+            <div class="artifact-meta">2.4 MB · generated · step 8</div>
+          </div>
+        </div>
+        <div class="artifact-item">
+          <div class="artifact-icon" style="color: var(--accent-green);">📊</div>
+          <div class="artifact-info">
+            <div class="artifact-name">benchmark_chart.png</div>
+            <div class="artifact-meta">856 KB · generated · step 7</div>
+          </div>
+        </div>
+        <div class="artifact-item">
+          <div class="artifact-icon" style="color: var(--accent-amber);">📋</div>
+          <div class="artifact-info">
+            <div class="artifact-name">raw_data.csv</div>
+            <div class="artifact-meta">128 KB · downloaded · step 3</div>
+          </div>
+        </div>
+      </div>
+      <style>
+        .artifacts-list { display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+        .artifact-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-panel-2); border: 1px solid var(--border-subtle); border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+        .artifact-item:hover { border-color: var(--border-medium); background: var(--bg-elevated); }
+        .artifact-icon { font-size: 20px; flex-shrink: 0; }
+        .artifact-info { flex: 1; min-width: 0; }
+        .artifact-name { font-size: 12px; color: var(--text-primary); font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artifact-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+      </style>
+    `;
+    
+    // Wrap all tab contents
+    tabContent.innerHTML = `
+      <div class="tab-panel-content active" data-tab="messages">${messagesHTML}</div>
+      <div class="tab-panel-content" data-tab="memory">${memoryHTML}</div>
+      <div class="tab-panel-content" data-tab="todos">${todosHTML}</div>
+      <div class="tab-panel-content" data-tab="artifacts">${artifactsHTML}</div>
+    `;
+    
+    // Tab click handlers
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.textContent.trim().toLowerCase().split('\n')[0].trim();
+        let tabKey = tabName;
+        if (tabName.includes('message')) tabKey = 'messages';
+        else if (tabName.includes('memor')) tabKey = 'memory';
+        else if (tabName.includes('todo')) tabKey = 'todos';
+        else if (tabName.includes('artifact')) tabKey = 'artifacts';
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        tabContent.querySelectorAll('.tab-panel-content').forEach(p => p.classList.remove('active'));
+        const target = tabContent.querySelector(`[data-tab="${tabKey}"]`);
+        if (target) target.classList.add('active');
+      });
+    });
+  }
+
+  // ========== MESSAGE SELECTION ==========
+  function setupMessageSelection() {
+    const messages = document.querySelectorAll('.message-item');
+    messages.forEach((msg, index) => {
+      msg.addEventListener('click', function() {
+        messages.forEach(m => m.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        // Update tool details panel to show message details
+        const toolDetailsPanel = document.querySelector('.panel-tooldetails');
+        if (toolDetailsPanel) {
+          const title = toolDetailsPanel.querySelector('.panel-title');
+          if (title) {
+            const role = this.querySelector('.message-role')?.textContent || 'Message';
+            title.innerHTML = `<span class="title-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span> ${role} Message`;
+          }
+        }
+      });
+    });
+  }
+  
+  // Setup after tab content is ready
+  setTimeout(setupMessageSelection, 100);
+
+  // ========== MINIMAP ==========
+  const minimap = document.querySelector('.minimap');
+  if (minimap && steps.length > 0) {
+    // Add viewport indicator
+    const viewport = document.createElement('div');
+    viewport.className = 'minimap-viewport';
+    viewport.style.top = '40%';
+    viewport.style.height = '20%';
+    minimap.appendChild(viewport);
+    
+    // Update minimap position based on current step
+    function updateMinimap() {
+      const pct = (state.currentStepIndex / Math.max(state.totalSteps - 1, 1)) * 80 + 5;
+      viewport.style.top = Math.min(Math.max(pct - 10, 0), 80) + '%';
+    }
+    
+    // Click minimap to jump
+    minimap.addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const pct = y / rect.height;
+      const targetStep = Math.floor(pct * state.totalSteps);
+      setCurrentStep(Math.max(0, Math.min(targetStep, state.totalSteps - 1)));
+    });
+  }
+
+  // ========== CLEAR BUTTON ==========
+  const clearBtn = document.querySelector('.btn-clear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      state.breakpoints.clear();
+      document.querySelectorAll('.breakpoint-marker').forEach(bp => bp.style.display = 'none');
+      updateBreakpointCount();
+      showToast('All breakpoints cleared', 'info');
+    });
+  }
+
+  // ========== KEYBOARD SHORTCUTS ==========
+  document.addEventListener('keydown', function(e) {
+    // F8 - Play/Pause
+    if (e.key === 'F8') {
+      e.preventDefault();
+      togglePlay();
+    }
+    // F10 - Step Over (forward)
+    if (e.key === 'F10') {
+      e.preventDefault();
+      stepForward();
+    }
+    // F9 - Step Back
+    if (e.key === 'F9') {
+      e.preventDefault();
+      stepBackward();
+    }
+    // Shift+F5 - Stop
+    if (e.shiftKey && e.key === 'F5') {
+      e.preventDefault();
+      stopPlay();
+    }
+    // Escape - Pause
+    if (e.key === 'Escape' && state.isPlaying) {
+      e.preventDefault();
+      pausePlay();
+    }
+  });
+
+  // ========== INIT ==========
+  function init() {
+    setCurrentStep(state.currentStepIndex);
+    updateBreakpointCount();
+    updateStatusBar();
+    updatePlayButton();
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>

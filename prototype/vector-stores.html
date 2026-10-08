@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Vector Stores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn.spinning svg {
+    animation: spin 0.8s ease-in-out;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     VECTOR STORE CARDS
+     ============================================================ */
+  .store-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .store-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .store-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .store-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .store-card:hover::before {
+    opacity: 1;
+  }
+
+  .store-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .store-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .store-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  .store-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .store-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .store-info .store-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .store-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .store-status-badge .status-icon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .store-status-badge.ready {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .store-status-badge.ready .status-icon {
+    background: var(--accent-green);
+    box-shadow: 0 0 4px var(--accent-green);
+  }
+
+  .store-status-badge.indexing {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .store-status-badge.indexing .status-icon {
+    background: var(--accent-amber);
+    box-shadow: 0 0 4px var(--accent-amber);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .store-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .store-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .store-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .store-stat-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .store-stat-value .sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+
+  .store-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    margin-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .store-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .store-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .store-meta-item svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .store-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .store-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .store-action-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .store-action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Storage bar */
+  .storage-bar {
+    margin-top: 12px;
+  }
+
+  .storage-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-bottom: 5px;
+  }
+
+  .storage-bar-track {
+    height: 6px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .storage-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .storage-bar-fill.cyan {
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  }
+
+  .storage-bar-fill.green {
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+  }
+
+  .storage-bar-fill.amber {
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-coral));
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-green);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .copy-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .copy-toast svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .flash-update {
+    animation: flash 0.6s ease;
+  }
+
+  @keyframes flash {
+    0% { color: var(--accent-cyan); }
+    100% { color: var(--text-primary); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>resources</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Vector Stores</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="Search vector stores..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-primary" id="createStoreBtn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Store
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Vector Stores
+        </h1>
+        <p class="page-subtitle">
+          <span class="status-indicator"></span>
+          3 stores &middot; 847K vectors &middot; all operational
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Manage Providers
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        </div>
+        <div class="stat-card-label">Total Stores</div>
+        <div class="stat-card-value" data-target="3">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            +1
+          </span>
+          <span class="stat-period">this month</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="stat-card-label">Total Vectors</div>
+        <div class="stat-card-value" data-target="847" data-suffix="K">0<span class="value-suffix">K</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            12.4%
+          </span>
+          <span class="stat-period">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon purple">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        </div>
+        <div class="stat-card-label">Storage Used</div>
+        <div class="stat-card-value" data-target="2.4" data-decimals="1">0<span class="value-suffix"> GB</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            8.2%
+          </span>
+          <span class="stat-period">growth</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Avg Query Latency</div>
+        <div class="stat-card-value" data-target="23" data-decimals="0">0<span class="value-suffix">ms</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend down">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+            4ms
+          </span>
+          <span class="stat-period">faster</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vector Store List -->
+    <div class="store-list" id="storeList">
+      <!-- Populated by JS -->
+    </div>
+  </main>
+</div>
+
+<div class="copy-toast" id="copyToast">
+  <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  Copied!
+</div>
+
+<script>
+  const storeData = [
+    {
+      name: 'product_knowledge_base',
+      desc: 'Product documentation and help articles vectorized for RAG retrieval.',
+      status: 'ready',
+      dimensions: '1536',
+      vectors: '482,340',
+      size: '1.2 GB',
+      embedModel: 'text-embedding-3-large',
+      provider: 'Pinecone',
+      lastQuery: '47 sec ago',
+      queries24h: '12,847',
+      storagePct: 48,
+      storageColor: 'cyan',
+      created: 'Mar 15, 2024'
+    },
+    {
+      name: 'support_ticket_embeddings',
+      desc: 'Customer support ticket embeddings for similarity search and ticket routing.',
+      status: 'ready',
+      dimensions: '1024',
+      vectors: '234,560',
+      size: '768 MB',
+      embedModel: 'voyage-large-2',
+      provider: 'Weaviate',
+      lastQuery: '2 min ago',
+      queries24h: '8,234',
+      storagePct: 32,
+      storageColor: 'green',
+      created: 'Apr 2, 2024'
+    },
+    {
+      name: 'internal_docs_index',
+      desc: 'Internal company documents, policies, and engineering wiki pages.',
+      status: 'indexing',
+      dimensions: '1536',
+      vectors: '130,280',
+      size: '420 MB',
+      embedModel: 'text-embedding-3-large',
+      provider: 'Qdrant',
+      lastQuery: '1 hour ago',
+      queries24h: '3,456',
+      storagePct: 65,
+      storageColor: 'amber',
+      created: 'May 20, 2024'
+    }
+  ];
+
+  function renderStores(data) {
+    const list = document.getElementById('storeList');
+    list.innerHTML = data.map(store => `
+      <div class="store-card" data-name="${store.name}">
+        <div class="store-card-header">
+          <div class="store-title-row">
+            <div class="store-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+            <div class="store-info">
+              <h3>${store.name}</h3>
+              <div class="store-desc">${store.desc}</div>
+            </div>
+          </div>
+          <span class="store-status-badge ${store.status}">
+            <span class="status-icon"></span>
+            ${store.status}
+          </span>
+        </div>
+
+        <div class="store-stats-grid">
+          <div class="store-stat">
+            <span class="store-stat-label">Dimensions</span>
+            <span class="store-stat-value">${store.dimensions} <span class="sub">dims</span></span>
+          </div>
+          <div class="store-stat">
+            <span class="store-stat-label">Vectors</span>
+            <span class="store-stat-value">${store.vectors}</span>
+          </div>
+          <div class="store-stat">
+            <span class="store-stat-label">Storage</span>
+            <span class="store-stat-value">${store.size}</span>
+          </div>
+          <div class="store-stat">
+            <span class="store-stat-label">Embedding Model</span>
+            <span class="store-stat-value" style="font-size: 11px;">${store.embedModel}</span>
+          </div>
+          <div class="store-stat">
+            <span class="store-stat-label">Provider</span>
+            <span class="store-stat-value">${store.provider}</span>
+          </div>
+        </div>
+
+        <div class="storage-bar">
+          <div class="storage-bar-label">
+            <span>Storage usage</span>
+            <span>${store.storagePct}% of capacity</span>
+          </div>
+          <div class="storage-bar-track">
+            <div class="storage-bar-fill ${store.storageColor}" style="width: ${store.storagePct}%"></div>
+          </div>
+        </div>
+
+        <div class="store-card-footer">
+          <div class="store-meta">
+            <span class="store-meta-item">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Last query: ${store.lastQuery}
+            </span>
+            <span class="store-meta-item">
+              <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              ${store.queries24h} queries (24h)
+            </span>
+            <span class="store-meta-item">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" width="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Created: ${store.created}
+            </span>
+          </div>
+          <div class="store-actions">
+            <button class="store-action-btn" onclick="queryStore('${store.name}'); event.stopPropagation();">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Query
+            </button>
+            <button class="store-action-btn" onclick="manageStore('${store.name}'); event.stopPropagation();">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Manage
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const term = this.value.toLowerCase();
+    const filtered = storeData.filter(s => 
+      s.name.toLowerCase().includes(term) ||
+      s.desc.toLowerCase().includes(term) ||
+      s.embedModel.toLowerCase().includes(term)
+    );
+    renderStores(filtered);
+  });
+
+  // Refresh
+  document.getElementById('refreshBtn').addEventListener('click', function() {
+    const btn = this;
+    btn.classList.add('spinning');
+    setTimeout(() => {
+      btn.classList.remove('spinning');
+      showToast('Vector stores refreshed');
+    }, 800);
+  });
+
+  // Create Store
+  document.getElementById('createStoreBtn').addEventListener('click', function() {
+    showToast('Opening Create Store dialog...');
+  });
+
+  function queryStore(name) {
+    showToast(`Querying ${name}...`);
+  }
+
+  function manageStore(name) {
+    showToast(`Managing ${name}...`);
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('copyToast');
+    toast.innerHTML = `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${message}`;
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 2000);
+  }
+
+  // Animate stats
+  function animateStats() {
+    document.querySelectorAll('.stat-card-value').forEach(el => {
+      const target = parseFloat(el.getAttribute('data-target'));
+      const decimals = parseInt(el.getAttribute('data-decimals') || '0');
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffix = suffixEl ? suffixEl.textContent : '';
+      const duration = 1200;
+      const startTime = performance.now();
+      
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = target * easeOut;
+        
+        const displayValue = decimals > 0 
+          ? currentValue.toFixed(decimals) 
+          : Math.floor(currentValue).toLocaleString();
+        
+        el.innerHTML = displayValue + `<span class="value-suffix">${suffix}</span>`;
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      requestAnimationFrame(update);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    renderStores(storeData);
+    animateStats();
+  });
+</script>
+
+</body>
+</html>

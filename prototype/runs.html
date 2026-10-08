@@ -1,0 +1,2585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Runs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn.spinning svg {
+    animation: spin 0.8s ease-in-out;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     FILTER BAR
+     ============================================================ */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 5px 13px;
+  }
+
+  .filter-tab .tab-count {
+    font-size: 10px;
+    padding: 1px 5px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+  }
+
+  .filter-tab.active .tab-count {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan-dim);
+  }
+
+  .filter-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dropdown {
+    position: relative;
+  }
+
+  .dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .dropdown-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .dropdown-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.15s ease;
+  }
+
+  .dropdown.open .dropdown-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .dropdown.open .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .dropdown-item.active {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     CHART SECTION
+     ============================================================ */
+  .chart-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .chart-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.success { background: var(--accent-green); }
+  .legend-dot.failed { background: var(--accent-coral); }
+  .legend-dot.running { background: var(--accent-amber); }
+
+  .chart-container {
+    position: relative;
+    height: 180px;
+  }
+
+  .chart-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .chart-tooltip {
+    position: absolute;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .chart-tooltip.visible {
+    opacity: 1;
+  }
+
+  .chart-tooltip-time {
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    font-size: 10px;
+  }
+
+  .chart-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    padding: 2px 0;
+  }
+
+  .chart-tooltip-row .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+  }
+
+  .chart-tooltip-row .value {
+    margin-left: auto;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .chart-tooltip-total {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* ============================================================
+     RUNS TABLE
+     ============================================================ */
+  .table-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .table-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .table-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .table-title .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-panel-2);
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    font-weight: 400;
+  }
+
+  .table-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .runs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .runs-table thead th {
+    text-align: left;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--bg-panel-2);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  .runs-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+  }
+
+  .runs-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .runs-table tbody tr.selected {
+    background: var(--accent-cyan-glow);
+  }
+
+  .runs-table tbody tr.selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  .runs-table tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+
+  .runs-table tbody tr.expanded td {
+    padding-bottom: 0;
+  }
+
+  /* Status Badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+
+  .status-badge.success {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.25);
+  }
+
+  .status-badge.running {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.25);
+  }
+
+  .status-badge.failed {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.25);
+  }
+
+  .status-badge.pending {
+    background: rgba(90, 101, 128, 0.15);
+    color: var(--text-tertiary);
+    border: 1px solid rgba(90, 101, 128, 0.25);
+  }
+
+  .status-badge .status-icon {
+    width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-badge .status-icon svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .status-badge.running .status-icon svg {
+    animation: spin 1s linear infinite;
+    stroke-dasharray: 6 2;
+  }
+
+  .run-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .run-id .copy-btn {
+    opacity: 0;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: all 0.15s ease;
+  }
+
+  .runs-table tbody tr:hover .copy-btn {
+    opacity: 1;
+  }
+
+  .run-id .copy-btn:hover {
+    color: var(--accent-cyan);
+  }
+
+  .run-id .copy-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .agent-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .agent-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .agent-dot.cyan { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
+  .agent-dot.purple { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
+  .agent-dot.green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+  .agent-dot.amber { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+  .agent-dot.coral { background: var(--accent-coral); box-shadow: 0 0 6px var(--accent-coral); }
+
+  .agent-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  .type-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--bg-panel-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    text-transform: lowercase;
+  }
+
+  .duration-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .tokens-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .cost-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .time-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .action-btn:hover {
+    color: var(--accent-cyan);
+    border-color: var(--border-strong);
+    background: var(--accent-cyan-glow);
+  }
+
+  .action-btn.debug:hover {
+    color: var(--accent-green);
+    border-color: rgba(46, 213, 115, 0.3);
+    background: var(--accent-green-glow);
+  }
+
+  .action-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Running row pulse animation */
+  .runs-table tbody tr.status-running {
+    animation: row-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes row-pulse {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(255, 165, 2, 0.03); }
+  }
+
+  /* Expanded row details */
+  .run-details {
+    display: none;
+    background: var(--bg-panel-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .runs-table tbody tr.expanded + .run-details-row {
+    display: table-row;
+  }
+
+  .run-details-row {
+    display: none;
+  }
+
+  .run-details-content {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .detail-section h4 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .detail-preview {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .detail-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .detail-stat {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .detail-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  .detail-stat-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Pagination */
+  .table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .table-footer-info {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .page-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    transition: all 0.15s ease;
+  }
+
+  .page-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .page-btn.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border-color: var(--border-strong);
+  }
+
+  .page-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Copy toast */
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-green);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .copy-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .copy-toast svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Flash animation for refresh */
+  @keyframes flash-green {
+    0% { color: var(--text-primary); }
+    50% { color: var(--accent-green); }
+    100% { color: var(--text-primary); }
+  }
+
+  .flash-update {
+    animation: flash-green 0.6s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>observability</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Runs</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="Search runs, agents, IDs..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Run
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Run History &amp; Monitoring
+        </h1>
+        <p class="page-subtitle">
+          <span class="status-indicator"></span>
+          Live monitoring active &middot; 8 runs in progress
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          Columns
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-tabs" id="statusTabs">
+        <button class="filter-tab active" data-filter="all">
+          All <span class="tab-count">2,847</span>
+        </button>
+        <button class="filter-tab" data-filter="running">
+          Running <span class="tab-count">8</span>
+        </button>
+        <button class="filter-tab" data-filter="success">
+          Success <span class="tab-count">2,681</span>
+        </button>
+        <button class="filter-tab" data-filter="failed">
+          Failed <span class="tab-count">155</span>
+        </button>
+        <button class="filter-tab" data-filter="pending">
+          Pending <span class="tab-count">3</span>
+        </button>
+      </div>
+
+      <div class="filter-right">
+        <div class="dropdown" id="timeRangeDropdown">
+          <button class="dropdown-btn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Last 24h
+            <svg viewBox="0 0 24 24" class="chevron"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item" data-range="1h">Last 1 hour</div>
+            <div class="dropdown-item active" data-range="24h">Last 24 hours</div>
+            <div class="dropdown-item" data-range="7d">Last 7 days</div>
+            <div class="dropdown-item" data-range="30d">Last 30 days</div>
+            <div class="dropdown-item" data-range="custom">Custom range...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="stat-card-label">Total Runs</div>
+        <div class="stat-card-value" data-target="2847">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            12.4%
+          </span>
+          <span class="stat-period">vs yesterday</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Success Rate</div>
+        <div class="stat-card-value" data-target="94.2" data-decimals="1">0<span class="value-suffix">%</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            0.8%
+          </span>
+          <span class="stat-period">vs yesterday</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon purple">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Avg Duration</div>
+        <div class="stat-card-value" data-target="32.4" data-decimals="1">0<span class="value-suffix">s</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend down">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+            4.2s
+          </span>
+          <span class="stat-period">faster</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Running Now</div>
+        <div class="stat-card-value" data-target="8">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            3
+          </span>
+          <span class="stat-period">new in 5m</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon coral">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="stat-card-label">Failed Today</div>
+        <div class="stat-card-value" data-target="3">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend down">
+            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+            2
+          </span>
+          <span class="stat-period">vs yesterday</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">
+          <span class="title-bracket">[</span>
+          Runs Timeline
+          <span class="title-bracket">]</span>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-dot success"></span>Success</div>
+          <div class="legend-item"><span class="legend-dot failed"></span>Failed</div>
+          <div class="legend-item"><span class="legend-dot running"></span>Running</div>
+        </div>
+      </div>
+      <div class="chart-container" id="timelineChart">
+        <svg class="chart-svg" viewBox="0 0 1000 180" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" y1="30" x2="1000" y2="30" stroke="rgba(0,229,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="70" x2="1000" y2="70" stroke="rgba(0,229,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="110" x2="1000" y2="110" stroke="rgba(0,229,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="150" x2="1000" y2="150" stroke="rgba(0,229,255,0.05)" stroke-width="1"/>
+          
+          <!-- Y-axis labels -->
+          <text x="5" y="33" fill="#5a6580" font-family="JetBrains Mono, monospace" font-size="9">150</text>
+          <text x="5" y="73" fill="#5a6580" font-family="JetBrains Mono, monospace" font-size="9">100</text>
+          <text x="5" y="113" fill="#5a6580" font-family="JetBrains Mono, monospace" font-size="9">50</text>
+          <text x="5" y="153" fill="#5a6580" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+        </svg>
+        <div class="chart-tooltip" id="chartTooltip">
+          <div class="chart-tooltip-time" id="tooltipTime">14:00</div>
+          <div class="chart-tooltip-row"><span class="dot" style="background:#2ed573"></span>Success<span class="value" id="tooltipSuccess">0</span></div>
+          <div class="chart-tooltip-row"><span class="dot" style="background:#ff6b6b"></span>Failed<span class="value" id="tooltipFailed">0</span></div>
+          <div class="chart-tooltip-row"><span class="dot" style="background:#ffa502"></span>Running<span class="value" id="tooltipRunning">0</span></div>
+          <div class="chart-tooltip-total">
+            <span>Total</span>
+            <span id="tooltipTotal">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Runs Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">
+          <span class="title-bracket">[</span>
+          Run History
+          <span class="count" id="tableCount">2,847 runs</span>
+          <span class="title-bracket">]</span>
+        </div>
+        <div class="table-actions">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+            Filter
+          </button>
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <table class="runs-table" id="runsTable">
+        <thead>
+          <tr>
+            <th style="width: 110px;">Status</th>
+            <th style="width: 140px;">Run ID</th>
+            <th style="width: 180px;">Agent</th>
+            <th style="width: 100px;">Type</th>
+            <th style="width: 90px;">Duration</th>
+            <th style="width: 100px;">Tokens</th>
+            <th style="width: 80px;">Cost</th>
+            <th style="width: 110px;">Started</th>
+            <th style="width: 80px; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="runsTableBody">
+          <!-- Rows will be generated by JS -->
+        </tbody>
+      </table>
+
+      <div class="table-footer">
+        <div class="table-footer-info">
+          Showing <span id="showingCount">20</span> of <span id="totalCount">2,847</span> runs
+        </div>
+        <div class="pagination">
+          <button class="page-btn">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">...</button>
+          <button class="page-btn">143</button>
+          <button class="page-btn">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Copy Toast -->
+<div class="copy-toast" id="copyToast">
+  <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  Run ID copied to clipboard
+</div>
+
+<script>
+  // ============================================================
+  // RUN DATA
+  // ============================================================
+  const runData = [
+    { status: 'running', id: 'run_8x2f9k1m', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '45.2s', tokens: '12,847', cost: '$0.042', started: 'just now', steps: 12, input: 'Research the latest developments in quantum computing and summarize key breakthroughs from 2024.', output: 'Quantum computing has seen significant advances in 2024, with major breakthroughs in error correction, qubit coherence times, and practical applications in optimization and simulation...' },
+    { status: 'running', id: 'run_7a3b4n2p', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '28.1s', tokens: '8,291', cost: '$0.031', started: '1 min ago', steps: 8, input: 'Write a Python function that implements a thread-safe LRU cache with TTL support.', output: '' },
+    { status: 'success', id: 'run_6z1w5q9r', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '32.4s', tokens: '15,234', cost: '$0.058', started: '2 min ago', steps: 15, input: 'Analyze the quarterly sales data and identify top 3 performing regions with growth trends.', output: 'Analysis complete. Top 3 performing regions:\n1. APAC: +24.5% YoY growth, driven by Southeast Asia expansion\n2. EMEA: +18.2% YoY growth, strong performance in DACH region\n3. North America: +12.8% YoY growth, enterprise segment leading...' },
+    { status: 'failed', id: 'run_5d7s8t0u', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '12.8s', tokens: '3,421', cost: '$0.012', started: '3 min ago', steps: 4, input: 'Automate the deployment pipeline for the new microservice architecture.', output: 'ERROR: Deployment failed at step 4 - Kubernetes cluster authentication failed. Invalid service account token.' },
+    { status: 'success', id: 'run_4f6g2h3j', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '58.7s', tokens: '24,561', cost: '$0.087', started: '5 min ago', steps: 22, input: 'Conduct comprehensive research on renewable energy storage technologies and market trends.', output: 'Renewable Energy Storage Research Report:\n\n1. Battery Storage Technologies\n   - Lithium-ion: Dominant with 85% market share, declining costs\n   - Solid-state: Emerging, 2-3x energy density, commercialization by 2026\n...' },
+    { status: 'success', id: 'run_3k8l4m5n', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '21.3s', tokens: '6,782', cost: '$0.024', started: '7 min ago', steps: 7, input: 'Create a React hook for debouncing input values with TypeScript support.', output: 'Created useDebounce hook with TypeScript support. Features include:\n- Generic type support\n- Configurable delay\n- Immediate option for first call\n- Cancel function\n- Leading/trailing edge options...' },
+    { status: 'running', id: 'run_2p9q6r7s', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '15.6s', tokens: '5,123', cost: '$0.019', started: '8 min ago', steps: 9, input: 'Analyze customer churn data and build predictive model summary.', output: '' },
+    { status: 'success', id: 'run_1t0u8v9w', agent: 'SecurityAuditor', agentColor: 'coral', type: 'analysis', duration: '41.9s', tokens: '18,456', cost: '$0.067', started: '10 min ago', steps: 18, input: 'Perform security audit on the provided codebase and identify vulnerabilities.', output: 'Security Audit Report\n\nCritical: 2\nHigh: 5\nMedium: 12\nLow: 8\n\nCritical Findings:\n1. SQL Injection in user search endpoint (line 245)\n2. Hardcoded API key in config file...' },
+    { status: 'pending', id: 'run_0x1y2z3a', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '-', tokens: '-', cost: '-', started: '12 min ago', steps: 0, input: 'Scheduled data sync from CRM to data warehouse.', output: '' },
+    { status: 'success', id: 'run_9b4c5d6e', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '1m 12s', tokens: '31,245', cost: '$0.112', started: '15 min ago', steps: 28, input: 'Research competitive landscape of AI-powered developer tools.', output: 'Competitive Analysis: AI Developer Tools\n\nMarket Overview:\n- $4.2B market in 2024, growing at 38% CAGR\n- 150+ vendors across code generation, testing, DevOps\n\nKey Players:\n1. GitHub Copilot - 30% market share...' },
+    { status: 'failed', id: 'run_8f7g6h5i', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '8.4s', tokens: '2,134', cost: '$0.008', started: '18 min ago', steps: 3, input: 'Generate Rust code for blockchain smart contract.', output: 'ERROR: Model context limit exceeded. The requested code pattern requires more context than available.' },
+    { status: 'success', id: 'run_7j3k2l1m', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '26.8s', tokens: '9,876', cost: '$0.036', started: '20 min ago', steps: 11, input: 'Calculate cohort retention rates for Q3 user signups.', output: 'Cohort Retention Analysis - Q3 2024\n\nWeek 1 retention: 68.4%\nWeek 2 retention: 52.1%\nWeek 4 retention: 38.7%\nWeek 8 retention: 29.3%\n\nTop performing cohorts: July signups (34.2% W8 retention)...' },
+    { status: 'running', id: 'run_6n5m4b3v', agent: 'ContentCreator', agentColor: 'purple', type: 'research', duration: '33.2s', tokens: '11,234', cost: '$0.041', started: '22 min ago', steps: 14, input: 'Create technical documentation for the new API endpoints.', output: '' },
+    { status: 'success', id: 'run_5c4x3z2a', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '18.5s', tokens: '4,567', cost: '$0.017', started: '25 min ago', steps: 6, input: 'Automate weekly report generation and distribution.', output: 'Automation complete. Report generated and sent to 47 recipients. 0 errors encountered.' },
+    { status: 'success', id: 'run_4s3d2f1g', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '47.3s', tokens: '19,876', cost: '$0.072', started: '30 min ago', steps: 19, input: 'Research and summarize the latest trends in edge computing.', output: 'Edge Computing Trends 2024\n\n1. Edge AI Deployment Surge\n   - 65% of enterprises deploying AI at the edge\n   - Low-latency inference driving adoption\n\n2. 5G Edge Integration\n   - MEC (Multi-access Edge Compute) maturing...' },
+    { status: 'pending', id: 'run_3h4j5k6l', agent: 'SecurityAuditor', agentColor: 'coral', type: 'analysis', duration: '-', tokens: '-', cost: '-', started: '32 min ago', steps: 0, input: 'Scheduled security scan of production environment.', output: '' },
+    { status: 'failed', id: 'run_2q7w8e9r', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '15.2s', tokens: '4,890', cost: '$0.018', started: '35 min ago', steps: 5, input: 'Analyze financial data and generate P&L summary.', output: 'ERROR: Database connection timeout. Query exceeded 30s limit.' },
+    { status: 'success', id: 'run_1t5y6u7i', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '35.6s', tokens: '12,456', cost: '$0.045', started: '40 min ago', steps: 13, input: 'Implement WebSocket server with authentication and room support.', output: 'WebSocket server implementation complete. Features:\n- JWT authentication\n- Room-based messaging\n- Presence tracking\n- Heartbeat mechanism\n- Rate limiting...' },
+    { status: 'success', id: 'run_0o9i8u7y', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '1m 05s', tokens: '28,345', cost: '$0.101', started: '45 min ago', steps: 25, input: 'Deep dive into microservices architecture patterns and best practices.', output: 'Microservices Architecture Guide\n\n1. Decomposition Patterns\n   - Strangler Fig pattern for migration\n   - Bounded Context (DDD) approach\n   - Event-driven vs API-driven...' },
+    { status: 'running', id: 'run_z9x8c7v6', agent: 'ContentCreator', agentColor: 'purple', type: 'automation', duration: '22.1s', tokens: '7,654', cost: '$0.028', started: '48 min ago', steps: 10, input: 'Auto-generate changelog from git commit history.', output: '' },
+  ];
+
+  // ============================================================
+  // CHART DATA
+  // ============================================================
+  const chartData = [];
+  const hours = ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+  
+  for (let i = 0; i < 24; i++) {
+    const success = Math.floor(60 + Math.random() * 90 + (i > 7 && i < 19 ? 30 : 0));
+    const failed = Math.floor(2 + Math.random() * 8);
+    const running = i >= 22 ? Math.floor(3 + Math.random() * 5) : 0;
+    chartData.push({ hour: hours[i], success, failed, running });
+  }
+
+  // ============================================================
+  // RENDER CHART
+  // ============================================================
+  function renderChart() {
+    const svg = document.querySelector('.chart-svg');
+    const chartWidth = 1000;
+    const chartHeight = 150;
+    const barGroupWidth = chartWidth / 24;
+    const barWidth = barGroupWidth * 0.6;
+    const maxVal = 150;
+    const baseY = 150;
+    const startX = 40;
+    const availableWidth = chartWidth - startX - 10;
+    const actualBarGroupWidth = availableWidth / 24;
+
+    // Clear existing bars
+    const existingBars = svg.querySelectorAll('.bar-group');
+    existingBars.forEach(b => b.remove());
+
+    // X-axis labels
+    const xLabels = svg.querySelectorAll('.x-label');
+    xLabels.forEach(l => l.remove());
+
+    chartData.forEach((d, i) => {
+      const x = startX + i * actualBarGroupWidth + (actualBarGroupWidth - barWidth) / 2;
+      const total = d.success + d.failed + d.running;
+      const successHeight = (d.success / maxVal) * chartHeight;
+      const failedHeight = (d.failed / maxVal) * chartHeight;
+      const runningHeight = (d.running / maxVal) * chartHeight;
+
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.classList.add('bar-group');
+      group.setAttribute('data-index', i);
+      group.style.cursor = 'pointer';
+
+      // Success bar (bottom)
+      const successBar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      successBar.setAttribute('x', x);
+      successBar.setAttribute('y', baseY - successHeight);
+      successBar.setAttribute('width', barWidth);
+      successBar.setAttribute('height', successHeight);
+      successBar.setAttribute('fill', '#2ed573');
+      successBar.setAttribute('opacity', '0.7');
+      successBar.setAttribute('rx', '1');
+      group.appendChild(successBar);
+
+      // Failed bar (middle)
+      if (failedHeight > 0) {
+        const failedBar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        failedBar.setAttribute('x', x);
+        failedBar.setAttribute('y', baseY - successHeight - failedHeight);
+        failedBar.setAttribute('width', barWidth);
+        failedBar.setAttribute('height', failedHeight);
+        failedBar.setAttribute('fill', '#ff6b6b');
+        failedBar.setAttribute('opacity', '0.8');
+        failedBar.setAttribute('rx', '1');
+        group.appendChild(failedBar);
+      }
+
+      // Running bar (top)
+      if (runningHeight > 0) {
+        const runningBar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        runningBar.setAttribute('x', x);
+        runningBar.setAttribute('y', baseY - successHeight - failedHeight - runningHeight);
+        runningBar.setAttribute('width', barWidth);
+        runningBar.setAttribute('height', runningHeight);
+        runningBar.setAttribute('fill', '#ffa502');
+        runningBar.setAttribute('opacity', '0.85');
+        runningBar.setAttribute('rx', '1');
+        group.appendChild(runningBar);
+      }
+
+      // X-axis label every 4 hours
+      if (i % 4 === 0) {
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.classList.add('x-label');
+        label.setAttribute('x', startX + i * actualBarGroupWidth + actualBarGroupWidth / 2);
+        label.setAttribute('y', '172');
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('fill', '#5a6580');
+        label.setAttribute('font-family', 'JetBrains Mono, monospace');
+        label.setAttribute('font-size', '9');
+        label.textContent = d.hour;
+        svg.appendChild(label);
+      }
+
+      svg.appendChild(group);
+    });
+
+    // Hover interaction
+    const tooltip = document.getElementById('chartTooltip');
+    const chartContainer = document.getElementById('timelineChart');
+
+    svg.querySelectorAll('.bar-group').forEach(group => {
+      group.addEventListener('mouseenter', function(e) {
+        const index = parseInt(this.getAttribute('data-index'));
+        const data = chartData[index];
+        const total = data.success + data.failed + data.running;
+
+        document.getElementById('tooltipTime').textContent = data.hour;
+        document.getElementById('tooltipSuccess').textContent = data.success;
+        document.getElementById('tooltipFailed').textContent = data.failed;
+        document.getElementById('tooltipRunning').textContent = data.running;
+        document.getElementById('tooltipTotal').textContent = total;
+
+        tooltip.classList.add('visible');
+      });
+
+      group.addEventListener('mousemove', function(e) {
+        const rect = chartContainer.getBoundingClientRect();
+        let x = e.clientX - rect.left + 15;
+        let y = e.clientY - rect.top - 10;
+
+        if (x + 180 > rect.width) x = e.clientX - rect.left - 195;
+        if (y < 0) y = 10;
+
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+      });
+
+      group.addEventListener('mouseleave', function() {
+        tooltip.classList.remove('visible');
+      });
+    });
+  }
+
+  // ============================================================
+  // RENDER RUNS TABLE
+  // ============================================================
+  function renderRunsTable(data) {
+    const tbody = document.getElementById('runsTableBody');
+    tbody.innerHTML = '';
+
+    data.forEach((run, index) => {
+      const statusIconSvg = getStatusIcon(run.status);
+      const row = document.createElement('tr');
+      row.className = `status-${run.status}`;
+      row.setAttribute('data-status', run.status);
+      row.setAttribute('data-id', run.id);
+      row.setAttribute('data-index', index);
+
+      row.innerHTML = `
+        <td>
+          <span class="status-badge ${run.status}">
+            <span class="status-icon">${statusIconSvg}</span>
+            ${run.status}
+          </span>
+        </td>
+        <td>
+          <div class="run-id">
+            ${run.id}
+            <span class="copy-btn" title="Copy ID" onclick="copyRunId('${run.id}', event)">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </span>
+          </div>
+        </td>
+        <td>
+          <div class="agent-cell">
+            <span class="agent-dot ${run.agentColor}"></span>
+            <span class="agent-name">${run.agent}</span>
+          </div>
+        </td>
+        <td><span class="type-badge">${run.type}</span></td>
+        <td><span class="duration-cell">${run.duration}</span></td>
+        <td><span class="tokens-cell">${run.tokens}</span></td>
+        <td><span class="cost-cell">${run.cost}</span></td>
+        <td><span class="time-cell">${run.started}</span></td>
+        <td style="text-align: right;">
+          <div class="actions-cell" style="justify-content: flex-end;">
+            <button class="action-btn" title="View Details" onclick="toggleExpand(this, event)">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="action-btn debug" title="Debug Run" onclick="debugRun('${run.id}', event)">
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+          </div>
+        </td>
+      `;
+
+      tbody.appendChild(row);
+
+      // Expanded detail row
+      const detailRow = document.createElement('tr');
+      detailRow.className = 'run-details-row';
+      detailRow.innerHTML = `
+        <td colspan="9">
+          <div class="run-details">
+            <div class="run-details-content">
+              <div class="detail-section">
+                <h4>Input Preview</h4>
+                <div class="detail-preview">${run.input}</div>
+              </div>
+              <div class="detail-section">
+                <h4>Output Preview</h4>
+                <div class="detail-preview">${run.output || '(Run still in progress...)'}</div>
+              </div>
+              <div class="detail-section">
+                <h4>Run Stats</h4>
+                <div class="detail-stats">
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Steps</div>
+                    <div class="detail-stat-value">${run.steps}</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Duration</div>
+                    <div class="detail-stat-value">${run.duration}</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Tokens</div>
+                    <div class="detail-stat-value">${run.tokens}</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Cost</div>
+                    <div class="detail-stat-value">${run.cost}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(detailRow);
+    });
+
+    // Update counts
+    document.getElementById('showingCount').textContent = data.length;
+    document.getElementById('tableCount').textContent = `${data.length.toLocaleString()} runs`;
+  }
+
+  function getStatusIcon(status) {
+    switch (status) {
+      case 'success':
+        return '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+      case 'failed':
+        return '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      case 'running':
+        return '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+      case 'pending':
+        return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>';
+      default:
+        return '';
+    }
+  }
+
+  // ============================================================
+  // TOGGLE ROW EXPAND
+  // ============================================================
+  function toggleExpand(btn, event) {
+    event.stopPropagation();
+    const row = btn.closest('tr');
+    row.classList.toggle('expanded');
+  }
+
+  // ============================================================
+  // DEBUG RUN
+  // ============================================================
+  function debugRun(runId, event) {
+    event.stopPropagation();
+    // In real app, navigate to debugger page
+    console.log('Debug run:', runId);
+    // window.location.href = 'debugger.html?run=' + runId;
+    showToast(`Opening debugger for ${runId}...`);
+  }
+
+  // ============================================================
+  // COPY RUN ID
+  // ============================================================
+  function copyRunId(id, event) {
+    event.stopPropagation();
+    navigator.clipboard.writeText(id).then(() => {
+      showToast('Run ID copied to clipboard');
+    }).catch(() => {
+      // Fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = id;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('Run ID copied to clipboard');
+    });
+  }
+
+  // ============================================================
+  // TOAST NOTIFICATION
+  // ============================================================
+  function showToast(message) {
+    const toast = document.getElementById('copyToast');
+    toast.innerHTML = `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${message}`;
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 2000);
+  }
+
+  // ============================================================
+  // STATUS FILTER TABS
+  // ============================================================
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      this.parentElement.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const filter = this.getAttribute('data-filter');
+      filterRuns(filter);
+    });
+  });
+
+  function filterRuns(filter) {
+    let filtered = runData;
+    if (filter !== 'all') {
+      filtered = runData.filter(r => r.status === filter);
+    }
+    
+    // Also apply search filter
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    if (searchTerm) {
+      filtered = filtered.filter(r => 
+        r.id.toLowerCase().includes(searchTerm) ||
+        r.agent.toLowerCase().includes(searchTerm) ||
+        r.type.toLowerCase().includes(searchTerm) ||
+        r.input.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    renderRunsTable(filtered);
+  }
+
+  // ============================================================
+  // SEARCH INPUT
+  // ============================================================
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const activeFilter = document.querySelector('.filter-tab.active').getAttribute('data-filter');
+    filterRuns(activeFilter);
+  });
+
+  // ============================================================
+  // NAV ITEM INTERACTION
+  // ============================================================
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // ROW CLICK SELECTION
+  // ============================================================
+  document.getElementById('runsTableBody').addEventListener('click', function(e) {
+    const row = e.target.closest('tr.status-running, tr.status-success, tr.status-failed, tr.status-pending');
+    if (!row) return;
+    if (e.target.closest('.action-btn') || e.target.closest('.copy-btn')) return;
+
+    const isSelected = row.classList.contains('selected');
+    document.querySelectorAll('#runsTableBody tr').forEach(r => r.classList.remove('selected'));
+    if (!isSelected) {
+      row.classList.add('selected');
+    }
+  });
+
+  // ============================================================
+  // STATS CARD COUNT-UP ANIMATION
+  // ============================================================
+  function animateCountUp() {
+    const statValues = document.querySelectorAll('.stat-card-value');
+    
+    statValues.forEach((el, index) => {
+      const target = parseFloat(el.getAttribute('data-target'));
+      const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffixText = suffixEl ? suffixEl.textContent : '';
+      
+      const duration = 1500 + index * 200;
+      const startTime = performance.now() + index * 150;
+      
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        if (elapsed < 0) {
+          requestAnimationFrame(update);
+          return;
+        }
+        
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = target * easeProgress;
+        
+        let displayValue;
+        if (decimals > 0) {
+          displayValue = currentValue.toFixed(decimals);
+        } else {
+          displayValue = Math.floor(currentValue).toLocaleString();
+        }
+        
+        if (suffixEl) {
+          el.innerHTML = displayValue + '<span class="value-suffix">' + suffixText + '</span>';
+        } else {
+          el.textContent = displayValue;
+        }
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      requestAnimationFrame(update);
+    });
+  }
+
+  // ============================================================
+  // REFRESH BUTTON
+  // ============================================================
+  document.getElementById('refreshBtn').addEventListener('click', function() {
+    const btn = this;
+    btn.classList.add('spinning');
+    
+    setTimeout(() => {
+      btn.classList.remove('spinning');
+      
+      // Update running stats slightly
+      const runningNow = document.querySelector('.stat-card:nth-child(4) .stat-card-value');
+      const currentVal = parseInt(runningNow.textContent.replace(/,/g, ''));
+      const newVal = Math.max(1, currentVal + Math.floor(Math.random() * 3) - 1);
+      
+      runningNow.innerHTML = newVal.toLocaleString() + '<span class="value-suffix"></span>';
+      runningNow.classList.add('flash-update');
+      setTimeout(() => runningNow.classList.remove('flash-update'), 600);
+      
+      // Re-render chart with slight variations
+      chartData.forEach(d => {
+        d.success = Math.max(50, d.success + Math.floor(Math.random() * 10) - 5);
+        d.failed = Math.max(1, d.failed + Math.floor(Math.random() * 3) - 1);
+      });
+      renderChart();
+      
+      showToast('Data refreshed');
+    }, 800);
+  });
+
+  // ============================================================
+  // TIME RANGE DROPDOWN
+  // ============================================================
+  const timeDropdown = document.getElementById('timeRangeDropdown');
+  const timeDropdownBtn = timeDropdown.querySelector('.dropdown-btn');
+  
+  timeDropdownBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    timeDropdown.classList.toggle('open');
+  });
+
+  document.querySelectorAll('#timeRangeDropdown .dropdown-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const range = this.getAttribute('data-range');
+      const label = this.textContent.trim();
+      
+      document.querySelectorAll('#timeRangeDropdown .dropdown-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      
+      timeDropdownBtn.innerHTML = `
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ${label}
+        <svg viewBox="0 0 24 24" class="chevron"><polyline points="6 9 12 15 18 9"/></svg>
+      `;
+      
+      timeDropdown.classList.remove('open');
+      showToast(`Time range: ${label}`);
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  });
+
+  // ============================================================
+  // RUNNING RUNS SIMULATION - random progress updates
+  // ============================================================
+  (function simulateRunningRuns() {
+    setInterval(() => {
+      const runningRows = document.querySelectorAll('#runsTableBody tr.status-running');
+      runningRows.forEach(row => {
+        // Occasionally update duration
+        if (Math.random() > 0.7) {
+          const durationCell = row.querySelector('.duration-cell');
+          const currentText = durationCell.textContent;
+          if (currentText.includes('s')) {
+            const secs = parseFloat(currentText);
+            const newSecs = (secs + 0.5 + Math.random() * 2).toFixed(1);
+            durationCell.textContent = newSecs + 's';
+          }
+        }
+        
+        // Occasionally complete a run
+        if (Math.random() > 0.95) {
+          const id = row.getAttribute('data-id');
+          const runIndex = runData.findIndex(r => r.id === id);
+          if (runIndex >= 0) {
+            runData[runIndex].status = 'success';
+            runData[runIndex].duration = row.querySelector('.duration-cell').textContent;
+            runData[runIndex].output = 'Task completed successfully. All steps executed without errors.';
+            
+            // Update row
+            row.classList.remove('status-running');
+            row.classList.add('status-success');
+            row.setAttribute('data-status', 'success');
+            
+            const statusBadge = row.querySelector('.status-badge');
+            statusBadge.classList.remove('running');
+            statusBadge.classList.add('success');
+            statusBadge.innerHTML = `<span class="status-icon">${getStatusIcon('success')}</span>success`;
+            
+            // Update running count
+            const runningStat = document.querySelector('.stat-card:nth-child(4) .stat-card-value');
+            const currentVal = parseInt(runningStat.textContent.replace(/,/g, ''));
+            runningStat.innerHTML = Math.max(0, currentVal - 1).toLocaleString() + '<span class="value-suffix"></span>';
+          }
+        }
+      });
+    }, 3000);
+  })();
+
+  // ============================================================
+  // INITIALIZE
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    renderChart();
+    renderRunsTable(runData);
+    animateCountUp();
+  });
+</script>
+
+</body>
+</html>

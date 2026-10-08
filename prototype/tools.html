@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Tools Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --accent-blue: #3b82f6;
+    --accent-blue-glow: rgba(59, 130, 246, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --rightbar-width: 300px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* Noise / Grain Overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* Grid Background Pattern */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr var(--rightbar-width);
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar rightbar"
+      "sidebar main rightbar";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 360px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* ============================================================
+     CATEGORY FILTER TABS
+     ============================================================ */
+  .category-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .category-tab {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .category-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .category-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 4px 9px;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.green {
+    background: rgba(46, 213, 115, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: rgba(255, 165, 2, 0.1);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .stat-sparkline {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 120px;
+    height: 40px;
+    opacity: 0.4;
+  }
+
+  .stat-sparkline svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ============================================================
+     TOOLS TABLE
+     ============================================================ */
+  .tools-table-container {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .tools-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .tools-table thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+    white-space: nowrap;
+  }
+
+  .tools-table thead th:first-child {
+    width: 40px;
+  }
+
+  .tools-table thead th:last-child {
+    text-align: right;
+  }
+
+  .tools-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+
+  .tools-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .tools-table tbody tr {
+    transition: background 0.15s ease;
+    cursor: pointer;
+  }
+
+  .tools-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .tools-table tbody tr.selected {
+    background: rgba(0, 229, 255, 0.06);
+    box-shadow: inset 2px 0 0 var(--accent-cyan);
+    position: relative;
+  }
+
+  .tools-table tbody tr.selected td:first-child {
+    padding-left: 14px;
+  }
+
+  /* Status Dot */
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-dot.active {
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-dot.degraded {
+    background: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+  }
+
+  .status-dot.error {
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .status-dot.disabled {
+    background: var(--text-muted);
+  }
+
+  /* Tool Name Cell */
+  .tool-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tool-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .tool-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .tool-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tool-desc {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  /* Type Badge */
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .type-badge.web {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .type-badge.file {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .type-badge.code {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .type-badge.database {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .type-badge.api {
+    background: var(--accent-blue-glow);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .type-badge.mcp {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .type-badge svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* Provider */
+  .provider-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* Calls Today */
+  .calls-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Success Rate Mini Bar */
+  .success-rate-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-progress {
+    width: 60px;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .mini-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .mini-progress-fill.green {
+    background: var(--accent-green);
+    box-shadow: 0 0 4px rgba(46, 213, 115, 0.4);
+  }
+
+  .mini-progress-fill.amber {
+    background: var(--accent-amber);
+    box-shadow: 0 0 4px rgba(255, 165, 2, 0.4);
+  }
+
+  .mini-progress-fill.coral {
+    background: var(--accent-coral);
+    box-shadow: 0 0 4px rgba(255, 107, 107, 0.4);
+  }
+
+  .success-rate-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 36px;
+  }
+
+  /* Latency */
+  .latency-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .latency-text.good {
+    color: var(--accent-green);
+  }
+
+  .latency-text.warn {
+    color: var(--accent-amber);
+  }
+
+  .latency-text.slow {
+    color: var(--accent-coral);
+  }
+
+  /* Actions */
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    width: 32px;
+    height: 18px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch.active {
+    background: rgba(46, 213, 115, 0.2);
+    border-color: rgba(46, 213, 115, 0.3);
+  }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .toggle-switch.active::after {
+    left: 16px;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .icon-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0;
+  }
+
+  .tools-table tbody tr:hover .icon-btn {
+    opacity: 1;
+  }
+
+  .icon-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--accent-cyan);
+  }
+
+  .icon-btn.delete:hover {
+    color: var(--accent-coral);
+    border-color: rgba(255, 107, 107, 0.2);
+  }
+
+  .icon-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     RIGHT SIDEBAR - TOOL DETAILS
+     ============================================================ */
+  .rightbar {
+    grid-area: rightbar;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-subtle);
+    overflow-y: auto;
+    padding: 16px;
+    position: relative;
+  }
+
+  .rightbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.4;
+  }
+
+  .rightbar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .rightbar-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rightbar-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  .rightbar-close {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .rightbar-close:hover {
+    color: var(--accent-coral);
+    border-color: rgba(255, 107, 107, 0.2);
+  }
+
+  .rightbar-close svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Tool Detail Header */
+  .tool-detail-header {
+    margin-bottom: 16px;
+  }
+
+  .tool-detail-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-medium);
+    margin-bottom: 12px;
+  }
+
+  .tool-detail-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .tool-detail-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .tool-detail-type-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tool-detail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  .tool-detail-status.active {
+    background: rgba(46, 213, 115, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .tool-detail-status.active::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 4px var(--accent-green);
+  }
+
+  /* Rightbar Sections */
+  .rightbar-section {
+    margin-bottom: 18px;
+  }
+
+  .rightbar-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rightbar-section-title::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+  }
+
+  /* Config Display */
+  .config-display {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .config-line {
+    display: flex;
+    gap: 8px;
+  }
+
+  .config-key {
+    color: var(--accent-cyan);
+    flex-shrink: 0;
+  }
+
+  .config-value {
+    color: var(--text-secondary);
+    word-break: break-all;
+  }
+
+  .config-value.string {
+    color: var(--accent-green);
+  }
+
+  .config-value.number {
+    color: var(--accent-amber);
+  }
+
+  .config-value.boolean {
+    color: var(--accent-purple);
+  }
+
+  .config-bracket {
+    color: var(--text-muted);
+  }
+
+  /* Usage Chart */
+  .usage-chart-container {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+
+  .usage-chart-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .usage-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 80px;
+  }
+
+  .usage-bar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    transition: all 0.3s ease;
+    min-height: 4px;
+    opacity: 0.7;
+  }
+
+  .usage-bar:hover {
+    opacity: 1;
+  }
+
+  .usage-bar::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .usage-chart-footer {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .usage-total-label {
+    color: var(--text-tertiary);
+  }
+
+  .usage-total-value {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Test Tool Button */
+  .test-tool-btn {
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .test-tool-btn:hover {
+    background: rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .test-tool-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Tool Detail Stats Grid */
+  .tool-detail-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .tool-detail-stat {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+  }
+
+  .tool-detail-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .tool-detail-stat-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* ============================================================
+     MODAL / TEST TOOL OVERLAY
+     ============================================================ */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 14, 26, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal {
+    width: 520px;
+    max-width: 90vw;
+    max-height: 80vh;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 229, 255, 0.1);
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.2s ease;
+  }
+
+  .modal-overlay.active .modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-title svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--accent-purple);
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .modal-close:hover {
+    color: var(--accent-coral);
+    border-color: rgba(255, 107, 107, 0.2);
+  }
+
+  .modal-close svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .modal-body {
+    padding: 18px;
+    max-height: calc(80vh - 120px);
+    overflow-y: auto;
+  }
+
+  .modal-field {
+    margin-bottom: 14px;
+  }
+
+  .modal-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .modal-field label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .modal-field textarea {
+    width: 100%;
+    min-height: 80px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    outline: none;
+    resize: vertical;
+    transition: all 0.2s ease;
+    line-height: 1.5;
+  }
+
+  .modal-field textarea:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .modal-field textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .modal-result {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-height: 200px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .modal-result::before {
+    content: 'RESULT';
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-green);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  .modal-result .result-key {
+    color: var(--accent-cyan);
+  }
+
+  .modal-result .result-string {
+    color: var(--accent-green);
+  }
+
+  .modal-result .result-number {
+    color: var(--accent-amber);
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-purple {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 14px;
+    background: var(--accent-purple);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-purple:hover {
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-purple svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* Empty state for right panel */
+  .empty-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .empty-detail-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    color: var(--text-muted);
+  }
+
+  .empty-detail-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .empty-detail-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .empty-detail-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  .animate-in {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.1s; }
+  .delay-3 { animation-delay: 0.15s; }
+  .delay-4 { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>workspace</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Tools</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="toolSearch" placeholder="Search tools..." />
+    </div>
+
+    <div class="category-tabs" id="categoryTabs">
+      <div class="category-tab active" data-category="all">All</div>
+      <div class="category-tab" data-category="web">Web</div>
+      <div class="category-tab" data-category="file">File</div>
+      <div class="category-tab" data-category="code">Code</div>
+      <div class="category-tab" data-category="database">Database</div>
+      <div class="category-tab" data-category="api">API</div>
+      <div class="category-tab" data-category="mcp">MCP</div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn-primary" id="addToolBtn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Tool
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header animate-in">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Tools Management
+        </h1>
+        <div class="page-subtitle">
+          <span class="status-indicator"></span>
+          28 tools configured &middot; 24 active
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid animate-in delay-1">
+      <div class="stat-card">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="stat-card-label">Total Tools</div>
+        <div class="stat-card-value" data-target="28">28</div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            12.5%
+          </span>
+          <span class="stat-period">vs last month</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
+            <path d="M0,30 L20,25 L40,28 L60,18 L80,20 L100,12 L120,8" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Active</div>
+        <div class="stat-card-value" data-target="24">24</div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            8.3%
+          </span>
+          <span class="stat-period">vs last month</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
+            <path d="M0,28 L20,22 L40,25 L60,15 L80,18 L100,10 L120,6" stroke="#2ed573" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="stat-card-label">Total Calls Today</div>
+        <div class="stat-card-value" data-target="12.4" data-decimals="1">12.4<span class="value-suffix">k</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            23.1%
+          </span>
+          <span class="stat-period">vs yesterday</span>
+        </div>
+        <div class="stat-sparkline">
+          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
+            <path d="M0,32 L20,28 L40,20 L60,22 L80,14 L100,10 L120,4" stroke="#ffa502" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools Table -->
+    <div class="tools-table-container animate-in delay-2">
+      <table class="tools-table" id="toolsTable">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Tool Name</th>
+            <th>Type</th>
+            <th>Provider</th>
+            <th>Calls Today</th>
+            <th>Success Rate</th>
+            <th>Latency</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="toolsTableBody">
+          <!-- Rows will be populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ============================================================
+       RIGHT SIDEBAR - TOOL DETAILS
+       ============================================================ -->
+  <aside class="rightbar">
+    <div class="rightbar-header">
+      <div class="rightbar-title">Tool Details</div>
+    </div>
+
+    <div id="toolDetailContent">
+      <div class="empty-detail">
+        <div class="empty-detail-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="empty-detail-title">Select a tool</div>
+        <div class="empty-detail-desc">Click any tool row to view details</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============================================================
+     TEST TOOL MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="testModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Test Tool: <span id="modalToolName">Tavily Search</span>
+      </div>
+      <button class="modal-close" id="modalClose">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>Input Parameters</label>
+        <textarea id="testInput" placeholder="Enter search query...">latest AI developments in 2026</textarea>
+      </div>
+      <div class="modal-field">
+        <label>Response</label>
+        <div class="modal-result" id="testResult">
+<span class="result-key">status</span>: <span class="result-string">"success"</span>,
+<span class="result-key">results</span>: [
+  {
+    <span class="result-key">title</span>: <span class="result-string">"AI Breakthroughs in 2026"</span>,
+    <span class="result-key">url</span>: <span class="result-string">"https://example.com/ai-2026"</span>,
+    <span class="result-key">content</span>: <span class="result-string">"Major advancements in multimodal models..."</span>
+  },
+  {
+    <span class="result-key">title</span>: <span class="result-string">"Agent Systems Evolution"</span>,
+    <span class="result-key">url</span>: <span class="result-string">"https://example.com/agents"</span>,
+    <span class="result-key">content</span>: <span class="result-string">"Autonomous agents reshape workflows..."</span>
+  }
+],
+<span class="result-key">latency_ms</span>: <span class="result-number">247</span>,
+<span class="result-key">results_count</span>: <span class="result-number">5</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn-purple" id="runTestBtn">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run Test
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // TOOLS DATA
+  // ============================================================
+  const toolsData = [
+    { id: 1, name: 'Tavily Search', icon: '🔍', desc: 'Web search and content retrieval', type: 'web', provider: 'Tavily', status: 'active', calls: 2847, success: 98.5, latency: 247,
+      config: { api_key: 'tvly-xxx...', search_depth: 'advanced', max_results: 5, include_answer: true, include_images: false },
+      usage: [1800, 2100, 1950, 2400, 2600, 2300, 2847] },
+    { id: 2, name: 'Jina Reader', icon: '📄', desc: 'URL content extraction and parsing', type: 'web', provider: 'Jina', status: 'active', calls: 1923, success: 97.2, latency: 312,
+      config: { api_key: 'jina_xxx...', mode: 'markdown', timeout: 30000, retry_count: 2 },
+      usage: [1200, 1400, 1600, 1800, 1750, 1900, 1923] },
+    { id: 3, name: 'File System', icon: '📁', desc: 'Read and write local files', type: 'file', provider: 'Built-in', status: 'active', calls: 3421, success: 99.8, latency: 12,
+      config: { allowed_paths: ['/workspace', '/data'], max_file_size: '50MB', allowed_extensions: ['txt', 'md', 'json', 'py', 'js'] },
+      usage: [2800, 3000, 3200, 3100, 3300, 3400, 3421] },
+    { id: 4, name: 'Python Executor', icon: '🐍', desc: 'Execute Python code in sandbox', type: 'code', provider: 'Built-in', status: 'active', calls: 1654, success: 94.3, latency: 890,
+      config: { runtime: 'python3.11', timeout: 30000, memory_limit: '512MB', network_access: false },
+      usage: [1100, 1300, 1500, 1450, 1600, 1700, 1654] },
+    { id: 5, name: 'PostgreSQL Query', icon: '🐘', desc: 'Execute SQL queries on database', type: 'database', provider: 'PostgreSQL', status: 'active', calls: 892, success: 96.1, latency: 45,
+      config: { host: 'db.internal', port: 5432, database: 'production', read_only: true, max_rows: 1000 },
+      usage: [600, 700, 750, 800, 850, 880, 892] },
+    { id: 6, name: 'Redis Cache', icon: '⚡', desc: 'Redis key-value store operations', type: 'database', provider: 'Redis', status: 'active', calls: 2156, success: 99.9, latency: 3,
+      config: { host: 'cache.internal', port: 6379, db: 0, ttl_default: 3600, max_connections: 50 },
+      usage: [1800, 1900, 2000, 2050, 2100, 2120, 2156] },
+    { id: 7, name: 'GitHub API', icon: '🐙', desc: 'Interact with GitHub repositories', type: 'api', provider: 'GitHub', status: 'active', calls: 534, success: 95.7, latency: 180,
+      config: { token: 'ghp_xxx...', base_url: 'https://api.github.com', rate_limit_safety: 0.8, default_repo: 'agentforge/core' },
+      usage: [300, 380, 420, 460, 490, 510, 534] },
+    { id: 8, name: 'Slack Notifier', icon: '💬', desc: 'Send messages to Slack channels', type: 'api', provider: 'Slack', status: 'degraded', calls: 287, success: 87.3, latency: 95,
+      config: { webhook_url: 'https://hooks.slack.com/xxx', default_channel: '#alerts', username: 'AgentForge Bot' },
+      usage: [200, 220, 250, 270, 280, 275, 287] },
+    { id: 9, name: 'Feishu Docs', icon: '📝', desc: 'Read and write Feishu documents', type: 'api', provider: 'Feishu', status: 'active', calls: 412, success: 93.8, latency: 156,
+      config: { app_id: 'cli_xxx...', app_secret: 'xxx...', tenant_access_token: 'cached' },
+      usage: [280, 320, 350, 380, 400, 410, 412] },
+    { id: 10, name: 'SerpAPI Search', icon: '🔎', desc: 'Google search results via API', type: 'web', provider: 'SerpAPI', status: 'disabled', calls: 0, success: 0, latency: 0,
+      config: { api_key: 'serp_xxx...', engine: 'google', location: 'United States', num_results: 10 },
+      usage: [0, 0, 0, 0, 0, 0, 0] },
+    { id: 11, name: 'Code Interpreter', icon: '💻', desc: 'Multi-language code execution', type: 'code', provider: 'OpenAI', status: 'active', calls: 768, success: 91.2, latency: 1200,
+      config: { model: 'gpt-4-code-interpreter', allowed_languages: ['python', 'javascript'], timeout: 60000 },
+      usage: [500, 580, 640, 680, 720, 750, 768] },
+    { id: 12, name: 'MCP: Browser', icon: '🌐', desc: 'Browser automation via MCP', type: 'mcp', provider: 'MCP', status: 'active', calls: 623, success: 89.5, latency: 2400,
+      config: { mcp_server: 'browser-mcp', headless: true, default_viewport: '1280x720', timeout: 30000 },
+      usage: [400, 480, 520, 560, 590, 610, 623] },
+    { id: 13, name: 'MCP: Filesystem', icon: '📂', desc: 'File operations via MCP protocol', type: 'mcp', provider: 'MCP', status: 'error', calls: 15, success: 12.0, latency: 5000,
+      config: { mcp_server: 'filesystem-mcp', root_dir: '/workspace', allowed_operations: ['read', 'write', 'list'] },
+      usage: [200, 180, 150, 100, 50, 20, 15] },
+    { id: 14, name: 'Weather API', icon: '🌤️', desc: 'Real-time weather data lookup', type: 'api', provider: 'Custom', status: 'active', calls: 124, success: 98.0, latency: 134,
+      config: { api_key: 'weather_xxx...', units: 'metric', default_location: 'Shanghai', cache_ttl: 1800 },
+      usage: [80, 95, 100, 110, 115, 120, 124] },
+    { id: 15, name: 'Image Generator', icon: '🎨', desc: 'Generate images from text prompts', type: 'code', provider: 'OpenAI', status: 'degraded', calls: 345, success: 82.1, latency: 4500,
+      config: { model: 'dall-e-3', size: '1024x1024', quality: 'standard', max_prompt_length: 4000 },
+      usage: [200, 250, 280, 300, 320, 330, 345] },
+  ];
+
+  const typeLabels = {
+    web: 'Web',
+    file: 'File',
+    code: 'Code',
+    database: 'Database',
+    api: 'API',
+    mcp: 'MCP'
+  };
+
+  const daysLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // ============================================================
+  // RENDER TOOLS TABLE
+  // ============================================================
+  function renderToolsTable(filter = 'all', searchQuery = '') {
+    const tbody = document.getElementById('toolsTableBody');
+    let filtered = toolsData;
+
+    if (filter !== 'all') {
+      filtered = filtered.filter(t => t.type === filter);
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        t.provider.toLowerCase().includes(q)
+      );
+    }
+
+    tbody.innerHTML = filtered.map(tool => {
+      const successClass = tool.success >= 95 ? 'green' : tool.success >= 80 ? 'amber' : 'coral';
+      const latencyClass = tool.latency < 100 ? 'good' : tool.latency < 1000 ? 'warn' : 'slow';
+      const latencyText = tool.status === 'disabled' ? '—' : `${tool.latency}ms`;
+      const callsText = tool.status === 'disabled' ? '—' : tool.calls.toLocaleString();
+      const successText = tool.status === 'disabled' ? '—' : `${tool.success}%`;
+      const successWidth = tool.status === 'disabled' ? 0 : tool.success;
+      const isMcp = tool.type === 'mcp';
+
+      return `
+        <tr data-tool-id="${tool.id}">
+          <td>
+            <div class="status-dot ${tool.status}" title="${tool.status.charAt(0).toUpperCase() + tool.status.slice(1)}"></div>
+          </td>
+          <td>
+            <div class="tool-name-cell">
+              <div class="tool-icon">${tool.icon}</div>
+              <div class="tool-info">
+                <div class="tool-name">${tool.name}</div>
+                <div class="tool-desc">${tool.desc}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="type-badge ${tool.type}">
+              ${isMcp ? '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : ''}
+              ${typeLabels[tool.type]}
+            </span>
+          </td>
+          <td><span class="provider-text">${tool.provider}</span></td>
+          <td><span class="calls-value">${callsText}</span></td>
+          <td>
+            <div class="success-rate-cell">
+              <div class="mini-progress">
+                <div class="mini-progress-fill ${successClass}" style="width: ${successWidth}%"></div>
+              </div>
+              <span class="success-rate-text">${successText}</span>
+            </div>
+          </td>
+          <td><span class="latency-text ${latencyClass}">${latencyText}</span></td>
+          <td>
+            <div class="actions-cell">
+              <div class="toggle-switch ${tool.status === 'active' ? 'active' : ''}" data-tool-id="${tool.id}" title="${tool.status === 'active' ? 'Disable' : 'Enable'}"></div>
+              <button class="icon-btn" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="icon-btn delete" title="Delete">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Re-bind row click events
+    bindRowEvents();
+    bindToggleEvents();
+  }
+
+  // ============================================================
+  // ROW CLICK -> SELECT & SHOW DETAILS
+  // ============================================================
+  let selectedToolId = null;
+
+  function bindRowEvents() {
+    document.querySelectorAll('#toolsTableBody tr').forEach(row => {
+      row.addEventListener('click', function(e) {
+        if (e.target.closest('.toggle-switch') || e.target.closest('.icon-btn')) return;
+
+        const id = parseInt(this.dataset.toolId);
+        const isSelected = this.classList.contains('selected');
+
+        document.querySelectorAll('#toolsTableBody tr').forEach(r => r.classList.remove('selected'));
+
+        if (!isSelected) {
+          this.classList.add('selected');
+          selectedToolId = id;
+          showToolDetails(id);
+        } else {
+          selectedToolId = null;
+          showEmptyDetail();
+        }
+      });
+    });
+  }
+
+  // ============================================================
+  // TOGGLE SWITCH
+  // ============================================================
+  function bindToggleEvents() {
+    document.querySelectorAll('.toggle-switch').forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const id = parseInt(this.dataset.toolId);
+        const tool = toolsData.find(t => t.id === id);
+        if (!tool) return;
+
+        if (tool.status === 'disabled') {
+          tool.status = 'active';
+          this.classList.add('active');
+        } else {
+          tool.status = 'disabled';
+          this.classList.remove('active');
+        }
+
+        // Update status dot in the same row
+        const row = this.closest('tr');
+        const statusDot = row.querySelector('.status-dot');
+        statusDot.className = `status-dot ${tool.status}`;
+        statusDot.title = tool.status.charAt(0).toUpperCase() + tool.status.slice(1);
+
+        // If this tool is selected, update details panel
+        if (selectedToolId === id) {
+          showToolDetails(id);
+        }
+      });
+    });
+  }
+
+  // ============================================================
+  // SHOW TOOL DETAILS IN RIGHT PANEL
+  // ============================================================
+  function showToolDetails(toolId) {
+    const tool = toolsData.find(t => t.id === toolId);
+    if (!tool) return;
+
+    const successClass = tool.success >= 95 ? 'green' : tool.success >= 80 ? 'amber' : 'coral';
+    const isMcp = tool.type === 'mcp';
+
+    // Build config display
+    const configLines = Object.entries(tool.config).map(([key, value]) => {
+      let valClass = 'string';
+      let valDisplay = JSON.stringify(value);
+      if (typeof value === 'number') { valClass = 'number'; valDisplay = value; }
+      if (typeof value === 'boolean') { valClass = 'boolean'; valDisplay = value; }
+      return `<div class="config-line"><span class="config-key">${key}</span><span class="config-bracket">:</span> <span class="config-value ${valClass}">${valDisplay}</span></div>`;
+    }).join('');
+
+    // Build usage chart bars
+    const maxUsage = Math.max(...tool.usage, 1);
+    const usageBars = tool.usage.map((val, i) => {
+      const height = (val / maxUsage) * 100;
+      return `<div class="usage-bar" style="height: ${height}%" data-label="${daysLabels[i]}" title="${val.toLocaleString()} calls"></div>`;
+    }).join('');
+
+    const totalUsage = tool.usage.reduce((a, b) => a + b, 0);
+
+    const detailHtml = `
+      <div class="tool-detail-header animate-in">
+        <div class="tool-detail-icon">${tool.icon}</div>
+        <div class="tool-detail-name">${tool.name}</div>
+        <div class="tool-detail-desc">${tool.desc}</div>
+        <div class="tool-detail-type-row">
+          <span class="type-badge ${tool.type}">
+            ${isMcp ? '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : ''}
+            ${typeLabels[tool.type]}
+          </span>
+          <span class="tool-detail-status ${tool.status}">
+            ${tool.status.charAt(0).toUpperCase() + tool.status.slice(1)}
+          </span>
+        </div>
+      </div>
+
+      <div class="tool-detail-stats">
+        <div class="tool-detail-stat">
+          <div class="tool-detail-stat-label">Calls Today</div>
+          <div class="tool-detail-stat-value">${tool.calls.toLocaleString()}</div>
+        </div>
+        <div class="tool-detail-stat">
+          <div class="tool-detail-stat-label">Success Rate</div>
+          <div class="tool-detail-stat-value" style="color: var(--accent-${successClass})">${tool.success}%</div>
+        </div>
+        <div class="tool-detail-stat">
+          <div class="tool-detail-stat-label">Avg Latency</div>
+          <div class="tool-detail-stat-value">${tool.latency}ms</div>
+        </div>
+        <div class="tool-detail-stat">
+          <div class="tool-detail-stat-label">Provider</div>
+          <div class="tool-detail-stat-value" style="font-size: 12px;">${tool.provider}</div>
+        </div>
+      </div>
+
+      <div class="rightbar-section">
+        <div class="rightbar-section-title">Configuration</div>
+        <div class="config-display">
+          ${configLines}
+        </div>
+      </div>
+
+      <div class="rightbar-section">
+        <div class="rightbar-section-title">Usage (Last 7 Days)</div>
+        <div class="usage-chart-container">
+          <div class="usage-chart-bars">
+            ${usageBars}
+          </div>
+          <div class="usage-chart-footer">
+            <span class="usage-total-label">Total</span>
+            <span class="usage-total-value">${totalUsage.toLocaleString()} calls</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="test-tool-btn" id="testToolBtn">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Test Tool
+      </button>
+    `;
+
+    document.getElementById('toolDetailContent').innerHTML = detailHtml;
+
+    // Bind test tool button
+    document.getElementById('testToolBtn').addEventListener('click', () => {
+      openTestModal(tool);
+    });
+  }
+
+  function showEmptyDetail() {
+    document.getElementById('toolDetailContent').innerHTML = `
+      <div class="empty-detail">
+        <div class="empty-detail-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="empty-title">Select a tool</div>
+        <div class="empty-detail-desc">Click any tool row to view details</div>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // CATEGORY TABS FILTER
+  // ============================================================
+  let currentCategory = 'all';
+
+  document.querySelectorAll('.category-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      currentCategory = this.dataset.category;
+      renderToolsTable(currentCategory, document.getElementById('toolSearch').value);
+    });
+  });
+
+  // ============================================================
+  // SEARCH FILTER
+  // ============================================================
+  document.getElementById('toolSearch').addEventListener('input', function() {
+    renderToolsTable(currentCategory, this.value);
+  });
+
+  // ============================================================
+  // NAV ITEM INTERACTION
+  // ============================================================
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // STATS COUNT-UP ANIMATION
+  // ============================================================
+  (function animateCountUp() {
+    const statValues = document.querySelectorAll('.stat-card-value');
+
+    statValues.forEach((el, index) => {
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffixText = suffixEl ? suffixEl.textContent : '';
+      const targetValue = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals) || 0;
+      const isDecimal = decimals > 0;
+
+      const duration = 1500 + index * 200;
+      const startTime = performance.now() + index * 150;
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        if (elapsed < 0) {
+          requestAnimationFrame(update);
+          return;
+        }
+
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = targetValue * easeProgress;
+
+        let displayValue;
+        if (isDecimal) {
+          displayValue = currentValue.toFixed(decimals);
+        } else {
+          displayValue = Math.floor(currentValue).toLocaleString();
+        }
+
+        if (suffixEl) {
+          el.innerHTML = displayValue + '<span class="value-suffix">' + suffixText + '</span>';
+        } else {
+          el.textContent = displayValue;
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+
+      requestAnimationFrame(update);
+    });
+  })();
+
+  // ============================================================
+  // TEST TOOL MODAL
+  // ============================================================
+  const testModal = document.getElementById('testModal');
+  const modalToolName = document.getElementById('modalToolName');
+  const testResult = document.getElementById('testResult');
+
+  function openTestModal(tool) {
+    modalToolName.textContent = tool.name;
+    testModal.classList.add('active');
+
+    // Customize placeholder based on tool type
+    const testInput = document.getElementById('testInput');
+    const placeholders = {
+      web: 'Enter search query...',
+      file: 'Enter file path...',
+      code: 'Enter code to execute...',
+      database: 'Enter SQL query...',
+      api: 'Enter API endpoint...',
+      mcp: 'Enter MCP command...'
+    };
+    testInput.placeholder = placeholders[tool.type] || 'Enter input...';
+  }
+
+  function closeTestModal() {
+    testModal.classList.remove('active');
+  }
+
+  document.getElementById('modalClose').addEventListener('click', closeTestModal);
+  document.getElementById('modalCancel').addEventListener('click', closeTestModal);
+  testModal.addEventListener('click', function(e) {
+    if (e.target === testModal) closeTestModal();
+  });
+
+  document.getElementById('runTestBtn').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Running...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      testResult.style.borderColor = 'rgba(46, 213, 115, 0.3)';
+      testResult.style.boxShadow = '0 0 12px rgba(46, 213, 115, 0.15)';
+      setTimeout(() => {
+        testResult.style.borderColor = '';
+        testResult.style.boxShadow = '';
+      }, 1000);
+    }, 800);
+  });
+
+  // Add spin animation
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+
+  // ============================================================
+  // KEYBOARD SHORTCUT - ESC to close modal
+  // ============================================================
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && testModal.classList.contains('active')) {
+      closeTestModal();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      document.getElementById('toolSearch').focus();
+    }
+  });
+
+  // ============================================================
+  // INITIAL RENDER
+  // ============================================================
+  renderToolsTable();
+
+  // Auto-select first tool for demo
+  setTimeout(() => {
+    const firstRow = document.querySelector('#toolsTableBody tr');
+    if (firstRow) {
+      firstRow.click();
+    }
+  }, 300);
+</script>
+
+</body>
+</html>

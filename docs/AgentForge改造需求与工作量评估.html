@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge 平台改造 — 需求清单与工作量评估</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --panel:#0f1524; --panel-2:#131a2e; --elevated:#182038;
+    --border:rgba(0,229,255,.12); --border-m:rgba(0,229,255,.22); --border-s:rgba(0,229,255,.35);
+    --text:#e6edf7; --text-2:#8892b0; --text-3:#5a6580; --text-m:#3d4760;
+    --cyan:#00e5ff; --cyan-dim:rgba(0,229,255,.6); --cyan-glow:rgba(0,229,255,.12);
+    --coral:#ff6b6b; --green:#2ed573; --amber:#ffa502; --purple:#a855f7;
+    --mono:'JetBrains Mono','Cascadia Code','Consolas',monospace;
+    --sans:'Inter','Microsoft YaHei',-apple-system,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.7;
+    background-image:linear-gradient(rgba(0,229,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.02) 1px,transparent 1px);
+    background-size:40px 40px}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 80px;position:relative;z-index:1}
+  header.doc-head{border-bottom:1px solid var(--border);padding-bottom:24px;margin-bottom:32px}
+  .doc-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+  h1 .pre{font-family:var(--mono);font-size:15px;color:var(--cyan);font-weight:400}
+  .doc-sub{font-family:var(--mono);font-size:12px;color:var(--text-3);margin-top:10px;display:flex;align-items:center;gap:8px}
+  .doc-sub .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+  h2{font-size:20px;font-weight:700;margin:44px 0 16px;display:flex;align-items:center;gap:10px;
+    padding-bottom:10px;border-bottom:1px solid var(--border)}
+  h2 .idx{font-family:var(--mono);font-size:13px;color:var(--cyan);font-weight:400}
+  h3{font-size:15px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+  .meta-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+  .meta-card .k{font-family:var(--mono);font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .meta-card .v{font-family:var(--mono);font-size:22px;font-weight:700}
+  .meta-card .v.cyan{color:var(--cyan)} .meta-card .v.green{color:var(--green)} .meta-card .v.amber{color:var(--amber)} .meta-card .v.coral{color:var(--coral)}
+  .meta-card .s{font-family:var(--mono);font-size:10px;color:var(--text-m);margin-top:4px}
+  p{margin:10px 0;color:var(--text-2)}
+  p strong{color:var(--text)}
+  code{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--cyan)}
+  table{width:100%;border-collapse:collapse;margin:14px 0 8px;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:12.5px}
+  thead th{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;
+    text-align:left;padding:11px 14px;background:var(--panel-2);border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(0,229,255,.03)}
+  td.num,th.num{text-align:right;font-family:var(--mono)}
+  td.center,th.center{text-align:center}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;letter-spacing:.03em}
+  .p0{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid var(--border-s)}
+  .p1{background:rgba(255,165,2,.12);color:var(--amber);border:1px solid rgba(255,165,2,.25)}
+  .p2{background:rgba(136,146,176,.12);color:var(--text-2);border:1px solid var(--border)}
+  .new{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.25)}
+  .ext{background:rgba(255,165,2,.1);color:var(--amber);border:1px solid rgba(255,165,2,.2)}
+  .thin{background:rgba(46,213,115,.1);color:var(--green);border:1px solid rgba(46,213,115,.2)}
+  .layer-tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);
+    background:var(--cyan-glow);border:1px solid var(--border-s);padding:3px 10px;border-radius:4px;margin-bottom:12px}
+  .callout{background:var(--panel);border:1px solid var(--border-m);border-left:3px solid var(--cyan);border-radius:6px;
+    padding:16px 20px;margin:18px 0}
+  .callout.warn{border-left-color:var(--amber)}
+  .callout h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;font-family:var(--mono)}
+  .callout ol,.callout ul{margin:8px 0 0 20px;color:var(--text-2)}
+  .callout li{margin:6px 0}
+  .callout li strong{color:var(--cyan)}
+  .sum-total{font-family:var(--mono);font-weight:700;color:var(--cyan)}
+  .foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text-m);text-align:center}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:20px 0 32px}
+  .toc-title{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  .toc a{display:block;color:var(--text-2);text-decoration:none;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--border)}
+  .toc a:last-child{border-bottom:none}
+  .toc a:hover{color:var(--cyan)}
+  @media print{body{background:#fff;color:#000} .wrap{max-width:none} table{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-head">
+  <div class="doc-eyebrow">// Agent Development Platform · Planning</div>
+  <h1><span class="pre">//</span>AgentForge 平台改造 — 需求清单与工作量评估</h1>
+  <div class="doc-sub"><span class="dot"></span>基于 prototype 原型 vs deer-flow 现状差距分析 · 生成日期 2026-10-08</div>
+</header>
+
+<div class="toc">
+  <div class="toc-title">目录</div>
+  <a href="#scope">一、评估口径</a>
+  <a href="#l1">二、第 1 层：控制台壳与导航</a>
+  <a href="#l2">三、第 2 层：后端新建能力（地基）</a>
+  <a href="#l3">四、第 3 层：前端业务页面</a>
+  <a href="#l4">五、第 4 层：现有能力前端收口</a>
+  <a href="#summary">六、工作量汇总</a>
+  <a href="#risk">七、主要矛盾与风险提示</a>
+</div>
+
+<div class="meta-grid">
+  <div class="meta-card"><div class="k">总工作量</div><div class="v cyan">168</div><div class="s">人天（pd）</div></div>
+  <div class="meta-card"><div class="k">后端 BE</div><div class="v amber">61</div><div class="s">人天</div></div>
+  <div class="meta-card"><div class="k">前端 FE</div><div class="v green">74</div><div class="s">人天</div></div>
+  <div class="meta-card"><div class="k">联调测试</div><div class="v coral">33</div><div class="s">人天</div></div>
+</div>
+
+<h2 id="scope"><span class="idx">01</span>评估口径</h2>
+<ul style="margin:8px 0 0 20px;color:var(--text-2)">
+  <li>工作量单位：<strong>人天（pd）</strong>，1 人天 = 1 名熟手工程师 1 个工作日</li>
+  <li>分 <strong>后端（BE）/ 前端（FE）/ 联调测试（Q&amp;A）</strong> 三栏</li>
+  <li>优先级：<span class="tag p0">P0</span> 平台骨架（无则不成立） / <span class="tag p1">P1</span> 核心能力 / <span class="tag p2">P2</span> 增强体验</li>
+  <li>性质：<span class="tag new">新建</span> 从无到有 / <span class="tag ext">扩展</span> 现有能力增强 / <span class="tag thin">薄封装</span> 后端已有仅落 UI</li>
+  <li>不含原型视觉像素级调优，含与 deer-flow 现有风格的对齐决策</li>
+</ul>
+
+<!-- 第1层 -->
+<h2 id="l1"><span class="idx">02</span>第 1 层：控制台壳与导航（平台骨架）</h2>
+<table>
+  <thead><tr><th style="width:50px">#</th><th>需求项</th><th style="width:110px">对应原型</th><th style="width:80px">性质</th><th class="num">BE</th><th class="num">FE</th><th class="num">Q&amp;A</th><th class="center" style="width:70px">优先级</th></tr></thead>
+  <tbody>
+    <tr><td>1.1</td><td>新建 Console 应用壳（左导航+顶栏+主区三栏布局），落地原型 app-shell 布局</td><td>dashboard / index</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">0.5</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>1.2</td><td>全局命令搜索（⌘K，agents / runs / skills 模糊检索）</td><td>顶栏搜索框</td><td><span class="tag new">新建</span></td><td class="num">1</td><td class="num">2</td><td class="num">0.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>1.3</td><td>通知中心与活动流（右侧栏）</td><td>dashboard 右栏</td><td><span class="tag new">新建</span></td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="center"><span class="tag p2">P2</span></td></tr>
+    <tr><td>1.4</td><td>视觉风格对齐决策与主题变量统一（深色赛博风 vs deer-flow 现有风）</td><td>全部</td><td>决策</td><td class="num">0</td><td class="num">2</td><td class="num">0</td><td class="center"><span class="tag p0">P0</span></td></tr>
+  </tbody>
+</table>
+
+<!-- 第2层 -->
+<h2 id="l2"><span class="idx">03</span>第 2 层：后端新建能力（地基 · 主要矛盾）</h2>
+<table>
+  <thead><tr><th style="width:50px">#</th><th>需求项</th><th style="width:110px">对应原型</th><th style="width:80px">性质</th><th class="num">BE</th><th class="num">FE</th><th class="num">Q&amp;A</th><th class="center" style="width:70px">优先级</th></tr></thead>
+  <tbody>
+    <tr><td>2.1</td><td><strong>Workflows 编排引擎</strong>：DAG 抽象（节点=Agent/工具/条件，边=依赖）、版本化、可运行、可复用 checkpoint</td><td>workflows</td><td><span class="tag new">新建</span></td><td class="num"><strong>12</strong></td><td class="num">0</td><td class="num">3</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>2.2</td><td>Workflows REST API（CRUD + 触发运行 + 状态查询）</td><td>workflows</td><td><span class="tag new">新建</span></td><td class="num">4</td><td class="num">0</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>2.3</td><td><strong>Datasets 数据集资产</strong>：平台级数据集（训练/评估/知识库三类）、上传/版本/被 Agent 引用</td><td>datasets</td><td><span class="tag new">新建</span></td><td class="num">6</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>2.4</td><td><strong>Vector Stores 向量库</strong>：Provider 抽象、建库/索引/检索、接入外部（可复用 memory）</td><td>vector-stores</td><td><span class="tag new">新建</span></td><td class="num">8</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>2.5</td><td><strong>Evaluations 评估体系</strong>：测试集绑定、指标定义、跑分、对比报告</td><td>evaluations</td><td><span class="tag new">新建</span></td><td class="num">8</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>2.6</td><td>Agent 资产元数据模型扩展（状态/标签/统计/归属，支撑 agents 卡片）</td><td>agents</td><td><span class="tag ext">扩展</span></td><td class="num">3</td><td class="num">0</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>2.7</td><td>沙箱<strong>池化管理</strong>（从单 Provider 升级为池：占用/隔离/健康度）</td><td>sandbox</td><td><span class="tag ext">扩展</span></td><td class="num">5</td><td class="num">0</td><td class="num">1.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
+  </tbody>
+</table>
+
+<!-- 第3层 -->
+<h2 id="l3"><span class="idx">04</span>第 3 层：前端业务页面（血肉）</h2>
+<table>
+  <thead><tr><th style="width:50px">#</th><th>需求项</th><th style="width:110px">对应原型</th><th style="width:80px">性质</th><th class="num">BE</th><th class="num">FE</th><th class="num">Q&amp;A</th><th class="center" style="width:70px">优先级</th></tr></thead>
+  <tbody>
+    <tr><td>3.1</td><td>Dashboard 总览页（统计卡 + Agent 网格 + 近期运行 + 系统状态）</td><td>dashboard</td><td><span class="tag new">新建</span></td><td class="num">1</td><td class="num">4</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>3.2</td><td>Agents 资产列表页（卡片网格 + 筛选 + 状态 + 运行统计）</td><td>agents</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">4</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>3.3</td><td>Workflows 列表页（DAG 缩略预览 + 运行状态）</td><td>workflows</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>3.4</td><td><strong>Editor 可视化编排器</strong>（拖拽节点 / 连线 / 配置 Agent 与 Workflow）</td><td>editor</td><td><span class="tag new">新建</span></td><td class="num">1</td><td class="num"><strong>8</strong></td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.5</td><td><strong>Debugger 运行调试器</strong>（单步 / 断点 / 中间态，复用 checkpoint）</td><td>debugger</td><td><span class="tag new">新建</span></td><td class="num">3</td><td class="num">5</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.6</td><td>Sandbox 池管理页</td><td>sandbox</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.7</td><td>Datasets 管理页</td><td>datasets</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.8</td><td>Vector Stores 管理页</td><td>vector-stores</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.9</td><td>Evaluations 结果页</td><td>evaluations</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>3.10</td><td>Preview 实时预览页</td><td>preview</td><td><span class="tag new">新建</span></td><td class="num">1</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p2">P2</span></td></tr>
+  </tbody>
+</table>
+
+<!-- 第4层 -->
+<h2 id="l4"><span class="idx">05</span>第 4 层：现有能力前端收口（薄封装）</h2>
+<table>
+  <thead><tr><th style="width:50px">#</th><th>需求项</th><th style="width:110px">对应原型</th><th style="width:80px">性质</th><th class="num">BE</th><th class="num">FE</th><th class="num">Q&amp;A</th><th class="center" style="width:70px">优先级</th></tr></thead>
+  <tbody>
+    <tr><td>4.1</td><td>Skills 目录页（复用 skills router + SKILL.md 体系）</td><td>skills</td><td><span class="tag thin">薄封装</span></td><td class="num">0</td><td class="num">2.5</td><td class="num">0.5</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>4.2</td><td>Tools 目录页（复用 built-in + config + MCP 三类工具源）</td><td>tools</td><td><span class="tag thin">薄封装</span></td><td class="num">0</td><td class="num">2.5</td><td class="num">0.5</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>4.3</td><td>Models 管理页（复用 models router + 模型工厂）</td><td>models</td><td><span class="tag thin">薄封装</span></td><td class="num">0</td><td class="num">2</td><td class="num">0.5</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>4.4</td><td>Memory 管理页（复用 memory router）</td><td>memory</td><td><span class="tag ext">扩展</span></td><td class="num">1</td><td class="num">2</td><td class="num">0.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>4.5</td><td>Runs 运行记录页（列表 / 筛选 / 详情，复用 runs API）</td><td>runs</td><td><span class="tag ext">扩展</span></td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>4.6</td><td>Traces 链路浏览页（复用 trace_middleware）</td><td>traces</td><td><span class="tag thin">薄封装</span></td><td class="num">0.5</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>4.7</td><td>Logs 日志浏览页</td><td>logs</td><td><span class="tag thin">薄封装</span></td><td class="num">0.5</td><td class="num">2.5</td><td class="num">0.5</td><td class="center"><span class="tag p2">P2</span></td></tr>
+    <tr><td>4.8</td><td>API Keys 管理页（复用 auth / OIDC）</td><td>api-keys</td><td><span class="tag ext">扩展</span></td><td class="num">2</td><td class="num">2.5</td><td class="num">1</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>4.9</td><td>Team 团队 / 权限页（复用 authz）</td><td>team</td><td><span class="tag ext">扩展</span></td><td class="num">2</td><td class="num">3</td><td class="num">1</td><td class="center"><span class="tag p2">P2</span></td></tr>
+  </tbody>
+</table>
+
+<!-- 汇总 -->
+<h2 id="summary"><span class="idx">06</span>工作量汇总</h2>
+<table>
+  <thead><tr><th>层次</th><th class="num">BE（人天）</th><th class="num">FE（人天）</th><th class="num">Q&amp;A（人天）</th><th class="num">小计</th></tr></thead>
+  <tbody>
+    <tr><td>第 1 层 · 控制台壳</td><td class="num">3</td><td class="num">9</td><td class="num">1</td><td class="num"><strong>13</strong></td></tr>
+    <tr><td>第 2 层 · 后端新建能力</td><td class="num"><strong>46</strong></td><td class="num">0</td><td class="num">12.5</td><td class="num"><strong>58.5</strong></td></tr>
+    <tr><td>第 3 层 · 前端业务页</td><td class="num">6</td><td class="num">42</td><td class="num">13</td><td class="num"><strong>61</strong></td></tr>
+    <tr><td>第 4 层 · 现有能力收口</td><td class="num">6</td><td class="num">23</td><td class="num">6.5</td><td class="num"><strong>35.5</strong></td></tr>
+    <tr><td class="sum-total">合计</td><td class="num sum-total">61</td><td class="num sum-total">74</td><td class="num sum-total">33</td><td class="num sum-total">168</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  <h4>// 工期折算</h4>
+  <p>合计 <strong>168 人天 ≈ 8.4 人月</strong>（按 1 人月 = 20 人天）。若以 <strong>2 后端 + 2 前端 + 1 测试</strong> 并行，关键路径受限于第 2 层后端，预计 <strong>3.5 ~ 4 个月</strong> 可交付完整版。</p>
+</div>
+
+<!-- 风险 -->
+<h2 id="risk"><span class="idx">07</span>主要矛盾与风险提示</h2>
+<div class="callout warn">
+  <h4>// 主要矛盾</h4>
+  <p>本次改造的<strong>主要矛盾是「第 2 层后端新建能力」</strong>——占 46 人天、是所有 P0/P1 前端页面的数据地基。其中又以 <strong>2.1 Workflows 编排引擎（12 人天）为重中之重</strong>，它决定了 editor / debugger / workflows 三个核心页面能否成立。</p>
+</div>
+<div class="callout warn">
+  <h4>// 三个必须先拍板的决策（否则范围会漂移）</h4>
+  <ol>
+    <li><strong>视觉风格</strong>：沿用原型深色赛博风，还是对齐 deer-flow 现有风格？——影响全部 FE 工作量与需求 1.4。</li>
+    <li><strong>Workflows 引擎技术路线</strong>：基于 LangGraph 原生图扩展，还是引入独立工作流抽象层？——决定 2.1 的 12 人天是「扩展」还是「重写」。</li>
+    <li><strong>Datasets / Vector Stores 边界</strong>：是否与现有 thread uploads、memory 合并抽象？——避免重复造轮子。</li>
+  </ol>
+</div>
+
+<div class="foot">AgentForge Console · 改造规划文档 · 基于 prototype 原型与 deer-flow 架构差距分析</div>
+
+</div>
+</body>
+</html>

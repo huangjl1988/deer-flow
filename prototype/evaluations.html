@@ -1,0 +1,3369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Evaluations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS RESET & VARIABLES
+     ============================================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --shadow-glow-green: 0 0 20px rgba(46, 213, 115, 0.15), 0 0 40px rgba(46, 213, 115, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  /* ============================================================
+     NOISE / GRAIN OVERLAY
+     ============================================================ */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* ============================================================
+     GRID BACKGROUND PATTERN
+     ============================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* ============================================================
+     CUSTOM SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================================
+     LEFT SIDEBAR
+     ============================================================ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOP BAR
+     ============================================================ */
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 360px;
+    margin-left: 20px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  /* Dropdown */
+  .dropdown {
+    position: relative;
+  }
+
+  .dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--bg-panel-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .dropdown-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .dropdown-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 180px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 6px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+  }
+
+  .dropdown.open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+
+  .dropdown-item:hover {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+  }
+
+  .dropdown-item.selected {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up { color: var(--accent-green); }
+  .stat-trend.down { color: var(--accent-coral); }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     ACTIVE EVALUATION BANNER
+     ============================================================ */
+  .active-eval-banner {
+    background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .active-eval-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-cyan));
+    background-size: 200% 100%;
+    animation: banner-glow 3s linear infinite;
+  }
+
+  @keyframes banner-glow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  .active-eval-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .active-eval-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    padding: 4px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .active-eval-status .pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .active-eval-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .active-eval-title span {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 500;
+  }
+
+  .active-eval-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .btn-ghost.cyan {
+    color: var(--accent-cyan);
+    border-color: var(--border-strong);
+    background: var(--accent-cyan-glow);
+  }
+
+  .btn-ghost.cyan:hover {
+    background: rgba(0, 229, 255, 0.2);
+  }
+
+  .progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s ease;
+    position: relative;
+  }
+
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+    animation: progress-shine 1.5s ease-in-out infinite;
+  }
+
+  @keyframes progress-shine {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  .progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .progress-info .progress-percent {
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  /* ============================================================
+     CONTENT GRID (Eval Suites + Leaderboard)
+     ============================================================ */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+  }
+
+  .section {
+    margin-bottom: 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .section-title .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .section-title .count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-panel-2);
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    font-weight: 400;
+  }
+
+  .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 4px 9px;
+  }
+
+  /* ============================================================
+     EVAL SUITE CARDS
+     ============================================================ */
+  .eval-suites-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .eval-suite-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .eval-suite-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 4px 16px rgba(0, 229, 255, 0.06);
+  }
+
+  .eval-suite-card.expanded {
+    border-color: var(--border-strong);
+  }
+
+  .eval-suite-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent-cyan);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+
+  .eval-suite-card:hover::before,
+  .eval-suite-card.expanded::before {
+    transform: scaleY(1);
+  }
+
+  .eval-suite-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 14px;
+  }
+
+  .eval-suite-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .eval-suite-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .eval-suite-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .eval-suite-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .eval-suite-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .eval-suite-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .eval-suite-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .eval-suite-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .eval-suite-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .eval-suite-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .eval-suite-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .eval-suite-meta .meta-item svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .status-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .status-badge.success {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .status-badge.running {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+    border: 1px solid var(--border-strong);
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .status-badge.warning {
+    color: var(--accent-amber);
+    background: var(--accent-amber-glow);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .status-badge.failed {
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  /* Score Ring */
+  .score-ring-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .score-ring {
+    width: 48px;
+    height: 48px;
+    position: relative;
+  }
+
+  .score-ring svg {
+    width: 48px;
+    height: 48px;
+    transform: rotate(-90deg);
+  }
+
+  .score-ring-bg {
+    fill: none;
+    stroke: var(--bg-elevated);
+    stroke-width: 3;
+  }
+
+  .score-ring-fill {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .score-ring-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .score-ring-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .eval-suite-expand-icon {
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .eval-suite-card.expanded .eval-suite-expand-icon {
+    transform: rotate(180deg);
+    color: var(--accent-cyan);
+  }
+
+  .eval-suite-expand-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Expanded Content - Test Cases */
+  .eval-suite-expanded {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-top: 1px solid transparent;
+  }
+
+  .eval-suite-card.expanded .eval-suite-expanded {
+    max-height: 400px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .test-case-list {
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .test-case-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-panel-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    transition: all 0.15s ease;
+  }
+
+  .test-case-item:hover {
+    border-color: var(--border-medium);
+  }
+
+  .test-case-status {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .test-case-status.pass {
+    color: var(--accent-green);
+  }
+
+  .test-case-status.fail {
+    color: var(--accent-coral);
+  }
+
+  .test-case-status svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .test-case-name {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+
+  .test-case-score {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+  }
+
+  .test-case-item.pass .test-case-score {
+    color: var(--accent-green);
+  }
+
+  .test-case-item.fail .test-case-score {
+    color: var(--accent-coral);
+  }
+
+  /* ============================================================
+     LEADERBOARD
+     ============================================================ */
+  .leaderboard-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .leaderboard-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .leaderboard-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .leaderboard-title .trophy {
+    color: var(--accent-amber);
+  }
+
+  .leaderboard-title .trophy svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .leaderboard-table thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .leaderboard-table tbody tr {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .leaderboard-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .leaderboard-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .leaderboard-table tbody tr.selected {
+    background: var(--accent-cyan-glow);
+  }
+
+  .leaderboard-table tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+
+  .rank-cell {
+    width: 40px;
+    text-align: center;
+  }
+
+  .rank-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--bg-elevated);
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .rank-badge.gold {
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    color: #1a1a2e;
+    border-color: #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  }
+
+  .rank-badge.silver {
+    background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+    color: #1a1a2e;
+    border-color: #c0c0c0;
+    box-shadow: 0 0 12px rgba(192, 192, 192, 0.2);
+  }
+
+  .rank-badge.bronze {
+    background: linear-gradient(135deg, #cd7f32, #b87333);
+    color: #1a1a2e;
+    border-color: #cd7f32;
+    box-shadow: 0 0 12px rgba(205, 127, 50, 0.2);
+  }
+
+  .agent-cell {
+    min-width: 0;
+  }
+
+  .agent-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .agent-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .score-cell {
+    text-align: right;
+  }
+
+  .score-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .score-value.high { color: var(--accent-green); }
+  .score-value.medium { color: var(--accent-amber); }
+  .score-value.low { color: var(--accent-coral); }
+
+  .trend-cell {
+    width: 50px;
+    text-align: center;
+  }
+
+  .trend-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .trend-icon.up {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+  }
+
+  .trend-icon.down {
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+  }
+
+  .trend-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .date-cell {
+    text-align: right;
+  }
+
+  .date-text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .leaderboard-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .compare-btn {
+    width: 100%;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .compare-btn:hover {
+    background: rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+  }
+
+  .compare-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .compare-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ============================================================
+     MODAL / NEW EVALUATION WIZARD
+     ============================================================ */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    width: 520px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 229, 255, 0.05);
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-title .modal-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-title .modal-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .modal-close:hover {
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .modal-close svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    height: 36px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.15s ease;
+  }
+
+  .form-input:focus, .form-select:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .form-input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .form-textarea {
+    width: 100%;
+    min-height: 80px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.15s ease;
+    resize: vertical;
+  }
+
+  .form-textarea:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .suite-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .suite-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .suite-option:hover {
+    border-color: var(--border-medium);
+  }
+
+  .suite-option.selected {
+    border-color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .suite-option-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-medium);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+
+  .suite-option.selected .suite-option-checkbox {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+  }
+
+  .suite-option-checkbox svg {
+    width: 10px;
+    height: 10px;
+    stroke: var(--bg-deep);
+    fill: none;
+    stroke-width: 3;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .suite-option.selected .suite-option-checkbox svg {
+    opacity: 1;
+  }
+
+  .suite-option-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .suite-option-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .suite-option-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  /* ============================================================
+     LIVE VIEW PANEL (overlay inside banner)
+     ============================================================ */
+  .live-view-panel {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .active-eval-banner.live .live-view-panel {
+    display: block;
+  }
+
+  .live-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .live-stat {
+    text-align: center;
+    padding: 8px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .live-stat-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .live-stat-value.green { color: var(--accent-green); }
+  .live-stat-value.coral { color: var(--accent-coral); }
+  .live-stat-value.cyan { color: var(--accent-cyan); }
+  .live-stat-value.amber { color: var(--accent-amber); }
+
+  .live-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .live-log {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .live-log-line {
+    display: flex;
+    gap: 10px;
+    padding: 3px 0;
+    color: var(--text-tertiary);
+  }
+
+  .live-log-line .log-time {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .live-log-line .log-status {
+    flex-shrink: 0;
+  }
+
+  .live-log-line.pass .log-status { color: var(--accent-green); }
+  .live-log-line.fail .log-status { color: var(--accent-coral); }
+  .live-log-line.running .log-status { color: var(--accent-cyan); }
+
+  .live-log-line .log-msg {
+    color: var(--text-secondary);
+  }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-in {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .animate-in:nth-child(1) { animation-delay: 0.05s; }
+  .animate-in:nth-child(2) { animation-delay: 0.1s; }
+  .animate-in:nth-child(3) { animation-delay: 0.15s; }
+  .animate-in:nth-child(4) { animation-delay: 0.2s; }
+  .animate-in:nth-child(5) { animation-delay: 0.25s; }
+  .animate-in:nth-child(6) { animation-delay: 0.3s; }
+
+  /* ============================================================
+     TOPBAR BUTTON (refresh)
+     ============================================================ */
+  .topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .topbar-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-btn.spinning svg {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* ============================================================
+     PAGE HEADER ACTIONS
+     ============================================================ */
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     EVALUATION TABLE
+     ============================================================ */
+  .eval-table-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .eval-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .eval-table thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel-2);
+    white-space: nowrap;
+  }
+
+  .eval-table tbody tr {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .eval-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .eval-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .eval-table tbody td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    font-size: 12px;
+  }
+
+  .eval-id-cell {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-cyan);
+    font-weight: 500;
+  }
+
+  .eval-agent-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .eval-agent-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .eval-dataset {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .method-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  .method-badge.llm {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+    border-color: var(--border-strong);
+  }
+
+  .method-badge.human {
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+    border-color: rgba(168, 85, 247, 0.2);
+  }
+
+  .method-badge.rubric {
+    color: var(--accent-amber);
+    background: var(--accent-amber-glow);
+    border-color: rgba(255, 165, 2, 0.2);
+  }
+
+  .eval-score-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .eval-score-value.high { color: var(--accent-green); }
+  .eval-score-value.medium { color: var(--accent-amber); }
+  .eval-score-value.low { color: var(--accent-coral); }
+  .eval-score-value.pending { color: var(--text-tertiary); }
+
+  .eval-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .action-btns {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .action-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* ============================================================
+     SCORE DISTRIBUTION CHART
+     ============================================================ */
+  .chart-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .chart-title-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .chart-title-text .title-bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.passed { background: var(--accent-green); }
+  .legend-dot.failed { background: var(--accent-coral); }
+  .legend-dot.pending { background: var(--accent-amber); }
+
+  .chart-body {
+    position: relative;
+  }
+
+  .chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .chart-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .chart-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .chart-stat-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .chart-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Bar grow animation */
+  .chart-bar {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    transform: scaleY(0);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .chart-bar.animated {
+    transform: scaleY(1);
+  }
+
+  /* Score trend line */
+  .trend-line-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-top: 20px;
+  }
+
+  .trend-line-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .trend-line-path {
+    fill: none;
+    stroke: var(--accent-cyan);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    transition: stroke-dashoffset 2s ease;
+  }
+
+  .trend-line-path.animated {
+    stroke-dashoffset: 0;
+  }
+
+  .trend-area {
+    fill: url(#trendGradient);
+    opacity: 0;
+    transition: opacity 1s ease 1s;
+  }
+
+  .trend-area.animated {
+    opacity: 1;
+  }
+
+  .trend-dot {
+    fill: var(--bg-panel);
+    stroke: var(--accent-cyan);
+    stroke-width: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .trend-dot.animated {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ============================================================
+       LEFT SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>observability</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Evaluations</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="Search evaluations, agents, datasets..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-primary" id="newEvalBtn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Evaluation
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Evaluation Results
+        </h1>
+        <p class="page-subtitle">
+          <span class="status-indicator"></span>
+          7 passed / 2 failed / 1 pending &middot; Last sync 2m ago
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card animate-in">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <div class="stat-card-label">Total Evaluations</div>
+        <div class="stat-card-value" data-target="142">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            8.3%
+          </span>
+          <span class="stat-period">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card animate-in">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Pass Rate</div>
+        <div class="stat-card-value" data-target="87.5" data-decimals="1">0<span class="value-suffix">%</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            2.1%
+          </span>
+          <span class="stat-period">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card animate-in">
+        <div class="stat-card-icon purple">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="stat-card-label">Avg Score</div>
+        <div class="stat-card-value" data-target="76.8" data-decimals="1">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            4.5pts
+          </span>
+          <span class="stat-period">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card animate-in">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card-label">Last Run</div>
+        <div class="stat-card-value" style="font-size: 20px;">2h<span class="value-suffix"> ago</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            1h
+          </span>
+          <span class="stat-period">faster</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Evaluation Banner -->
+    <div class="active-eval-banner live">
+      <div class="active-eval-header">
+        <span class="active-eval-status">
+          <span class="pulse"></span>
+          RUNNING
+        </span>
+        <span class="active-eval-title">Evaluating <span>DialogBot v3.1</span> against <span>ConvAI2</span> dataset</span>
+        <div class="active-eval-actions">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="2" height="6"/><rect x="13" y="9" width="2" height="6"/></svg>
+            Pause
+          </button>
+          <button class="btn-ghost cyan">
+            <svg viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 17"/></svg>
+            Stop
+          </button>
+        </div>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" style="width: 45%;"></div>
+      </div>
+      <div class="progress-info">
+        <span>EVAL-2408 &middot; Human Evaluation &middot; 9/20 test cases completed</span>
+        <span class="progress-percent">45%</span>
+      </div>
+
+      <!-- Live View Panel -->
+      <div class="live-view-panel">
+        <div class="live-grid">
+          <div class="live-stat">
+            <div class="live-stat-value green">4</div>
+            <div class="live-stat-label">Passed</div>
+          </div>
+          <div class="live-stat">
+            <div class="live-stat-value coral">1</div>
+            <div class="live-stat-label">Failed</div>
+          </div>
+          <div class="live-stat">
+            <div class="live-stat-value cyan">1</div>
+            <div class="live-stat-label">Running</div>
+          </div>
+          <div class="live-stat">
+            <div class="live-stat-value amber">14</div>
+            <div class="live-stat-label">Pending</div>
+          </div>
+        </div>
+        <div class="live-log">
+          <div class="live-log-line pass">
+            <span class="log-time">14:31:58</span>
+            <span class="log-status">PASS</span>
+            <span class="log-msg">test_009: "multi-turn booking flow" — score 0.92</span>
+          </div>
+          <div class="live-log-line pass">
+            <span class="log-time">14:30:42</span>
+            <span class="log-status">PASS</span>
+            <span class="log-msg">test_008: "intent clarification" — score 0.87</span>
+          </div>
+          <div class="live-log-line fail">
+            <span class="log-time">14:28:15</span>
+            <span class="log-status">FAIL</span>
+            <span class="log-msg">test_007: "context retention >5 turns" — score 0.41</span>
+          </div>
+          <div class="live-log-line running">
+            <span class="log-time">14:27:03</span>
+            <span class="log-status">RUN</span>
+            <span class="log-msg">test_010: "emotion-aware response" — evaluating...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Grid: Eval Table + Score Distribution Chart -->
+    <div class="content-grid">
+      <!-- Left: Filter Tabs + Evaluation Table -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="title-bracket">[</span>
+            Evaluation Records
+            <span class="title-bracket">]</span>
+            <span class="count">10</span>
+          </div>
+          <div class="filter-tabs">
+            <span class="filter-tab active" data-filter="all">All <span class="count">10</span></span>
+            <span class="filter-tab" data-filter="passed">Passed <span class="count">7</span></span>
+            <span class="filter-tab" data-filter="failed">Failed <span class="count">2</span></span>
+            <span class="filter-tab" data-filter="pending">Pending <span class="count">1</span></span>
+          </div>
+        </div>
+
+        <div class="eval-table-card">
+          <table class="eval-table">
+            <thead>
+              <tr>
+                <th>Eval ID</th>
+                <th>Agent</th>
+                <th>Dataset</th>
+                <th>Method</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2401</span></td>
+                <td>
+                  <div class="eval-agent-name">ResearchBot</div>
+                  <div class="eval-agent-version">v2.1</div>
+                </td>
+                <td><span class="eval-dataset">MMLU-STEM-500</span></td>
+                <td><span class="method-badge llm">LLM Judge</span></td>
+                <td><span class="eval-score-value high">92.5</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 8, 14:32</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2402</span></td>
+                <td>
+                  <div class="eval-agent-name">CodeGen-Pro</div>
+                  <div class="eval-agent-version">v3.0</div>
+                </td>
+                <td><span class="eval-dataset">HumanEval-X</span></td>
+                <td><span class="method-badge rubric">Rubric</span></td>
+                <td><span class="eval-score-value high">87.3</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 8, 11:15</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3 -->
+              <tr data-status="failed">
+                <td><span class="eval-id-cell">EVAL-2403</span></td>
+                <td>
+                  <div class="eval-agent-name">SupportBot</div>
+                  <div class="eval-agent-version">v1.8</div>
+                </td>
+                <td><span class="eval-dataset">CSQA-200</span></td>
+                <td><span class="method-badge human">Human</span></td>
+                <td><span class="eval-score-value low">28.5</span></td>
+                <td><span class="status-badge failed">Failed</span></td>
+                <td><span class="eval-date">Oct 7, 18:45</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2404</span></td>
+                <td>
+                  <div class="eval-agent-name">DataAnalyst</div>
+                  <div class="eval-agent-version">v2.0</div>
+                </td>
+                <td><span class="eval-dataset">TableQA-Pro</span></td>
+                <td><span class="method-badge llm">LLM Judge</span></td>
+                <td><span class="eval-score-value high">95.1</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 7, 15:20</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2405</span></td>
+                <td>
+                  <div class="eval-agent-name">TransBot</div>
+                  <div class="eval-agent-version">v1.5</div>
+                </td>
+                <td><span class="eval-dataset">WMT22-MT</span></td>
+                <td><span class="method-badge rubric">Rubric</span></td>
+                <td><span class="eval-score-value medium">71.7</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 7, 09:30</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr data-status="failed">
+                <td><span class="eval-id-cell">EVAL-2406</span></td>
+                <td>
+                  <div class="eval-agent-name">ReasonBot</div>
+                  <div class="eval-agent-version">v2.3</div>
+                </td>
+                <td><span class="eval-dataset">GSM8K-Math</span></td>
+                <td><span class="method-badge llm">LLM Judge</span></td>
+                <td><span class="eval-score-value low">52.8</span></td>
+                <td><span class="status-badge failed">Failed</span></td>
+                <td><span class="eval-date">Oct 6, 22:10</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 7 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2407</span></td>
+                <td>
+                  <div class="eval-agent-name">SumBot</div>
+                  <div class="eval-agent-version">v1.9</div>
+                </td>
+                <td><span class="eval-dataset">CNN-DM</span></td>
+                <td><span class="method-badge llm">LLM Judge</span></td>
+                <td><span class="eval-score-value high">89.6</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 6, 16:45</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 8 -->
+              <tr data-status="pending">
+                <td><span class="eval-id-cell">EVAL-2408</span></td>
+                <td>
+                  <div class="eval-agent-name">DialogBot</div>
+                  <div class="eval-agent-version">v3.1</div>
+                </td>
+                <td><span class="eval-dataset">ConvAI2</span></td>
+                <td><span class="method-badge human">Human</span></td>
+                <td><span class="eval-score-value pending">&mdash;</span></td>
+                <td><span class="status-badge running">Running</span></td>
+                <td><span class="eval-date">Oct 6, 10:20</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Cancel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 9 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2409</span></td>
+                <td>
+                  <div class="eval-agent-name">MathBot</div>
+                  <div class="eval-agent-version">v2.0</div>
+                </td>
+                <td><span class="eval-dataset">MATH-500</span></td>
+                <td><span class="method-badge rubric">Rubric</span></td>
+                <td><span class="eval-score-value high">83.9</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 5, 20:15</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 10 -->
+              <tr data-status="passed">
+                <td><span class="eval-id-cell">EVAL-2410</span></td>
+                <td>
+                  <div class="eval-agent-name">RAGBot</div>
+                  <div class="eval-agent-version">v1.2</div>
+                </td>
+                <td><span class="eval-dataset">NaturalQA</span></td>
+                <td><span class="method-badge llm">LLM Judge</span></td>
+                <td><span class="eval-score-value high">91.2</span></td>
+                <td><span class="status-badge success">Passed</span></td>
+                <td><span class="eval-date">Oct 5, 14:00</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="action-btn" title="View Details"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Re-run"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Score Distribution Chart + Trend Line -->
+      <div class="section">
+        <!-- Score Distribution Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-text">
+              <span class="title-bracket">[</span>
+              Score Distribution
+              <span class="title-bracket">]</span>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><span class="legend-dot passed"></span>Passed</div>
+              <div class="legend-item"><span class="legend-dot failed"></span>Failed</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <svg class="chart-svg" viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg">
+              <!-- Y-axis grid lines -->
+              <line x1="40" y1="20" x2="320" y2="20" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="40" y1="73" x2="320" y2="73" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="40" y1="127" x2="320" y2="127" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="40" y1="180" x2="320" y2="180" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+
+              <!-- Y-axis labels -->
+              <text x="34" y="24" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">6</text>
+              <text x="34" y="77" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">4</text>
+              <text x="34" y="131" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">2</text>
+              <text x="34" y="184" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">0</text>
+
+              <!-- Bar: 0-20 (0 evals) -->
+              <rect class="chart-bar" x="55" y="178" width="40" height="2" fill="#3d4760" rx="2" opacity="0.4"/>
+              <text x="75" y="172" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="10">0</text>
+
+              <!-- Bar: 20-40 (1 failed) -->
+              <rect class="chart-bar" x="107" y="153" width="40" height="27" fill="#ff6b6b" rx="2" opacity="0.85"/>
+              <text x="127" y="147" text-anchor="middle" fill="#e6edf7" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600">1</text>
+
+              <!-- Bar: 40-60 (1 failed) -->
+              <rect class="chart-bar" x="159" y="153" width="40" height="27" fill="#ff6b6b" rx="2" opacity="0.85"/>
+              <text x="179" y="147" text-anchor="middle" fill="#e6edf7" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600">1</text>
+
+              <!-- Bar: 60-80 (1 passed) -->
+              <rect class="chart-bar" x="211" y="153" width="40" height="27" fill="#2ed573" rx="2" opacity="0.85"/>
+              <text x="231" y="147" text-anchor="middle" fill="#e6edf7" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600">1</text>
+
+              <!-- Bar: 80-100 (6 passed) -->
+              <rect class="chart-bar" x="263" y="20" width="40" height="160" fill="#2ed573" rx="2" opacity="0.85"/>
+              <text x="283" y="14" text-anchor="middle" fill="#e6edf7" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600">6</text>
+
+              <!-- X-axis labels -->
+              <text x="75" y="200" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">0-20</text>
+              <text x="127" y="200" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">20-40</text>
+              <text x="179" y="200" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">40-60</text>
+              <text x="231" y="200" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">60-80</text>
+              <text x="283" y="200" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">80-100</text>
+
+              <!-- X-axis title -->
+              <text x="180" y="215" text-anchor="middle" fill="#3d4760" font-family="'JetBrains Mono', monospace" font-size="9">Score Range</text>
+            </svg>
+          </div>
+          <div class="chart-footer">
+            <div class="chart-stat">
+              <span class="chart-stat-value" style="color: var(--accent-green);">7</span>
+              <span class="chart-stat-label">Passed</span>
+            </div>
+            <div class="chart-stat">
+              <span class="chart-stat-value" style="color: var(--accent-coral);">2</span>
+              <span class="chart-stat-label">Failed</span>
+            </div>
+            <div class="chart-stat">
+              <span class="chart-stat-value" style="color: var(--accent-amber);">1</span>
+              <span class="chart-stat-label">Pending</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score Trend Line Chart -->
+        <div class="trend-line-card">
+          <div class="chart-header">
+            <div class="chart-title-text">
+              <span class="title-bracket">[</span>
+              Avg Score Trend
+              <span class="title-bracket">]</span>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><span class="legend-dot passed"></span>Last 10 Evals</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <svg class="trend-line-svg" viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Grid lines -->
+              <line x1="20" y1="20" x2="320" y2="20" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="20" y1="56" x2="320" y2="56" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="20" y1="92" x2="320" y2="92" stroke="rgba(0,229,255,0.06)" stroke-width="1" stroke-dasharray="2,3"/>
+              <line x1="20" y1="140" x2="320" y2="140" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+
+              <!-- Y-axis labels -->
+              <text x="16" y="24" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">90</text>
+              <text x="16" y="60" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">80</text>
+              <text x="16" y="96" text-anchor="end" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="9">70</text>
+
+              <!-- Area fill -->
+              <path class="trend-area" d="M 30,110 L 61,99 L 92,120 L 123,91 L 154,80 L 186,93 L 217,85 L 248,73 L 279,67 L 310,56 L 310,140 L 30,140 Z"/>
+
+              <!-- Line -->
+              <path class="trend-line-path" d="M 30,110 L 61,99 L 92,120 L 123,91 L 154,80 L 186,93 L 217,85 L 248,73 L 279,67 L 310,56"/>
+
+              <!-- Data dots -->
+              <circle class="trend-dot" cx="30" cy="110" r="3"/>
+              <circle class="trend-dot" cx="61" cy="99" r="3"/>
+              <circle class="trend-dot" cx="92" cy="120" r="3"/>
+              <circle class="trend-dot" cx="123" cy="91" r="3"/>
+              <circle class="trend-dot" cx="154" cy="80" r="3"/>
+              <circle class="trend-dot" cx="186" cy="93" r="3"/>
+              <circle class="trend-dot" cx="217" cy="85" r="3"/>
+              <circle class="trend-dot" cx="248" cy="73" r="3"/>
+              <circle class="trend-dot" cx="279" cy="67" r="3"/>
+              <circle class="trend-dot" cx="310" cy="56" r="3"/>
+
+              <!-- X-axis labels -->
+              <text x="30" y="155" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="8">E1</text>
+              <text x="92" y="155" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="8">E3</text>
+              <text x="154" y="155" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="8">E5</text>
+              <text x="217" y="155" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="8">E7</text>
+              <text x="279" y="155" text-anchor="middle" fill="#5a6580" font-family="'JetBrains Mono', monospace" font-size="8">E9</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     MODAL: NEW EVALUATION WIZARD
+     ============================================================ -->
+<div class="modal-overlay" id="newEvalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-icon">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </span>
+        New Evaluation
+      </div>
+      <button class="modal-close" id="modalCloseBtn">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Evaluation Name</label>
+        <input type="text" class="form-input" placeholder="e.g. ResearchBot QA Eval #3" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Agent</label>
+          <select class="form-select">
+            <option>Select agent...</option>
+            <option>ResearchBot v2.1</option>
+            <option>CodeGen-Pro v3.0</option>
+            <option>SupportBot v1.8</option>
+            <option>DataAnalyst v2.0</option>
+            <option>TransBot v1.5</option>
+            <option>ReasonBot v2.3</option>
+            <option>SumBot v1.9</option>
+            <option>DialogBot v3.1</option>
+            <option>MathBot v2.0</option>
+            <option>RAGBot v1.2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dataset</label>
+          <select class="form-select">
+            <option>Select dataset...</option>
+            <option>MMLU-STEM-500</option>
+            <option>HumanEval-X</option>
+            <option>CSQA-200</option>
+            <option>TableQA-Pro</option>
+            <option>WMT22-MT</option>
+            <option>GSM8K-Math</option>
+            <option>CNN-DM</option>
+            <option>ConvAI2</option>
+            <option>MATH-500</option>
+            <option>NaturalQA</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Evaluation Method</label>
+        <div class="suite-options">
+          <div class="suite-option selected">
+            <div class="suite-option-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="suite-option-info">
+              <div class="suite-option-name">LLM Judge</div>
+              <div class="suite-option-count">GPT-4o as judge &middot; auto-graded</div>
+            </div>
+          </div>
+          <div class="suite-option">
+            <div class="suite-option-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="suite-option-info">
+              <div class="suite-option-name">Human Evaluation</div>
+              <div class="suite-option-count">Manual review &middot; rubric-based scoring</div>
+            </div>
+          </div>
+          <div class="suite-option">
+            <div class="suite-option-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="suite-option-info">
+              <div class="suite-option-name">Rubric Scoring</div>
+              <div class="suite-option-count">Automated rule-based &middot; fast</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pass Threshold</label>
+          <input type="text" class="form-input" placeholder="60.0" value="60.0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sample Size</label>
+          <input type="text" class="form-input" placeholder="500" value="500" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="modalCancelBtn">Cancel</button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Start Evaluation
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // STATS CARD COUNT-UP ANIMATION
+  // ============================================================
+  function animateCountUp() {
+    const statValues = document.querySelectorAll('.stat-card-value[data-target]');
+    statValues.forEach((el, index) => {
+      const target = parseFloat(el.getAttribute('data-target'));
+      const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffixText = suffixEl ? suffixEl.textContent : '';
+      const duration = 1500 + index * 200;
+      const startTime = performance.now() + index * 150;
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        if (elapsed < 0) {
+          requestAnimationFrame(update);
+          return;
+        }
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = target * easeProgress;
+        let displayValue;
+        if (decimals > 0) {
+          displayValue = currentValue.toFixed(decimals);
+        } else {
+          displayValue = Math.floor(currentValue).toLocaleString();
+        }
+        if (suffixEl) {
+          el.innerHTML = displayValue + '<span class="value-suffix">' + suffixText + '</span>';
+        } else {
+          el.textContent = displayValue;
+        }
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      requestAnimationFrame(update);
+    });
+  }
+
+  // ============================================================
+  // FILTER TABS + TABLE ROW FILTERING
+  // ============================================================
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.getAttribute('data-filter');
+      const rows = document.querySelectorAll('.eval-table tbody tr');
+      rows.forEach(row => {
+        if (filter === 'all' || row.getAttribute('data-status') === filter) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // ============================================================
+  // SEARCH INPUT FILTERING
+  // ============================================================
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.eval-table tbody tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+
+  // ============================================================
+  // MODAL: NEW EVALUATION
+  // ============================================================
+  const modal = document.getElementById('newEvalModal');
+  document.getElementById('newEvalBtn').addEventListener('click', () => {
+    modal.classList.add('open');
+  });
+  document.getElementById('modalCloseBtn').addEventListener('click', () => {
+    modal.classList.remove('open');
+  });
+  document.getElementById('modalCancelBtn').addEventListener('click', () => {
+    modal.classList.remove('open');
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('open');
+    }
+  });
+
+  // Suite option toggle
+  document.querySelectorAll('.suite-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.suite-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+
+  // ============================================================
+  // REFRESH BUTTON
+  // ============================================================
+  document.getElementById('refreshBtn').addEventListener('click', function() {
+    this.classList.add('spinning');
+    setTimeout(() => {
+      this.classList.remove('spinning');
+    }, 1000);
+  });
+
+  // ============================================================
+  // BAR CHART ANIMATION
+  // ============================================================
+  function animateBarChart() {
+    document.querySelectorAll('.chart-bar').forEach((bar, i) => {
+      setTimeout(() => bar.classList.add('animated'), 300 + i * 120);
+    });
+  }
+
+  // ============================================================
+  // TREND LINE ANIMATION
+  // ============================================================
+  function animateTrendLine() {
+    const path = document.querySelector('.trend-line-path');
+    const area = document.querySelector('.trend-area');
+    const dots = document.querySelectorAll('.trend-dot');
+    if (path) path.classList.add('animated');
+    if (area) area.classList.add('animated');
+    dots.forEach((dot, i) => {
+      setTimeout(() => dot.classList.add('animated'), 2000 + i * 100);
+    });
+  }
+
+  // ============================================================
+  // INIT ON LOAD
+  // ============================================================
+  window.addEventListener('load', () => {
+    animateCountUp();
+    animateBarChart();
+    animateTrendLine();
+  });
+</script>
+</body>
+</html>

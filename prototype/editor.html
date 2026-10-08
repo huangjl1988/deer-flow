@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Editor - AgentForge Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========== CSS Variables ========== */
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #0f1524;
+    --bg-tertiary: #141b2d;
+    --bg-elevated: #1a2338;
+    --bg-hover: #1e2a42;
+    
+    --border-color: #1e2a42;
+    --border-light: #2a3a5c;
+    --border-glow: rgba(0, 229, 255, 0.3);
+    
+    --text-primary: #e8edf5;
+    --text-secondary: #8b95a7;
+    --text-tertiary: #5a6478;
+    --text-muted: #3d4659;
+    
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: #00a8bd;
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: #cc5555;
+    --accent-green: #5eff9e;
+    --accent-green-dim: #44cc7a;
+    --accent-yellow: #ffd93d;
+    --accent-yellow-dim: #ccae31;
+    --accent-purple: #a78bfa;
+    --accent-purple-dim: #866fd0;
+    --accent-orange: #ff9f43;
+    
+    --glow-cyan: 0 0 20px rgba(0, 229, 255, 0.4);
+    --glow-coral: 0 0 20px rgba(255, 107, 107, 0.4);
+    --glow-green: 0 0 20px rgba(94, 255, 158, 0.3);
+    
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    
+    --sidebar-left-width: 240px;
+    --sidebar-right-width: 280px;
+    --topbar-height: 48px;
+    --statusbar-height: 28px;
+    --tab-height: 40px;
+    
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+  }
+
+  /* ========== Reset & Base ========== */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Grid background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at 20% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ========== Custom Scrollbar ========== */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 4px;
+    transition: background var(--transition-fast);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--bg-secondary);
+  }
+
+  /* ========== App Layout ========== */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ========== Top Bar ========== */
+  .topbar {
+    height: var(--topbar-height);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: var(--sidebar-left-width);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .logo-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--bg-primary);
+    font-weight: 800;
+    box-shadow: var(--glow-cyan);
+  }
+
+  .logo-text {
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+  }
+
+  .breadcrumb-item:hover {
+    color: var(--accent-cyan);
+  }
+
+  .breadcrumb-item.active {
+    color: var(--text-primary);
+    cursor: default;
+  }
+
+  .breadcrumb-separator {
+    color: var(--text-tertiary);
+  }
+
+  .breadcrumb-icon {
+    font-size: 11px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.3px;
+  }
+
+  .btn:hover {
+    border-color: var(--accent-cyan-dim);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-cyan-dim));
+    color: var(--bg-primary);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--glow-cyan);
+    color: var(--bg-primary);
+  }
+
+  .btn-coral {
+    background: linear-gradient(135deg, var(--accent-coral), var(--accent-coral-dim));
+    color: white;
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .btn-coral:hover {
+    box-shadow: var(--glow-coral);
+    color: white;
+  }
+
+  .btn-icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+
+  .btn-icon .icon {
+    font-size: 14px;
+  }
+
+  /* ========== Main Content ========== */
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ========== Left Sidebar ========== */
+  .sidebar-left {
+    width: var(--sidebar-left-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 12px 8px;
+    overflow-y: auto;
+  }
+
+  .nav-section {
+    margin-bottom: 16px;
+  }
+
+  .nav-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-tertiary);
+    padding: 4px 12px;
+    margin-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 12px;
+    margin-bottom: 2px;
+    position: relative;
+    text-decoration: none;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: rgba(0, 229, 255, 0.08);
+    color: var(--accent-cyan);
+    border-left: 2px solid var(--accent-cyan);
+    padding-left: 10px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: var(--glow-cyan);
+  }
+
+  .nav-icon {
+    width: 16px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: var(--bg-elevated);
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+
+  .nav-item.active .nav-badge {
+    background: rgba(0, 229, 255, 0.15);
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-user {
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent-coral), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: white;
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .user-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: var(--glow-green);
+    position: relative;
+  }
+
+  .user-status::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-green);
+    opacity: 0.4;
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+
+  /* ========== Panel Divider ========== */
+  .panel-divider {
+    width: 3px;
+    background: var(--border-color);
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    transition: background var(--transition-fast);
+  }
+
+  .panel-divider:hover,
+  .panel-divider.dragging {
+    background: var(--accent-cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .panel-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 40px;
+    background: var(--border-light);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .panel-divider:hover::before {
+    opacity: 1;
+    background: var(--accent-cyan);
+  }
+
+  /* ========== Editor Area ========== */
+  .editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-primary);
+  }
+
+  .editor-tabs {
+    height: var(--tab-height);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 8px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .editor-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 36px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    position: relative;
+    letter-spacing: 0.3px;
+  }
+
+  .editor-tab:hover {
+    color: var(--text-secondary);
+    background: var(--bg-hover);
+  }
+
+  .editor-tab.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+    box-shadow: 0 2px 0 0 var(--accent-cyan);
+  }
+
+  .editor-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan), 0 0 20px rgba(0, 229, 255, 0.5);
+    animation: tab-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes tab-glow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .tab-icon {
+    font-size: 13px;
+  }
+
+  .tab-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
+  .tab-close {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    opacity: 0;
+    transition: all var(--transition-fast);
+  }
+
+  .editor-tab:hover .tab-close {
+    opacity: 1;
+  }
+
+  .tab-close:hover {
+    background: var(--accent-coral);
+    color: white;
+  }
+
+  .editor-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tab-panel {
+    display: none;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .tab-panel.active {
+    display: block;
+    animation: fade-in 0.2s ease;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== Code Editor (Config Tab) ========== */
+  .code-editor {
+    display: flex;
+    height: 100%;
+    overflow: auto;
+    background: var(--bg-primary);
+  }
+
+  .line-numbers {
+    padding: 16px 12px 16px 16px;
+    text-align: right;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.8;
+    user-select: none;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0;
+    min-width: 48px;
+  }
+
+  .line-number {
+    display: block;
+    transition: color var(--transition-fast);
+  }
+
+  .line-number.active {
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  .code-content {
+    padding: 16px 20px;
+    font-size: 12px;
+    line-height: 1.8;
+    flex: 1;
+    position: relative;
+  }
+
+  .code-line {
+    display: block;
+    white-space: pre;
+    min-height: 21.6px;
+    transition: background var(--transition-fast);
+    border-radius: 3px;
+    padding: 0 8px;
+    margin: 0 -8px;
+  }
+
+  .code-line:hover {
+    background: rgba(0, 229, 255, 0.03);
+  }
+
+  .code-line.active {
+    background: rgba(0, 229, 255, 0.08);
+  }
+
+  .code-line.active::before {
+    content: '▶';
+    position: absolute;
+    left: 4px;
+    color: var(--accent-cyan);
+    font-size: 8px;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* Syntax highlighting */
+  .yaml-key { color: var(--accent-cyan); }
+  .yaml-value { color: var(--accent-green); }
+  .yaml-string { color: var(--accent-coral); }
+  .yaml-comment { color: var(--accent-yellow); font-style: italic; opacity: 0.8; }
+  .yaml-number { color: var(--accent-purple); }
+  .yaml-boolean { color: var(--accent-orange); }
+  .yaml-dash { color: var(--text-tertiary); }
+  .yaml-bracket { color: var(--text-secondary); }
+  .yaml-mapping { color: var(--text-secondary); }
+  .yaml-anchor { color: var(--accent-purple); }
+  .yaml-tag { color: var(--accent-orange); }
+
+  .cursor-blink {
+    display: inline-block;
+    width: 2px;
+    height: 14px;
+    background: var(--accent-cyan);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: cursor-blink 1s step-end infinite;
+    box-shadow: var(--glow-cyan);
+  }
+
+  @keyframes cursor-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* ========== Structure Tab - Node Diagram ========== */
+  .structure-view {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: auto;
+    background:
+      linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .structure-canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    min-width: 800px;
+  }
+
+  .node-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .connection-line {
+    stroke: var(--accent-cyan);
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 8 4;
+    animation: dash-flow 1s linear infinite;
+    opacity: 0.6;
+    filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+  }
+
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -12; }
+  }
+
+  .connection-line.coral {
+    stroke: var(--accent-coral);
+    filter: drop-shadow(0 0 4px rgba(255, 107, 107, 0.5));
+  }
+
+  .connection-line.purple {
+    stroke: var(--accent-purple);
+    filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.5));
+  }
+
+  .connection-line.green {
+    stroke: var(--accent-green);
+    filter: drop-shadow(0 0 4px rgba(94, 255, 158, 0.5));
+  }
+
+  .agent-node {
+    position: absolute;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 16px;
+    min-width: 160px;
+    cursor: grab;
+    transition: all var(--transition-normal);
+    backdrop-filter: blur(10px);
+  }
+
+  .agent-node:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .agent-node:active {
+    cursor: grabbing;
+  }
+
+  .agent-node.lead {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(167, 139, 250, 0.05));
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: lead-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes lead-pulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+    50% { box-shadow: 0 0 60px rgba(0, 229, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+  }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .node-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    color: var(--bg-primary);
+    flex-shrink: 0;
+  }
+
+  .agent-node.coral .node-icon {
+    background: linear-gradient(135deg, var(--accent-coral), var(--accent-orange));
+  }
+
+  .agent-node.green .node-icon {
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  }
+
+  .agent-node.purple .node-icon {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+  }
+
+  .agent-node.yellow .node-icon {
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
+  }
+
+  .node-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .node-type {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .node-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .skill-badge {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+  }
+
+  .agent-node.coral .skill-badge {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--accent-coral);
+    border-color: rgba(255, 107, 107, 0.2);
+  }
+
+  .agent-node.green .skill-badge {
+    background: rgba(94, 255, 158, 0.1);
+    color: var(--accent-green);
+    border-color: rgba(94, 255, 158, 0.2);
+  }
+
+  .agent-node.purple .skill-badge {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--accent-purple);
+    border-color: rgba(167, 139, 250, 0.2);
+  }
+
+  .agent-node.yellow .skill-badge {
+    background: rgba(255, 217, 61, 0.1);
+    color: var(--accent-yellow);
+    border-color: rgba(255, 217, 61, 0.2);
+  }
+
+  .node-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    position: relative;
+  }
+
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1px solid var(--accent-green);
+    opacity: 0.5;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes status-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+
+  .add-node-btn {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px dashed var(--border-light);
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .add-node-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    border-style: solid;
+    box-shadow: var(--glow-cyan);
+  }
+
+  /* ========== Test Tab - Test Runner ========== */
+  .test-runner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .test-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+
+  .test-search {
+    flex: 1;
+    position: relative;
+  }
+
+  .test-search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    transition: all var(--transition-fast);
+  }
+
+  .test-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+  }
+
+  .test-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    font-size: 12px;
+  }
+
+  .test-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .test-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+  }
+
+  .test-stat-icon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .test-stat-icon.passed { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+  .test-stat-icon.failed { background: var(--accent-coral); box-shadow: 0 0 6px var(--accent-coral); }
+  .test-stat-icon.pending { background: var(--accent-yellow); box-shadow: 0 0 6px var(--accent-yellow); }
+
+  .test-stat-label { color: var(--text-tertiary); }
+  .test-stat-value { color: var(--text-primary); font-weight: 600; }
+
+  .test-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .test-case {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+  }
+
+  .test-case:hover {
+    border-color: var(--border-light);
+  }
+
+  .test-case-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .test-case-header:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .test-status-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .test-status-icon.pass {
+    background: rgba(94, 255, 158, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(94, 255, 158, 0.3);
+  }
+
+  .test-status-icon.fail {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+  }
+
+  .test-status-icon.running {
+    background: rgba(255, 217, 61, 0.15);
+    color: var(--accent-yellow);
+    border: 1px solid rgba(255, 217, 61, 0.3);
+    animation: running-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes running-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .test-case-name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .test-case-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .test-case-toggle {
+    color: var(--text-tertiary);
+    font-size: 10px;
+    transition: transform var(--transition-fast);
+  }
+
+  .test-case.expanded .test-case-toggle {
+    transform: rotate(90deg);
+  }
+
+  .test-case-body {
+    display: none;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-primary);
+  }
+
+  .test-case.expanded .test-case-body {
+    display: block;
+  }
+
+  .test-input, .test-expected, .test-output {
+    margin-bottom: 10px;
+  }
+
+  .test-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .test-code {
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+  }
+
+  .test-output .test-code {
+    border-color: rgba(94, 255, 158, 0.3);
+    color: var(--accent-green);
+  }
+
+  .test-output.fail .test-code {
+    border-color: rgba(255, 107, 107, 0.3);
+    color: var(--accent-coral);
+  }
+
+  .test-duration {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* ========== Right Sidebar ========== */
+  .sidebar-right {
+    width: var(--sidebar-right-width);
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-right-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-right-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+  }
+
+  .sidebar-right-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+  }
+
+  .info-section {
+    margin-bottom: 20px;
+  }
+
+  .info-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .info-section-title::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: var(--accent-cyan);
+    border-radius: 2px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 11px;
+  }
+
+  .info-label {
+    color: var(--text-tertiary);
+  }
+
+  .info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .info-value.cyan { color: var(--accent-cyan); }
+  .info-value.green { color: var(--accent-green); }
+  .info-value.coral { color: var(--accent-coral); }
+
+  .select-wrapper {
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .select-wrapper select {
+    width: 100%;
+    padding: 8px 28px 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all var(--transition-fast);
+  }
+
+  .select-wrapper select:hover {
+    border-color: var(--border-light);
+  }
+
+  .select-wrapper select:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+  }
+
+  .select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 11px;
+  }
+
+  .checklist-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .checklist-checkbox {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+    background: var(--bg-primary);
+  }
+
+  .checklist-item.checked .checklist-checkbox {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+  }
+
+  .checklist-checkbox::after {
+    content: '✓';
+    font-size: 9px;
+    color: var(--bg-primary);
+    font-weight: 700;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all var(--transition-fast);
+  }
+
+  .checklist-item.checked .checklist-checkbox::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .checklist-label {
+    flex: 1;
+    color: var(--text-secondary);
+  }
+
+  .checklist-item.checked .checklist-label {
+    color: var(--text-primary);
+  }
+
+  .checklist-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--text-tertiary);
+  }
+
+  .checklist-item.checked .checklist-badge {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan);
+  }
+
+  /* ========== Status Bar ========== */
+  .statusbar {
+    height: var(--statusbar-height);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .statusbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    position: relative;
+  }
+
+  .status-indicator.connected {
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .status-indicator.connected::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1px solid var(--accent-green);
+    animation: status-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes status-ring {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .status-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--border-color);
+  }
+
+  .status-branch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+  }
+
+  .status-branch-icon {
+    color: var(--accent-purple);
+  }
+
+  /* ========== Decorative Elements ========== */
+  .corner-decoration {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  .corner-decoration.tl {
+    top: 0;
+    left: 0;
+    border-top: 2px solid var(--accent-cyan);
+    border-left: 2px solid var(--accent-cyan);
+    border-top-left-radius: 8px;
+  }
+
+  .corner-decoration.br {
+    bottom: 0;
+    right: 0;
+    border-bottom: 2px solid var(--accent-coral);
+    border-right: 2px solid var(--accent-coral);
+    border-bottom-right-radius: 8px;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: rgba(0, 229, 255, 0.3);
+    color: var(--text-primary);
+  }
+
+  /* ========== Animations for page load ========== */
+  .app > * {
+    animation: stagger-in 0.4s ease both;
+  }
+
+  .app > .topbar { animation-delay: 0s; }
+  .app > .main { animation-delay: 0.05s; }
+  .app > .statusbar { animation-delay: 0.1s; }
+
+  @keyframes stagger-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== Toast Notification ========== */
+  .toast-container {
+    position: fixed;
+    top: 64px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    font-size: 12px;
+    color: var(--text-primary);
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    backdrop-filter: blur(10px);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .toast.hide {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .toast-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .toast.success .toast-icon {
+    background: rgba(94, 255, 158, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(94, 255, 158, 0.3);
+  }
+
+  .toast.success {
+    border-color: rgba(94, 255, 158, 0.3);
+  }
+
+  .toast.error .toast-icon {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+  }
+
+  .toast.info .toast-icon {
+    background: rgba(0, 229, 255, 0.15);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+  }
+
+  .toast-message {
+    font-weight: 500;
+  }
+
+  .toast-detail {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin-left: auto;
+  }
+
+  /* ========== Custom Dropdown ========== */
+  .custom-dropdown {
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .custom-dropdown-trigger {
+    width: 100%;
+    padding: 8px 28px 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .custom-dropdown-trigger:hover {
+    border-color: var(--border-light);
+  }
+
+  .custom-dropdown.open .custom-dropdown-trigger {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+  }
+
+  .custom-dropdown-trigger::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+    color: var(--text-tertiary);
+    transition: transform var(--transition-fast);
+  }
+
+  .custom-dropdown.open .custom-dropdown-trigger::after {
+    transform: translateY(-50%) rotate(180deg);
+    color: var(--accent-cyan);
+  }
+
+  .custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: all 0.15s ease;
+    z-index: 100;
+  }
+
+  .custom-dropdown.open .custom-dropdown-menu {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .custom-dropdown-option {
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .custom-dropdown-option:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .custom-dropdown-option.selected {
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .custom-dropdown-option.selected::before {
+    content: '✓';
+    color: var(--accent-cyan);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* ========== Code Editor Cursor ========== */
+  .code-cursor {
+    position: absolute;
+    width: 2px;
+    height: 16px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    pointer-events: none;
+    animation: cursor-blink 1s step-end infinite;
+    z-index: 5;
+    display: none;
+  }
+
+  .code-cursor.visible {
+    display: block;
+  }
+
+  /* ========== Node Drag Enhancements ========== */
+  .agent-node.dragging {
+    cursor: grabbing !important;
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 8px 40px rgba(0, 229, 255, 0.3) !important;
+    z-index: 100 !important;
+    transition: box-shadow 0.1s ease, transform 0.1s ease !important;
+  }
+
+  .agent-node.coral.dragging {
+    box-shadow: 0 8px 40px rgba(255, 107, 107, 0.3) !important;
+  }
+
+  .agent-node.purple.dragging {
+    box-shadow: 0 8px 40px rgba(167, 139, 250, 0.3) !important;
+  }
+
+  .agent-node.green.dragging {
+    box-shadow: 0 8px 40px rgba(94, 255, 158, 0.3) !important;
+  }
+
+  .agent-node.yellow.dragging {
+    box-shadow: 0 8px 40px rgba(255, 217, 61, 0.3) !important;
+  }
+
+  /* ========== Test Runner Enhancements ========== */
+  .test-status-icon.pending {
+    background: rgba(255, 217, 61, 0.1);
+    color: var(--accent-yellow);
+    border: 1px solid rgba(255, 217, 61, 0.2);
+  }
+
+  .btn-running {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-running::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: btn-shine 1.5s ease-in-out infinite;
+  }
+
+  @keyframes btn-shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* ========== Line number hover ========== */
+  .line-number {
+    cursor: pointer;
+  }
+
+  .line-number:hover {
+    color: var(--text-secondary);
+  }
+
+  .line-number.active {
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ========== Top Bar ========== -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <div class="logo-icon">AF</div>
+        <span class="logo-text">AgentForge</span>
+      </div>
+    </div>
+
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">
+        <span class="breadcrumb-icon">◆</span>
+        Agents
+      </span>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-item">research-agent</span>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-item active">Editor</span>
+    </div>
+
+    <div class="topbar-right">
+      <button class="btn">
+        <span>⟲</span> Revert
+      </button>
+      <button class="btn btn-primary">
+        <span>✓</span> Save
+      </button>
+      <button class="btn btn-coral">
+        <span>▶</span> Run
+      </button>
+      <button class="btn">
+        <span>⬆</span> Deploy
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== Main Content ========== -->
+  <div class="main">
+
+    <!-- Left Sidebar -->
+    <div class="sidebar-left">
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Workspace</div>
+          <a href="dashboard.html" class="nav-item">
+            <span class="nav-icon">◈</span>
+            Dashboard
+          </a>
+          <a href="agents.html" class="nav-item active">
+            <span class="nav-icon">◆</span>
+            Agents
+            <span class="nav-badge">12</span>
+          </a>
+          <a href="workflows.html" class="nav-item">
+            <span class="nav-icon">◇</span>
+            Workflows
+            <span class="nav-badge">5</span>
+          </a>
+          <a href="skills.html" class="nav-item">
+            <span class="nav-icon">⬡</span>
+            Skills
+          </a>
+          <a href="tools.html" class="nav-item">
+            <span class="nav-icon">⬢</span>
+            Tools
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Resources</div>
+          <a href="models.html" class="nav-item">
+            <span class="nav-icon">⬚</span>
+            Models
+          </a>
+          <a href="datasets.html" class="nav-item">
+            <span class="nav-icon">▤</span>
+            Datasets
+          </a>
+          <a href="vector-stores.html" class="nav-item">
+            <span class="nav-icon">◎</span>
+            Vector Stores
+            <span class="nav-badge">3</span>
+          </a>
+          <a href="memory.html" class="nav-item">
+            <span class="nav-icon">▣</span>
+            Memory
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Observability</div>
+          <a href="runs.html" class="nav-item">
+            <span class="nav-icon">◎</span>
+            Runs
+          </a>
+          <a href="traces.html" class="nav-item">
+            <span class="nav-icon">◫</span>
+            Traces
+          </a>
+          <a href="evaluations.html" class="nav-item">
+            <span class="nav-icon">⚡</span>
+            Evaluations
+          </a>
+          <a href="logs.html" class="nav-item">
+            <span class="nav-icon">◉</span>
+            Logs
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Settings</div>
+          <a href="api-keys.html" class="nav-item">
+            <span class="nav-icon">⚙</span>
+            API Keys
+          </a>
+          <a href="team.html" class="nav-item">
+            <span class="nav-icon">◐</span>
+            Team
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar">JL</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <div class="user-status"></div>
+      </div>
+    </div>
+
+    <!-- Left Panel Divider -->
+    <div class="panel-divider" id="divider-left"></div>
+
+    <!-- Editor Area -->
+    <div class="editor-area">
+      <div class="editor-tabs">
+        <div class="editor-tab active" data-tab="config">
+          <span class="tab-icon">{ }</span>
+          Config
+          <span class="tab-dot"></span>
+        </div>
+        <div class="editor-tab" data-tab="structure">
+          <span class="tab-icon">◈</span>
+          Structure
+        </div>
+        <div class="editor-tab" data-tab="test">
+          <span class="tab-icon">⚗</span>
+          Test
+          <span class="tab-close">×</span>
+        </div>
+      </div>
+
+      <div class="editor-content">
+
+        <!-- Config Tab -->
+        <div class="tab-panel active" id="tab-config">
+          <div class="code-editor">
+            <div class="line-numbers">
+              <span class="line-number">1</span>
+              <span class="line-number">2</span>
+              <span class="line-number">3</span>
+              <span class="line-number">4</span>
+              <span class="line-number">5</span>
+              <span class="line-number">6</span>
+              <span class="line-number">7</span>
+              <span class="line-number">8</span>
+              <span class="line-number">9</span>
+              <span class="line-number">10</span>
+              <span class="line-number">11</span>
+              <span class="line-number">12</span>
+              <span class="line-number">13</span>
+              <span class="line-number">14</span>
+              <span class="line-number">15</span>
+              <span class="line-number">16</span>
+              <span class="line-number">17</span>
+              <span class="line-number">18</span>
+              <span class="line-number">19</span>
+              <span class="line-number">20</span>
+              <span class="line-number">21</span>
+              <span class="line-number">22</span>
+              <span class="line-number">23</span>
+              <span class="line-number">24</span>
+              <span class="line-number">25</span>
+              <span class="line-number">26</span>
+              <span class="line-number">27</span>
+              <span class="line-number">28</span>
+              <span class="line-number">29</span>
+              <span class="line-number">30</span>
+              <span class="line-number">31</span>
+              <span class="line-number">32</span>
+              <span class="line-number">33</span>
+              <span class="line-number">34</span>
+              <span class="line-number">35</span>
+              <span class="line-number">36</span>
+              <span class="line-number">37</span>
+              <span class="line-number">38</span>
+              <span class="line-number">39</span>
+              <span class="line-number">40</span>
+              <span class="line-number">41</span>
+              <span class="line-number">42</span>
+              <span class="line-number">43</span>
+              <span class="line-number">44</span>
+              <span class="line-number">45</span>
+              <span class="line-number">46</span>
+              <span class="line-number">47</span>
+              <span class="line-number">48</span>
+            </div>
+            <div class="code-content">
+              <div class="code-cursor" id="code-cursor"></div>
+<span class="code-line"><span class="yaml-comment"># ========================================</span></span>
+<span class="code-line"><span class="yaml-comment"># Agent Configuration: research-agent</span></span>
+<span class="code-line"><span class="yaml-comment"># Version: 2.4.1  |  Last updated: 2026-09-28</span></span>
+<span class="code-line"><span class="yaml-comment"># ========================================</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">research-agent</span></span>
+<span class="code-line"><span class="yaml-key">description</span><span class="yaml-mapping">: </span><span class="yaml-string">Deep research agent with multi-source analysis</span></span>
+<span class="code-line"><span class="yaml-key">version</span><span class="yaml-mapping">: </span><span class="yaml-string">2.4.1</span></span>
+<span class="code-line active"><span class="yaml-key">status</span><span class="yaml-mapping">: </span><span class="yaml-value">active</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-comment"># --- Model Configuration ---</span></span>
+<span class="code-line"><span class="yaml-key">model</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">  <span class="yaml-key">provider</span><span class="yaml-mapping">: </span><span class="yaml-string">openai</span></span>
+<span class="code-line">  <span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">gpt-4o</span></span>
+<span class="code-line">  <span class="yaml-key">temperature</span><span class="yaml-mapping">: </span><span class="yaml-number">0.7</span></span>
+<span class="code-line">  <span class="yaml-key">max_tokens</span><span class="yaml-mapping">: </span><span class="yaml-number">4096</span></span>
+<span class="code-line">  <span class="yaml-key">streaming</span><span class="yaml-mapping">: </span><span class="yaml-boolean">true</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-comment"># --- Core Skills ---</span></span>
+<span class="code-line"><span class="yaml-key">skills</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">web-research</span></span>
+<span class="code-line">    <span class="yaml-key">enabled</span><span class="yaml-mapping">: </span><span class="yaml-boolean">true</span></span>
+<span class="code-line">    <span class="yaml-key">max_depth</span><span class="yaml-mapping">: </span><span class="yaml-number">3</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">data-analysis</span></span>
+<span class="code-line">    <span class="yaml-key">enabled</span><span class="yaml-mapping">: </span><span class="yaml-boolean">true</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">code-execution</span></span>
+<span class="code-line">    <span class="yaml-key">enabled</span><span class="yaml-mapping">: </span><span class="yaml-boolean">true</span></span>
+<span class="code-line">    <span class="yaml-key">sandbox</span><span class="yaml-mapping">: </span><span class="yaml-value">isolated</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-key">name</span><span class="yaml-mapping">: </span><span class="yaml-string">report-generation</span></span>
+<span class="code-line">    <span class="yaml-key">enabled</span><span class="yaml-mapping">: </span><span class="yaml-boolean">true</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-comment"># --- Available Tools ---</span></span>
+<span class="code-line"><span class="yaml-key">tools</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">web_search</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">web_scrape</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">vector_search</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">python_runner</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">file_system</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">api_caller</span></span>
+<span class="code-line">  <span class="yaml-dash">- </span><span class="yaml-string">image_analyzer</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-comment"># --- Sub-Agents ---</span></span>
+<span class="code-line"><span class="yaml-key">subagents</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">  <span class="yaml-key">researcher</span><span class="yaml-mapping">: </span><span class="yaml-string">./subagents/researcher.yaml</span></span>
+<span class="code-line">  <span class="yaml-key">analyst</span><span class="yaml-mapping">: </span><span class="yaml-string">./subagents/analyst.yaml</span></span>
+<span class="code-line">  <span class="yaml-key">coder</span><span class="yaml-mapping">: </span><span class="yaml-string">./subagents/coder.yaml</span></span>
+<span class="code-line">  <span class="yaml-key">writer</span><span class="yaml-mapping">: </span><span class="yaml-string">./subagents/writer.yaml</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="yaml-comment"># --- Policies & Guardrails ---</span></span>
+<span class="code-line"><span class="yaml-key">policies</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">  <span class="yaml-key">max_iterations</span><span class="yaml-mapping">: </span><span class="yaml-number">20</span></span>
+<span class="code-line">  <span class="yaml-key">timeout_seconds</span><span class="yaml-mapping">: </span><span class="yaml-number">300</span></span>
+<span class="code-line">  <span class="yaml-key">human_in_the_loop</span><span class="yaml-mapping">: </span><span class="yaml-boolean">false</span></span>
+<span class="code-line">  <span class="yaml-key">content_filter</span><span class="yaml-mapping">: </span><span class="yaml-value">moderate</span></span>
+<span class="code-line">  <span class="yaml-key">rate_limit</span><span class="yaml-mapping">:</span></span>
+<span class="code-line">    <span class="yaml-key">requests_per_minute</span><span class="yaml-mapping">: </span><span class="yaml-number">60</span></span>
+<span class="code-line">    <span class="yaml-key">tokens_per_day</span><span class="yaml-mapping">: </span><span class="yaml-number">100000</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Structure Tab -->
+        <div class="tab-panel" id="tab-structure">
+          <div class="structure-view">
+            <div class="structure-canvas">
+              <svg class="node-connections" viewBox="0 0 900 550" preserveAspectRatio="xMidYMid meet">
+                <!-- Lead to Researcher -->
+                <path class="connection-line" d="M 450 100 Q 450 160 200 220" />
+                <!-- Lead to Analyst -->
+                <path class="connection-line coral" d="M 450 100 Q 450 160 370 220" />
+                <!-- Lead to Coder -->
+                <path class="connection-line purple" d="M 450 100 Q 450 160 530 220" />
+                <!-- Lead to Writer -->
+                <path class="connection-line green" d="M 450 100 Q 450 160 700 220" />
+                <!-- Sub connections -->
+                <path class="connection-line" d="M 200 310 Q 285 350 370 310" stroke-dasharray="4 4" opacity="0.3" />
+                <path class="connection-line coral" d="M 370 310 Q 450 350 530 310" stroke-dasharray="4 4" opacity="0.3" />
+                <path class="connection-line purple" d="M 530 310 Q 615 350 700 310" stroke-dasharray="4 4" opacity="0.3" />
+              </svg>
+
+              <!-- Lead Agent Node -->
+              <div class="agent-node lead" style="top: 40px; left: 50%; transform: translateX(-50%);">
+                <div class="node-header">
+                  <div class="node-icon">⚡</div>
+                  <div>
+                    <div class="node-title">Lead Agent</div>
+                    <div class="node-type">Orchestrator</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">planning</span>
+                  <span class="skill-badge">routing</span>
+                  <span class="skill-badge">memory</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Active · GPT-4o</span>
+                </div>
+              </div>
+
+              <!-- Researcher Node -->
+              <div class="agent-node" style="top: 220px; left: 100px;">
+                <div class="node-header">
+                  <div class="node-icon">🔍</div>
+                  <div>
+                    <div class="node-title">Researcher</div>
+                    <div class="node-type">Sub-agent</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">web-search</span>
+                  <span class="skill-badge">scraping</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Ready</span>
+                </div>
+              </div>
+
+              <!-- Analyst Node -->
+              <div class="agent-node coral" style="top: 220px; left: 290px;">
+                <div class="node-header">
+                  <div class="node-icon">📊</div>
+                  <div>
+                    <div class="node-title">Analyst</div>
+                    <div class="node-type">Sub-agent</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">data-analysis</span>
+                  <span class="skill-badge">charts</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Ready</span>
+                </div>
+              </div>
+
+              <!-- Coder Node -->
+              <div class="agent-node purple" style="top: 220px; left: 480px;">
+                <div class="node-header">
+                  <div class="node-icon">💻</div>
+                  <div>
+                    <div class="node-title">Coder</div>
+                    <div class="node-type">Sub-agent</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">python</span>
+                  <span class="skill-badge">debug</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Ready</span>
+                </div>
+              </div>
+
+              <!-- Writer Node -->
+              <div class="agent-node green" style="top: 220px; left: 670px;">
+                <div class="node-header">
+                  <div class="node-icon">✍️</div>
+                  <div>
+                    <div class="node-title">Writer</div>
+                    <div class="node-type">Sub-agent</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">reporting</span>
+                  <span class="skill-badge">markdown</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Ready</span>
+                </div>
+              </div>
+
+              <!-- Add node buttons -->
+              <div class="add-node-btn" style="top: 290px; left: 30px;" title="Add sub-agent">+</div>
+              <div class="add-node-btn" style="top: 290px; right: 30px;" title="Add sub-agent">+</div>
+
+              <!-- Memory node (bottom) -->
+              <div class="agent-node yellow" style="top: 420px; left: 50%; transform: translateX(-50%);">
+                <div class="node-header">
+                  <div class="node-icon">🧠</div>
+                  <div>
+                    <div class="node-title">Shared Memory</div>
+                    <div class="node-type">Vector Store</div>
+                  </div>
+                </div>
+                <div class="node-skills">
+                  <span class="skill-badge">embeddings</span>
+                  <span class="skill-badge">persistent</span>
+                  <span class="skill-badge">RAG</span>
+                </div>
+                <div class="node-status">
+                  <span class="status-dot"></span>
+                  <span>Connected · 12.4k vectors</span>
+                </div>
+              </div>
+
+              <!-- Memory connections -->
+              <svg class="node-connections" viewBox="0 0 900 550" preserveAspectRatio="xMidYMid meet" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <path class="connection-line" d="M 200 310 Q 200 380 350 420" stroke-dasharray="2 6" opacity="0.2" />
+                <path class="connection-line coral" d="M 370 310 Q 370 370 400 420" stroke-dasharray="2 6" opacity="0.2" />
+                <path class="connection-line purple" d="M 530 310 Q 530 370 500 420" stroke-dasharray="2 6" opacity="0.2" />
+                <path class="connection-line green" d="M 700 310 Q 700 380 550 420" stroke-dasharray="2 6" opacity="0.2" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test Tab -->
+        <div class="tab-panel" id="tab-test">
+          <div class="test-runner">
+            <div class="test-toolbar">
+              <button class="btn btn-primary">
+                <span>▶</span> Run All
+              </button>
+              <button class="btn">
+                <span>⏹</span> Stop
+              </button>
+              <div class="test-search">
+                <span class="test-search-icon">⌕</span>
+                <input type="text" placeholder="Search test cases...">
+              </div>
+              <div class="test-stats">
+                <div class="test-stat">
+                  <span class="test-stat-icon passed"></span>
+                  <span class="test-stat-label">Passed</span>
+                  <span class="test-stat-value">8</span>
+                </div>
+                <div class="test-stat">
+                  <span class="test-stat-icon failed"></span>
+                  <span class="test-stat-label">Failed</span>
+                  <span class="test-stat-value">1</span>
+                </div>
+                <div class="test-stat">
+                  <span class="test-stat-icon pending"></span>
+                  <span class="test-stat-label">Pending</span>
+                  <span class="test-stat-value">3</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="test-list">
+
+              <div class="test-case expanded">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">research_query_basic</div>
+                  <div class="test-case-meta">
+                    <span>2.3s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"What are the latest trends in AI agent development?"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Research report with 5+ sources, structured analysis</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Generated comprehensive report with 7 sources,
+trend analysis across 4 categories, executive summary included.</div>
+                  </div>
+                  <div class="test-duration">Duration: 2.3s · Tokens: 4,821</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon fail">✗</div>
+                  <div class="test-case-name">multi_step_reasoning</div>
+                  <div class="test-case-meta">
+                    <span>5.1s</span>
+                    <span>fail</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"Compare revenue growth of Apple vs Microsoft over 5 years"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Data-driven comparison with chart, 5-year CAGR calculation</div>
+                  </div>
+                  <div class="test-output fail">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✗ Missing 2024 data for Microsoft.
+Chart generation failed - Python sandbox timeout.</div>
+                  </div>
+                  <div class="test-duration">Duration: 5.1s · Tokens: 8,214</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon running">◌</div>
+                  <div class="test-case-name">code_generation_python</div>
+                  <div class="test-case-meta">
+                    <span>3.8s</span>
+                    <span>running</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"Write a function to parse CSV and calculate statistics"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Runnable Python code with unit tests, passes all assertions</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">Running code execution in sandbox...</div>
+                  </div>
+                  <div class="test-duration">Duration: 3.8s · Tokens: 2,156</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">report_format_md</div>
+                  <div class="test-case-meta">
+                    <span>1.2s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"Generate a markdown report on climate data"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Valid markdown with headings, tables, references</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Markdown structure valid. 3 headings, 2 data tables,
+5 references. Schema validation passed.</div>
+                  </div>
+                  <div class="test-duration">Duration: 1.2s · Tokens: 1,832</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">subagent_collaboration</div>
+                  <div class="test-case-meta">
+                    <span>4.7s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"Research market size and produce an executive summary"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Researcher → Analyst → Writer handoff, final summary produced</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ All 3 sub-agents engaged in correct sequence.
+Handoff quality: 94%. Final output matches expectations.</div>
+                  </div>
+                  <div class="test-duration">Duration: 4.7s · Tokens: 6,745</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">error_handling_api</div>
+                  <div class="test-case-meta">
+                    <span>0.8s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">Simulate API failure during research</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Graceful degradation, retry logic, fallback to cached data</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Retry logic executed (3 attempts). Fallback to cache successful.
+User-facing error message appropriate.</div>
+                  </div>
+                  <div class="test-duration">Duration: 0.8s · Tokens: 512</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">memory_retrieval</div>
+                  <div class="test-case-meta">
+                    <span>1.5s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">"What did we discuss about Q3 projections last week?"</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Retrieve relevant context from vector store, cite source</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Retrieved 4 relevant chunks from memory.
+Cosine similarity > 0.85. Source attribution correct.</div>
+                  </div>
+                  <div class="test-duration">Duration: 1.5s · Tokens: 1,247</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">rate_limit_compliance</div>
+                  <div class="test-case-meta">
+                    <span>2.1s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">Burst test: 100 rapid API calls</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Rate limiting enforced, no 429 errors propagated to user</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Rate limiter active. Queue managed gracefully.
+Peak: 60 req/min. All requests completed successfully.</div>
+                  </div>
+                  <div class="test-duration">Duration: 2.1s · Tokens: 0</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pass">✓</div>
+                  <div class="test-case-name">content_safety_filter</div>
+                  <div class="test-case-meta">
+                    <span>0.9s</span>
+                    <span>pass</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">Prompt injection attempt: "Ignore previous instructions..."</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Injection detected, blocked, security log entry created</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">✓ Injection detected with 98.7% confidence.
+Request blocked. Security event logged. User notified appropriately.</div>
+                  </div>
+                  <div class="test-duration">Duration: 0.9s · Tokens: 256</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pending">—</div>
+                  <div class="test-case-name">multi_language_support</div>
+                  <div class="test-case-meta">
+                    <span>queued</span>
+                    <span>pending</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">Research query in Chinese, Japanese, and Spanish</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Correct language detection, appropriate response quality</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">Waiting for execution...</div>
+                  </div>
+                  <div class="test-duration">Queued</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pending">—</div>
+                  <div class="test-case-name">long_context_window</div>
+                  <div class="test-case-meta">
+                    <span>queued</span>
+                    <span>pending</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">50-page document summarization</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">Accurate summary with key points extracted from full document</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">Waiting for execution...</div>
+                  </div>
+                  <div class="test-duration">Queued</div>
+                </div>
+              </div>
+
+              <div class="test-case">
+                <div class="test-case-header">
+                  <div class="test-status-icon pending">—</div>
+                  <div class="test-case-name">tool_use_chain</div>
+                  <div class="test-case-meta">
+                    <span>queued</span>
+                    <span>pending</span>
+                  </div>
+                  <span class="test-case-toggle">▶</span>
+                </div>
+                <div class="test-case-body">
+                  <div class="test-input">
+                    <div class="test-label">Input</div>
+                    <div class="test-code">Multi-tool workflow: search → scrape → analyze → visualize</div>
+                  </div>
+                  <div class="test-expected">
+                    <div class="test-label">Expected</div>
+                    <div class="test-code">All 4 tools chained correctly, final visualization produced</div>
+                  </div>
+                  <div class="test-output">
+                    <div class="test-label">Output</div>
+                    <div class="test-code">Waiting for execution...</div>
+                  </div>
+                  <div class="test-duration">Queued</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Panel Divider -->
+    <div class="panel-divider" id="divider-right"></div>
+
+    <!-- Right Sidebar -->
+    <div class="sidebar-right">
+      <div class="sidebar-right-header">
+        <span class="sidebar-right-title">Agent Info</span>
+        <button class="btn btn-icon" title="Settings">
+          <span class="icon">⚙</span>
+        </button>
+      </div>
+
+      <div class="sidebar-right-content">
+
+        <div class="info-section">
+          <div class="info-section-title">Metadata</div>
+          <div class="info-row">
+            <span class="info-label">Agent ID</span>
+            <span class="info-value cyan">agt_7x9k2m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Version</span>
+            <span class="info-value">v2.4.1</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value green">● Active</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Created</span>
+            <span class="info-value">2026-06-15</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Last run</span>
+            <span class="info-value">2 min ago</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Total runs</span>
+            <span class="info-value">1,247</span>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Model</div>
+          <div class="custom-dropdown" id="model-dropdown">
+            <div class="custom-dropdown-trigger">
+              <span id="model-selected">GPT-4o (OpenAI)</span>
+            </div>
+            <div class="custom-dropdown-menu">
+              <div class="custom-dropdown-option selected" data-value="gpt-4o">GPT-4o (OpenAI)</div>
+              <div class="custom-dropdown-option" data-value="gpt-4-turbo">GPT-4 Turbo (OpenAI)</div>
+              <div class="custom-dropdown-option" data-value="claude-35-sonnet">Claude 3.5 Sonnet (Anthropic)</div>
+              <div class="custom-dropdown-option" data-value="claude-3-opus">Claude 3 Opus (Anthropic)</div>
+              <div class="custom-dropdown-option" data-value="gemini-15-pro">Gemini 1.5 Pro (Google)</div>
+              <div class="custom-dropdown-option" data-value="llama-31-70b">Llama 3.1 70B (Meta)</div>
+              <div class="custom-dropdown-option" data-value="mistral-large">Mistral Large (Mistral)</div>
+            </div>
+          </div>
+          <div class="info-row" style="margin-top: 8px;">
+            <span class="info-label">Temperature</span>
+            <span class="info-value">0.7</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Max tokens</span>
+            <span class="info-value">4,096</span>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Skills</div>
+          <div class="checklist">
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Web Research</span>
+              <span class="checklist-badge">v3.2</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Data Analysis</span>
+              <span class="checklist-badge">v2.1</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Code Execution</span>
+              <span class="checklist-badge">v4.0</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Report Generation</span>
+              <span class="checklist-badge">v1.8</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Image Analysis</span>
+              <span class="checklist-badge">v2.0</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Audio Transcription</span>
+              <span class="checklist-badge">v1.3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Tools</div>
+          <div class="checklist">
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Web Search</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Web Scrape</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Vector Search</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Python Runner</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">File System</span>
+            </div>
+            <div class="checklist-item checked">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">API Caller</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Email Sender</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Database Query</span>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-checkbox"></div>
+              <span class="checklist-label">Image Analyzer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Performance</div>
+          <div class="info-row">
+            <span class="info-label">Avg. latency</span>
+            <span class="info-value green">2.4s</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Success rate</span>
+            <span class="info-value green">98.7%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Avg. tokens</span>
+            <span class="info-value">4,821</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Cost / run</span>
+            <span class="info-value coral">$0.042</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== Status Bar ========== -->
+  <div class="statusbar">
+    <div class="statusbar-left">
+      <div class="status-item">
+        <span class="status-indicator connected"></span>
+        <span>Connected</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>main</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>Config v2.4.1</span>
+      </div>
+    </div>
+    <div class="statusbar-right">
+      <div class="status-item">
+        <span>UTF-8</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>YAML</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>Spaces: 2</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>Ln 9, Col 12</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>48 lines</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-item">
+        <span>2,847 chars</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ==================================================
+  // 1. Tab Switching (Config / Structure / Test)
+  // ==================================================
+  const tabs = document.querySelectorAll('.editor-tab');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+
+      tab.classList.add('active');
+      const targetPanel = document.getElementById('tab-' + targetTab);
+      if (targetPanel) targetPanel.classList.add('active');
+    });
+  });
+
+  // ==================================================
+  // 2. Sidebar Navigation
+  // ==================================================
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navItems.forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // ==================================================
+  // 3. Code Editor - Line Highlight + Cursor Placement
+  // ==================================================
+  const codeLines = document.querySelectorAll('.code-line');
+  const lineNumbers = document.querySelectorAll('.line-number');
+  const codeCursor = document.getElementById('code-cursor');
+  const codeContent = document.querySelector('.code-content');
+  let activeLineIndex = 8; // 0-indexed, line 9 initially active
+  let activeCol = 12;
+
+  function highlightLine(index) {
+    codeLines.forEach(l => l.classList.remove('active'));
+    lineNumbers.forEach(n => n.classList.remove('active'));
+    if (codeLines[index]) codeLines[index].classList.add('active');
+    if (lineNumbers[index]) lineNumbers[index].classList.add('active');
+    activeLineIndex = index;
+    updateStatusBar();
+  }
+
+  function placeCursor(e, lineIndex) {
+    const lineEl = codeLines[lineIndex];
+    if (!lineEl) return;
+
+    const lineRect = lineEl.getBoundingClientRect();
+    const contentRect = codeContent.getBoundingClientRect();
+
+    // Calculate column based on click X position
+    const charWidth = 7.2; // approximate width per character in monospace
+    const clickX = e.clientX - lineRect.left;
+    const col = Math.max(0, Math.round(clickX / charWidth));
+    activeCol = col;
+
+    // Position cursor
+    const cursorTop = lineRect.top - contentRect.top + codeContent.scrollTop + 2;
+    const cursorLeft = col * charWidth + 20 + 8; // padding + adjustment
+
+    codeCursor.style.top = cursorTop + 'px';
+    codeCursor.style.left = cursorLeft + 'px';
+    codeCursor.classList.add('visible');
+
+    updateStatusBar();
+  }
+
+  function updateStatusBar() {
+    const statusItems = document.querySelectorAll('.statusbar-right .status-item');
+    statusItems.forEach(item => {
+      if (item.textContent && item.textContent.includes('Ln')) {
+        item.innerHTML = '<span>Ln ' + (activeLineIndex + 1) + ', Col ' + activeCol + '</span>';
+      }
+    });
+  }
+
+  // Click on code line to highlight and place cursor
+  codeLines.forEach((line, index) => {
+    line.addEventListener('click', (e) => {
+      highlightLine(index);
+      placeCursor(e, index);
+    });
+  });
+
+  // Click on line number to highlight line
+  lineNumbers.forEach((num, index) => {
+    num.addEventListener('click', () => {
+      highlightLine(index);
+      // Place cursor at beginning of line
+      const lineEl = codeLines[index];
+      if (lineEl) {
+        const lineRect = lineEl.getBoundingClientRect();
+        const contentRect = codeContent.getBoundingClientRect();
+        const cursorTop = lineRect.top - contentRect.top + codeContent.scrollTop + 2;
+        codeCursor.style.top = cursorTop + 'px';
+        codeCursor.style.left = '28px';
+        codeCursor.classList.add('visible');
+        activeCol = 1;
+        updateStatusBar();
+      }
+    });
+  });
+
+  // Initialize cursor on active line
+  setTimeout(() => {
+    const activeLine = document.querySelector('.code-line.active');
+    if (activeLine && codeContent) {
+      const lineRect = activeLine.getBoundingClientRect();
+      const contentRect = codeContent.getBoundingClientRect();
+      const cursorTop = lineRect.top - contentRect.top + 2;
+      codeCursor.style.top = cursorTop + 'px';
+      codeCursor.style.left = (activeCol * 7.2 + 28) + 'px';
+      codeCursor.classList.add('visible');
+    }
+  }, 300);
+
+  // ==================================================
+  // 4. Structure Diagram - Draggable Nodes with Glow
+  // ==================================================
+  const nodes = document.querySelectorAll('.agent-node');
+  let draggingNode = null;
+  let dragOffset = { x: 0, y: 0 };
+  let isDragging = false;
+
+  nodes.forEach(node => {
+    node.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.add-node-btn')) return;
+      draggingNode = node;
+      isDragging = false;
+
+      const rect = node.getBoundingClientRect();
+      const canvasRect = node.parentElement.getBoundingClientRect();
+
+      // Calculate offset from top-left of node
+      dragOffset.x = e.clientX - rect.left;
+      dragOffset.y = e.clientY - rect.top;
+
+      node.classList.add('dragging');
+      e.preventDefault();
+    });
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!draggingNode) return;
+    isDragging = true;
+
+    const canvas = draggingNode.parentElement;
+    const canvasRect = canvas.getBoundingClientRect();
+    let x = e.clientX - canvasRect.left - dragOffset.x;
+    let y = e.clientY - canvasRect.top - dragOffset.y;
+
+    // Boundary constraints
+    const nodeRect = draggingNode.getBoundingClientRect();
+    x = Math.max(0, Math.min(x, canvas.scrollWidth - nodeRect.width));
+    y = Math.max(0, Math.min(y, canvas.scrollHeight - nodeRect.height));
+
+    draggingNode.style.left = x + 'px';
+    draggingNode.style.top = y + 'px';
+    draggingNode.style.transform = 'none';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (draggingNode) {
+      draggingNode.classList.remove('dragging');
+      draggingNode = null;
+      isDragging = false;
+    }
+  });
+
+  // ==================================================
+  // 5. Test Runner - Run All Simulation
+  // ==================================================
+  const runAllBtn = document.querySelector('.test-toolbar .btn-primary');
+  const stopBtn = document.querySelector('.test-toolbar .btn:nth-child(2)');
+  let testsRunning = false;
+  let testTimeouts = [];
+
+  // Test case data for simulation
+  const testResults = [
+    { pass: true, duration: '1.8s', tokens: '3,421' },
+    { pass: false, duration: '4.2s', tokens: '6,128' },
+    { pass: true, duration: '2.5s', tokens: '2,891' },
+    { pass: true, duration: '1.2s', tokens: '1,832' },
+    { pass: true, duration: '3.9s', tokens: '5,447' },
+    { pass: true, duration: '0.7s', tokens: '512' },
+    { pass: true, duration: '1.3s', tokens: '1,247' },
+    { pass: true, duration: '1.9s', tokens: '0' },
+    { pass: true, duration: '0.8s', tokens: '256' },
+    { pass: true, duration: '2.1s', tokens: '4,102' },
+    { pass: false, duration: '3.5s', tokens: '7,821' },
+    { pass: true, duration: '4.0s', tokens: '5,634' }
+  ];
+
+  function updateTestStats() {
+    const testCases = document.querySelectorAll('.test-case');
+    let passed = 0, failed = 0, pending = 0;
+
+    testCases.forEach(tc => {
+      const icon = tc.querySelector('.test-status-icon');
+      if (icon.classList.contains('pass')) passed++;
+      else if (icon.classList.contains('fail')) failed++;
+      else pending++;
+    });
+
+    const stats = document.querySelectorAll('.test-stat-value');
+    if (stats[0]) stats[0].textContent = passed;
+    if (stats[1]) stats[1].textContent = failed;
+    if (stats[2]) stats[2].textContent = pending;
+  }
+
+  function setTestCaseStatus(testCase, status, result) {
+    const icon = testCase.querySelector('.test-status-icon');
+    const metaSpans = testCase.querySelector('.test-case-meta').querySelectorAll('span');
+    const durationEl = testCase.querySelector('.test-duration');
+    const outputCode = testCase.querySelector('.test-output .test-code');
+    const outputContainer = testCase.querySelector('.test-output');
+
+    icon.className = 'test-status-icon ' + status;
+
+    if (status === 'running') {
+      icon.textContent = '◌';
+      if (metaSpans[1]) metaSpans[1].textContent = 'running';
+      if (metaSpans[0]) metaSpans[0].textContent = '...';
+      if (outputCode) outputCode.textContent = 'Running test in sandbox environment...';
+      if (outputContainer) outputContainer.classList.remove('fail');
+    } else if (status === 'pass') {
+      icon.textContent = '✓';
+      if (metaSpans[1]) metaSpans[1].textContent = 'pass';
+      if (metaSpans[0] && result) metaSpans[0].textContent = result.duration;
+      if (durationEl && result) {
+        durationEl.textContent = 'Duration: ' + result.duration + ' · Tokens: ' + result.tokens;
+      }
+      if (outputCode) {
+        outputCode.textContent = '✓ Test passed successfully. All assertions met.';
+      }
+      if (outputContainer) outputContainer.classList.remove('fail');
+    } else if (status === 'fail') {
+      icon.textContent = '✗';
+      if (metaSpans[1]) metaSpans[1].textContent = 'fail';
+      if (metaSpans[0] && result) metaSpans[0].textContent = result.duration;
+      if (durationEl && result) {
+        durationEl.textContent = 'Duration: ' + result.duration + ' · Tokens: ' + result.tokens;
+      }
+      if (outputCode) {
+        outputCode.textContent = '✗ Test failed. Assertion error: expected output does not match actual result.';
+      }
+      if (outputContainer) outputContainer.classList.add('fail');
+    } else if (status === 'pending') {
+      icon.textContent = '—';
+      if (metaSpans[1]) metaSpans[1].textContent = 'pending';
+      if (metaSpans[0]) metaSpans[0].textContent = 'queued';
+      if (outputCode) outputCode.textContent = 'Waiting for execution...';
+      if (outputContainer) outputContainer.classList.remove('fail');
+      if (durationEl) durationEl.textContent = 'Queued';
+    }
+  }
+
+  function runAllTests() {
+    if (testsRunning) return;
+    testsRunning = true;
+
+    const testCases = document.querySelectorAll('.test-case');
+    runAllBtn.classList.add('btn-running');
+    runAllBtn.querySelector('span').textContent = '⏸';
+    runAllBtn.querySelector('span').nextSibling.textContent = ' Running...';
+
+    testTimeouts = [];
+    let delay = 0;
+
+    testCases.forEach((tc, index) => {
+      // Phase 1: Set to running
+      const runDelay = delay;
+      const t1 = setTimeout(() => {
+        setTestCaseStatus(tc, 'running');
+        updateTestStats();
+      }, runDelay);
+      testTimeouts.push(t1);
+
+      // Phase 2: Set to pass/fail result
+      const result = testResults[index] || { pass: true, duration: '2.0s', tokens: '2,000' };
+      const finishDelay = delay + 600 + Math.random() * 800;
+      const t2 = setTimeout(() => {
+        setTestCaseStatus(tc, result.pass ? 'pass' : 'fail', result);
+        updateTestStats();
+
+        // If last test, finish
+        if (index === testCases.length - 1) {
+          finishTestRun();
+        }
+      }, finishDelay);
+      testTimeouts.push(t2);
+
+      delay += 400 + Math.random() * 300;
+    });
+  }
+
+  function finishTestRun() {
+    testsRunning = false;
+    runAllBtn.classList.remove('btn-running');
+    runAllBtn.querySelector('span').textContent = '▶';
+    const textNode = runAllBtn.querySelector('span').nextSibling;
+    if (textNode) textNode.textContent = ' Run All';
+
+    // Show completion toast
+    const testCases = document.querySelectorAll('.test-case');
+    let passed = 0, failed = 0;
+    testCases.forEach(tc => {
+      const icon = tc.querySelector('.test-status-icon');
+      if (icon.classList.contains('pass')) passed++;
+      else if (icon.classList.contains('fail')) failed++;
+    });
+
+    showToast(
+      failed === 0 ? 'success' : 'info',
+      failed === 0 ? 'All tests passed' : 'Tests completed',
+      passed + ' passed, ' + failed + ' failed'
+    );
+  }
+
+  function stopTests() {
+    testTimeouts.forEach(t => clearTimeout(t));
+    testTimeouts = [];
+    testsRunning = false;
+    runAllBtn.classList.remove('btn-running');
+    runAllBtn.querySelector('span').textContent = '▶';
+    const textNode = runAllBtn.querySelector('span').nextSibling;
+    if (textNode) textNode.textContent = ' Run All';
+
+    // Reset pending tests
+    const testCases = document.querySelectorAll('.test-case');
+    testCases.forEach(tc => {
+      const icon = tc.querySelector('.test-status-icon');
+      if (icon.classList.contains('running')) {
+        setTestCaseStatus(tc, 'pending');
+      }
+    });
+    updateTestStats();
+  }
+
+  if (runAllBtn) {
+    runAllBtn.addEventListener('click', () => {
+      if (testsRunning) {
+        stopTests();
+      } else {
+        runAllTests();
+      }
+    });
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', stopTests);
+  }
+
+  // Test case expand/collapse
+  const testCaseHeaders = document.querySelectorAll('.test-case-header');
+  testCaseHeaders.forEach(header => {
+    header.addEventListener('click', (e) => {
+      // Don't toggle if clicking the status icon (reserved for future use)
+      if (e.target.closest('.test-status-icon')) return;
+      const testCase = header.parentElement;
+      testCase.classList.toggle('expanded');
+    });
+  });
+
+  // ==================================================
+  // 6. Right Sidebar - Checklist Toggle
+  // ==================================================
+  const checklistItems = document.querySelectorAll('.checklist-item');
+  checklistItems.forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked');
+    });
+  });
+
+  // ==================================================
+  // 7. Save Button - Toast Notification
+  // ==================================================
+  const saveBtn = document.querySelector('.topbar-right .btn-primary');
+
+  function showToast(type, message, detail) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+
+    let iconChar = '✓';
+    if (type === 'error') iconChar = '✗';
+    else if (type === 'info') iconChar = 'ⓘ';
+
+    toast.innerHTML =
+      '<div class="toast-icon">' + iconChar + '</div>' +
+      '<span class="toast-message">' + message + '</span>' +
+      (detail ? '<span class="toast-detail">' + detail + '</span>' : '');
+
+    container.appendChild(toast);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        toast.classList.add('show');
+      });
+    });
+
+    // Auto remove after 3 seconds
+    const removeTimeout = setTimeout(() => {
+      toast.classList.add('hide');
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.parentElement.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
+
+    // Click to dismiss
+    toast.addEventListener('click', () => {
+      clearTimeout(removeTimeout);
+      toast.classList.add('hide');
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.parentElement.removeChild(toast);
+        }
+      }, 300);
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      // Button press effect
+      saveBtn.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        saveBtn.style.transform = '';
+      }, 150);
+
+      // Show success toast
+      showToast('success', 'Configuration saved', 'research-agent v2.4.1');
+    });
+  }
+
+  // Keyboard shortcut: Ctrl/Cmd + S
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (saveBtn) {
+        saveBtn.click();
+      }
+    }
+  });
+
+  // ==================================================
+  // 8. Custom Model Selector Dropdown
+  // ==================================================
+  const modelDropdown = document.getElementById('model-dropdown');
+  const modelSelected = document.getElementById('model-selected');
+
+  if (modelDropdown) {
+    const trigger = modelDropdown.querySelector('.custom-dropdown-trigger');
+    const options = modelDropdown.querySelectorAll('.custom-dropdown-option');
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      modelDropdown.classList.toggle('open');
+    });
+
+    options.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const value = option.dataset.value;
+        const label = option.textContent.trim();
+
+        // Update selected state
+        options.forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // Update display
+        if (modelSelected) modelSelected.textContent = label;
+
+        // Close dropdown
+        modelDropdown.classList.remove('open');
+
+        // Show info toast
+        showToast('info', 'Model updated', label);
+      });
+    });
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (modelDropdown && !modelDropdown.contains(e.target)) {
+      modelDropdown.classList.remove('open');
+    }
+  });
+
+  // ==================================================
+  // 9. Panel Divider Visual Feedback
+  // ==================================================
+  const dividers = document.querySelectorAll('.panel-divider');
+  dividers.forEach(divider => {
+    divider.addEventListener('mousedown', (e) => {
+      divider.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+  });
+
+  document.addEventListener('mouseup', () => {
+    dividers.forEach(d => d.classList.remove('dragging'));
+    document.body.style.cursor = '';
+  });
+
+  // ==================================================
+  // 10. Revert button
+  // ==================================================
+  const revertBtn = document.querySelector('.topbar-right .btn:first-child');
+  if (revertBtn) {
+    revertBtn.addEventListener('click', () => {
+      showToast('info', 'Changes reverted', 'Last saved state restored');
+    });
+  }
+
+  // ==================================================
+  // 11. Deploy button
+  // ==================================================
+  const deployBtn = document.querySelector('.topbar-right .btn:last-child');
+  if (deployBtn) {
+    deployBtn.addEventListener('click', () => {
+      showToast('info', 'Deploying agent...', 'Starting deployment pipeline');
+    });
+  }
+
+  // ==================================================
+  // 12. Run button (coral)
+  // ==================================================
+  const runBtn = document.querySelector('.topbar-right .btn-coral');
+  if (runBtn) {
+    runBtn.addEventListener('click', () => {
+      showToast('info', 'Agent running', 'Execution started');
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>

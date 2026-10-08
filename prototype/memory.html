@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Console — Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #0f1524;
+    --bg-panel-2: #131a2e;
+    --bg-elevated: #182038;
+    --border-subtle: rgba(0, 229, 255, 0.08);
+    --border-medium: rgba(0, 229, 255, 0.15);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --text-primary: #e6edf7;
+    --text-secondary: #8892b0;
+    --text-tertiary: #5a6580;
+    --text-muted: #3d4760;
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.6);
+    --accent-cyan-glow: rgba(0, 229, 255, 0.15);
+    --accent-coral: #ff6b6b;
+    --accent-coral-dim: rgba(255, 107, 107, 0.6);
+    --accent-coral-glow: rgba(255, 107, 107, 0.15);
+    --accent-green: #2ed573;
+    --accent-green-dim: rgba(46, 213, 115, 0.6);
+    --accent-green-glow: rgba(46, 213, 115, 0.15);
+    --accent-amber: #ffa502;
+    --accent-amber-dim: rgba(255, 165, 2, 0.6);
+    --accent-amber-glow: rgba(255, 165, 2, 0.15);
+    --accent-purple: #a855f7;
+    --accent-purple-dim: rgba(168, 85, 247, 0.6);
+    --accent-purple-glow: rgba(168, 85, 247, 0.15);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
+    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
+    --sidebar-width: 240px;
+    --topbar-height: 56px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan-dim);
+  }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--topbar-height) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    height: var(--topbar-height);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .sidebar-logo-icon {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sidebar-logo-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent-cyan);
+  }
+
+  .sidebar-logo-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-cyan-dim);
+    background: var(--accent-cyan-glow);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    margin-left: auto;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 8px 9px;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--accent-cyan);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .nav-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .nav-item-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .user-profile:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  .topbar {
+    grid-area: topbar;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb .crumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-breadcrumb .crumb-sep {
+    color: var(--text-muted);
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .topbar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .topbar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .topbar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn.spinning svg {
+    animation: spin 0.8s ease-in-out;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.4s ease;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-subtitle .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ============================================================
+     STATS CARDS
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .stat-card-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-card-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .stat-card-icon.coral {
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .stat-card-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .stat-card-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.2);
+  }
+
+  .stat-card-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .stat-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value .value-suffix {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .stat-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+  }
+
+  .stat-trend.down {
+    color: var(--accent-coral);
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     MEMORY TABS
+     ============================================================ */
+  .memory-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+
+  .memory-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .memory-tab:hover {
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .memory-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    padding: 7px 17px;
+  }
+
+  .memory-tab .tab-icon {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .memory-tab .tab-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .memory-tab .tab-count {
+    font-size: 10px;
+    padding: 1px 6px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+  }
+
+  .memory-tab.active .tab-count {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--accent-cyan-dim);
+  }
+
+  .memory-tab-content {
+    display: none;
+  }
+
+  .memory-tab-content.active {
+    display: block;
+  }
+
+  /* ============================================================
+     MEMORY LIST (Episodic)
+     ============================================================ */
+  .memory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .memory-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .memory-item:hover {
+    border-color: var(--border-medium);
+    background: rgba(0, 229, 255, 0.02);
+  }
+
+  .memory-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .memory-type-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .memory-type-icon.episodic {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .memory-type-icon.semantic {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .memory-type-icon.procedural {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .memory-type-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .memory-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .memory-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .memory-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .memory-meta-item svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .memory-content-preview {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .memory-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .memory-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+    text-transform: lowercase;
+  }
+
+  .memory-importance {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .importance-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-medium);
+  }
+
+  .importance-dot.filled {
+    background: var(--accent-amber);
+    box-shadow: 0 0 3px var(--accent-amber);
+  }
+
+  /* ============================================================
+     SEMANTIC MEMORY - Knowledge Graph
+     ============================================================ */
+  .semantic-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+  }
+
+  .graph-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .graph-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .graph-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .graph-card-title .bracket {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  /* Simple graph visualization */
+  .graph-visual {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.03) 0%, transparent 70%);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+  }
+
+  .graph-node {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .graph-node:hover {
+    transform: scale(1.15);
+    z-index: 10;
+  }
+
+  .graph-node.core {
+    width: 70px;
+    height: 70px;
+    background: var(--accent-cyan-glow);
+    border: 2px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 20px var(--accent-cyan-glow);
+  }
+
+  .graph-node.primary {
+    width: 54px;
+    height: 54px;
+    background: var(--accent-purple-glow);
+    border: 1.5px solid var(--accent-purple);
+    color: var(--accent-purple);
+  }
+
+  .graph-node.secondary {
+    width: 42px;
+    height: 42px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    font-size: 9px;
+  }
+
+  .graph-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .graph-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .graph-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .graph-legend-dot.core {
+    background: var(--accent-cyan);
+  }
+
+  .graph-legend-dot.primary {
+    background: var(--accent-purple);
+  }
+
+  .graph-legend-dot.secondary {
+    background: var(--text-tertiary);
+  }
+
+  /* Entity list */
+  .entities-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px;
+  }
+
+  .entities-card-header {
+    margin-bottom: 14px;
+  }
+
+  .entities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 380px;
+    overflow-y: auto;
+  }
+
+  .entity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .entity-item:hover {
+    border-color: var(--border-medium);
+  }
+
+  .entity-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  .entity-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .entity-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .entity-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .entity-type {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+  }
+
+  .entity-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ============================================================
+     PROCEDURAL MEMORY - Skills
+     ============================================================ */
+  .procedural-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .skill-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-green-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .skill-card:hover::before {
+    opacity: 1;
+  }
+
+  .skill-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .skill-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+    flex-shrink: 0;
+  }
+
+  .skill-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .skill-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .skill-category {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .skill-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .skill-stats {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .skill-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .skill-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .skill-stat-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .skill-level-bar {
+    margin-top: 10px;
+  }
+
+  .skill-level-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .skill-level-track {
+    height: 4px;
+    background: var(--bg-panel-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .skill-level-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-green);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .copy-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .copy-toast svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .flash-update {
+    animation: flash 0.6s ease;
+  }
+
+  @keyframes flash {
+    0% { color: var(--accent-cyan); }
+    100% { color: var(--text-primary); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+      <span class="sidebar-logo-tag">v2.4</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+
+      <a href="dashboard.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="agents.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-item-badge">12</span>
+      </a>
+
+      <a href="workflows.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Workflows</span>
+        <span class="nav-item-badge cyan">5</span>
+      </a>
+
+      <a href="skills.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span>Skills</span>
+      </a>
+
+      <a href="tools.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        <span>Tools</span>
+      </a>
+
+      <div class="nav-section-label">Resources</div>
+
+      <a href="models.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span>Models</span>
+      </a>
+
+      <a href="datasets.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <span>Datasets</span>
+      </a>
+
+      <a href="vector-stores.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </span>
+        <span>Vector Stores</span>
+        <span class="nav-item-badge">3</span>
+      </a>
+
+      <a href="memory.html" class="nav-item active">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <span>Memory</span>
+      </a>
+
+      <div class="nav-section-label">Observability</div>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <a href="traces.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Traces</span>
+      </a>
+
+      <a href="evaluations.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Evaluations</span>
+      </a>
+
+      <a href="logs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </span>
+        <span>Logs</span>
+      </a>
+
+      <div class="nav-section-label">Settings</div>
+
+      <a href="api-keys.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+
+      <a href="team.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Team</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">JH</div>
+        <div class="user-info">
+          <div class="user-name">Jialun Huang</div>
+          <div class="user-role">Pro Plan</div>
+        </div>
+        <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>resources</span>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Memory</span>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="Search memory entities..." />
+    </div>
+
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <button class="btn-primary" id="importBtn">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import Memory
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">
+          <span class="title-prefix">//</span>
+          Memory
+        </h1>
+        <p class="page-subtitle">
+          <span class="status-indicator"></span>
+          3 memory types &middot; 1,247 entities &middot; 28 active sessions
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-ghost">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Memory Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon cyan">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card-label">Total Memory Entities</div>
+        <div class="stat-card-value" data-target="1247">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            8.3%
+          </span>
+          <span class="stat-period">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon green">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="stat-card-label">Active Sessions</div>
+        <div class="stat-card-value" data-target="28">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            +5
+          </span>
+          <span class="stat-period">new today</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon purple">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+        </div>
+        <div class="stat-card-label">Memory Types</div>
+        <div class="stat-card-value" data-target="3">0<span class="value-suffix"></span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend" style="color: var(--text-tertiary);">
+            Episodic / Semantic / Procedural
+          </span>
+          <span class="stat-period"></span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-icon amber">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        </div>
+        <div class="stat-card-label">Storage Used</div>
+        <div class="stat-card-value" data-target="856" data-decimals="0">0<span class="value-suffix"> MB</span></div>
+        <div class="stat-card-footer">
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            4.2%
+          </span>
+          <span class="stat-period">growth</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory Tabs -->
+    <div class="memory-tabs" id="memoryTabs">
+      <button class="memory-tab active" data-tab="episodic">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        Episodic Memory
+        <span class="tab-count">847</span>
+      </button>
+      <button class="memory-tab" data-tab="semantic">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </span>
+        Semantic Memory
+        <span class="tab-count">284</span>
+      </button>
+      <button class="memory-tab" data-tab="procedural">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        Procedural Memory
+        <span class="tab-count">116</span>
+      </button>
+    </div>
+
+    <!-- Episodic Memory Tab -->
+    <div class="memory-tab-content active" id="episodicTab">
+      <div class="memory-list" id="episodicList">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Semantic Memory Tab -->
+    <div class="memory-tab-content" id="semanticTab">
+      <div class="semantic-grid">
+        <div class="graph-card">
+          <div class="graph-card-header">
+            <div class="graph-card-title">
+              <span class="bracket">[</span>
+              Knowledge Graph Overview
+              <span class="bracket">]</span>
+            </div>
+            <button class="btn-ghost">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Live
+            </button>
+          </div>
+          <div class="graph-visual" id="graphVisual">
+            <!-- Nodes positioned by JS -->
+          </div>
+          <div class="graph-legend">
+            <div class="graph-legend-item">
+              <span class="graph-legend-dot core"></span>
+              Core Concepts
+            </div>
+            <div class="graph-legend-item">
+              <span class="graph-legend-dot primary"></span>
+              Primary Entities
+            </div>
+            <div class="graph-legend-item">
+              <span class="graph-legend-dot secondary"></span>
+              Related Nodes
+            </div>
+          </div>
+        </div>
+        <div class="entities-card">
+          <div class="entities-card-header">
+            <div class="graph-card-title" style="font-size: 13px;">
+              <span class="bracket">[</span>
+              Top Entities
+              <span class="bracket">]</span>
+            </div>
+          </div>
+          <div class="entities-list" id="entitiesList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Procedural Memory Tab -->
+    <div class="memory-tab-content" id="proceduralTab">
+      <div class="procedural-grid" id="proceduralGrid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="copy-toast" id="copyToast">
+  <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  Copied!
+</div>
+
+<script>
+  // ============================================================
+  // EPISODIC MEMORY DATA
+  // ============================================================
+  const episodicData = [
+    {
+      id: 'mem_001',
+      title: 'Customer call with Acme Corp re: Q4 roadmap',
+      session: 'session_8a3f2',
+      agent: 'sales-coach-01',
+      time: '10 min ago',
+      content: 'Discussed Q4 product roadmap with Acme Corp stakeholders. Key interests: API v3 features, SSO integration, and custom reporting pipeline. Next meeting scheduled for Oct 15.',
+      tags: ['sales', 'customer-call', 'acme-corp', 'roadmap'],
+      importance: 4
+    },
+    {
+      id: 'mem_002',
+      title: 'Debug session: production latency issue',
+      session: 'session_7c2e1',
+      agent: 'devops-assistant',
+      time: '1 hour ago',
+      content: 'Investigated production latency spike in us-east-1 region. Root cause: Redis connection pool exhaustion. Resolved by increasing max connections from 100 to 250 and adding connection recycling.',
+      tags: ['debug', 'production', 'redis', 'latency'],
+      importance: 5
+    },
+    {
+      id: 'mem_003',
+      title: 'Code review: authentication module refactor',
+      session: 'session_6d1b9',
+      agent: 'code-reviewer',
+      time: '2 hours ago',
+      content: 'Reviewed auth module refactor PR #2847. Approved with minor comments: add rate limiting on token refresh endpoint, improve error messages for invalid JWT signatures.',
+      tags: ['code-review', 'authentication', 'security'],
+      importance: 3
+    },
+    {
+      id: 'mem_004',
+      title: 'User onboarding: new team member Sarah Chen',
+      session: 'session_5a9c4',
+      agent: 'onboarding-guide',
+      time: '3 hours ago',
+      content: 'Walked Sarah Chen through development setup, codebase structure, and team workflows. Created onboarding checklist and assigned first starter task in the billing module.',
+      tags: ['onboarding', 'team', 'setup'],
+      importance: 2
+    },
+    {
+      id: 'mem_005',
+      title: 'Data pipeline failure recovery',
+      session: 'session_4b7d8',
+      agent: 'data-ops',
+      time: '5 hours ago',
+      content: 'ETL pipeline failed at step 3 (data validation) due to schema mismatch in upstream source. Rolled back to previous schema version and triggered re-processing of 2024-10-07 batch.',
+      tags: ['data-pipeline', 'etl', 'incident'],
+      importance: 4
+    },
+    {
+      id: 'mem_006',
+      title: 'Design review: new dashboard layout',
+      session: 'session_3e5f6',
+      agent: 'design-critic',
+      time: 'Yesterday',
+      content: 'Reviewed new analytics dashboard mockups. Feedback: improve information hierarchy, add empty states for all widgets, ensure keyboard navigation works for all interactive elements.',
+      tags: ['design-review', 'dashboard', 'ux'],
+      importance: 3
+    },
+    {
+      id: 'mem_007',
+      title: 'Security audit findings discussion',
+      session: 'session_2a3c7',
+      agent: 'security-analyst',
+      time: 'Yesterday',
+      content: 'Discussed quarterly security audit findings. 3 critical issues (SQL injection in report endpoint, exposed env vars in staging, weak password policy) and 12 medium priority items. Remediation plan drafted.',
+      tags: ['security', 'audit', 'compliance'],
+      importance: 5
+    },
+    {
+      id: 'mem_008',
+      title: 'Marketing campaign strategy session',
+      session: 'session_1d4e9',
+      agent: 'marketing-strategist',
+      time: '2 days ago',
+      content: 'Brainstormed Q4 marketing campaign themes. Key ideas: developer-focused content series, customer success story videos, and a virtual conference on AI agent development.',
+      tags: ['marketing', 'strategy', 'q4'],
+      importance: 2
+    }
+  ];
+
+  // ============================================================
+  // SEMANTIC MEMORY - ENTITIES
+  // ============================================================
+  const entitiesData = [
+    { name: 'Product Features', type: 'Core Concept', count: 47, icon: 'feature' },
+    { name: 'Customers', type: 'Core Concept', count: 124, icon: 'users' },
+    { name: 'Technology Stack', type: 'Core Concept', count: 32, icon: 'cpu' },
+    { name: 'Acme Corporation', type: 'Organization', count: 18, icon: 'building' },
+    { name: 'Beta Industries', type: 'Organization', count: 15, icon: 'building' },
+    { name: 'API v3.0', type: 'Product', count: 23, icon: 'code' },
+    { name: 'Dashboard Module', type: 'Product', count: 19, icon: 'layout' },
+    { name: 'Sarah Chen', type: 'Person', count: 8, icon: 'user' },
+    { name: 'Mike Johnson', type: 'Person', count: 12, icon: 'user' },
+    { name: 'Redis Cluster', type: 'Infrastructure', count: 9, icon: 'database' },
+    { name: 'AWS us-east-1', type: 'Infrastructure', count: 14, icon: 'server' },
+    { name: 'OAuth 2.0', type: 'Technology', count: 11, icon: 'shield' }
+  ];
+
+  // ============================================================
+  // PROCEDURAL MEMORY - SKILLS
+  // ============================================================
+  const proceduralData = [
+    {
+      name: 'Code Review Analysis',
+      category: 'Development',
+      desc: 'Analyzes pull requests, identifies issues, and provides structured feedback with code examples.',
+      uses: 342,
+      successRate: 94,
+      level: 92
+    },
+    {
+      name: 'Debug & Troubleshoot',
+      category: 'Development',
+      desc: 'Systematic debugging methodology: reproduce, isolate, hypothesize, test, verify, document.',
+      uses: 218,
+      successRate: 88,
+      level: 85
+    },
+    {
+      name: 'Customer Call Summary',
+      category: 'Sales',
+      desc: 'Extracts action items, decisions, and key discussion points from customer conversation transcripts.',
+      uses: 156,
+      successRate: 91,
+      level: 78
+    },
+    {
+      name: 'Incident Response',
+      category: 'Operations',
+      desc: 'Structured incident response: assess impact, communicate, mitigate, root cause, prevent recurrence.',
+      uses: 48,
+      successRate: 96,
+      level: 70
+    },
+    {
+      name: 'Documentation Writing',
+      category: 'Content',
+      desc: 'Creates clear, well-structured technical documentation with proper examples and references.',
+      uses: 289,
+      successRate: 93,
+      level: 88
+    },
+    {
+      name: 'Data Analysis Pipeline',
+      category: 'Data',
+      desc: 'End-to-end data analysis: ingest, clean, transform, analyze, visualize, report insights.',
+      uses: 134,
+      successRate: 89,
+      level: 76
+    },
+    {
+      name: 'Security Audit Checklist',
+      category: 'Security',
+      desc: 'Comprehensive security review covering OWASP top 10, authentication, data protection, and compliance.',
+      uses: 67,
+      successRate: 97,
+      level: 65
+    },
+    {
+      name: 'Meeting Facilitation',
+      category: 'Communication',
+      desc: 'Structured meeting management: agenda setting, timeboxing, decision tracking, action item extraction.',
+      uses: 198,
+      successRate: 90,
+      level: 82
+    }
+  ];
+
+  // ============================================================
+  // RENDER EPISODIC
+  // ============================================================
+  function renderEpisodic(data) {
+    const list = document.getElementById('episodicList');
+    list.innerHTML = data.map(item => {
+      const dots = Array(5).fill(0).map((_, i) => 
+        `<span class="importance-dot ${i < item.importance ? 'filled' : ''}"></span>`
+      ).join('');
+      return `
+        <div class="memory-item" data-id="${item.id}">
+          <div class="memory-item-header">
+            <div class="memory-type-icon episodic">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="memory-title">${item.title}</div>
+            <div class="memory-importance" title="Importance: ${item.importance}/5">
+              ${dots}
+            </div>
+          </div>
+          <div class="memory-meta">
+            <span class="memory-meta-item">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+              ${item.agent}
+            </span>
+            <span class="memory-meta-item">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${item.time}
+            </span>
+            <span class="memory-meta-item">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              ${item.session}
+            </span>
+          </div>
+          <div class="memory-content-preview">${item.content}</div>
+          <div class="memory-tags">
+            ${item.tags.map(tag => `<span class="memory-tag">${tag}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================================
+  // RENDER SEMANTIC GRAPH
+  // ============================================================
+  function renderGraph() {
+    const graph = document.getElementById('graphVisual');
+    const nodes = [
+      { label: 'Knowledge', type: 'core', x: 50, y: 50 },
+      { label: 'Products', type: 'primary', x: 25, y: 30 },
+      { label: 'Customers', type: 'primary', x: 75, y: 30 },
+      { label: 'Tech', type: 'primary', x: 50, y: 75 },
+      { label: 'People', type: 'primary', x: 20, y: 65 },
+      { label: 'Process', type: 'primary', x: 80, y: 65 },
+      { label: 'API v3', type: 'secondary', x: 10, y: 20 },
+      { label: 'Dashboard', type: 'secondary', x: 35, y: 15 },
+      { label: 'Acme', type: 'secondary', x: 65, y: 15 },
+      { label: 'Beta', type: 'secondary', x: 90, y: 20 },
+      { label: 'Redis', type: 'secondary', x: 30, y: 85 },
+      { label: 'AWS', type: 'secondary', x: 70, y: 85 },
+      { label: 'Sarah', type: 'secondary', x: 5, y: 50 },
+      { label: 'Mike', type: 'secondary', x: 5, y: 80 },
+      { label: 'Code Rev.', type: 'secondary', x: 95, y: 50 },
+      { label: 'Onboard.', type: 'secondary', x: 95, y: 80 },
+    ];
+    
+    graph.innerHTML = nodes.map(n => `
+      <div class="graph-node ${n.type}" style="left: calc(${n.x}% - 25px); top: calc(${n.y}% - 25px);">
+        ${n.label}
+      </div>
+    `).join('');
+  }
+
+  // ============================================================
+  // RENDER ENTITIES LIST
+  // ============================================================
+  function renderEntities(data) {
+    const list = document.getElementById('entitiesList');
+    const icons = {
+      feature: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
+      users: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
+      cpu: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>',
+      building: '<rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8" y2="6"/><line x1="12" y1="6" x2="12" y2="6"/><line x1="16" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/>',
+      code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+      layout: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+      user: '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
+      server: '<rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>',
+      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+    };
+    
+    list.innerHTML = data.map(entity => `
+      <div class="entity-item" data-name="${entity.name}">
+        <div class="entity-icon">
+          <svg viewBox="0 0 24 24">${icons[entity.icon] || icons.feature}</svg>
+        </div>
+        <div class="entity-info">
+          <div class="entity-name">${entity.name}</div>
+          <div class="entity-type">${entity.type}</div>
+        </div>
+        <div class="entity-count">${entity.count}</div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================================
+  // RENDER PROCEDURAL
+  // ============================================================
+  function renderProcedural(data) {
+    const grid = document.getElementById('proceduralGrid');
+    grid.innerHTML = data.map(skill => `
+      <div class="skill-card" data-name="${skill.name}">
+        <div class="skill-header">
+          <div class="skill-icon">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div>
+            <div class="skill-name">${skill.name}</div>
+            <div class="skill-category">${skill.category}</div>
+          </div>
+        </div>
+        <div class="skill-desc">${skill.desc}</div>
+        <div class="skill-level-bar">
+          <div class="skill-level-label">
+            <span>Mastery Level</span>
+            <span>${skill.level}%</span>
+          </div>
+          <div class="skill-level-track">
+            <div class="skill-level-fill" style="width: ${skill.level}%"></div>
+          </div>
+        </div>
+        <div class="skill-stats">
+          <div class="skill-stat">
+            <span class="skill-stat-label">Uses</span>
+            <span class="skill-stat-value">${skill.uses}</span>
+          </div>
+          <div class="skill-stat">
+            <span class="skill-stat-label">Success Rate</span>
+            <span class="skill-stat-value" style="color: var(--accent-green);">${skill.successRate}%</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
+  document.querySelectorAll('#memoryTabs .memory-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('#memoryTabs .memory-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const tabName = this.getAttribute('data-tab');
+      document.querySelectorAll('.memory-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabName + 'Tab').classList.add('active');
+    });
+  });
+
+  // ============================================================
+  // SEARCH
+  // ============================================================
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const term = this.value.toLowerCase();
+    const activeTab = document.querySelector('#memoryTabs .memory-tab.active').getAttribute('data-tab');
+    
+    if (activeTab === 'episodic') {
+      const filtered = episodicData.filter(m => 
+        m.title.toLowerCase().includes(term) ||
+        m.content.toLowerCase().includes(term) ||
+        m.tags.some(t => t.toLowerCase().includes(term))
+      );
+      renderEpisodic(filtered);
+    } else if (activeTab === 'semantic') {
+      const filtered = entitiesData.filter(e => 
+        e.name.toLowerCase().includes(term) ||
+        e.type.toLowerCase().includes(term)
+      );
+      renderEntities(filtered);
+    } else if (activeTab === 'procedural') {
+      const filtered = proceduralData.filter(s => 
+        s.name.toLowerCase().includes(term) ||
+        s.desc.toLowerCase().includes(term) ||
+        s.category.toLowerCase().includes(term)
+      );
+      renderProcedural(filtered);
+    }
+  });
+
+  // ============================================================
+  // REFRESH & ACTIONS
+  // ============================================================
+  document.getElementById('refreshBtn').addEventListener('click', function() {
+    const btn = this;
+    btn.classList.add('spinning');
+    setTimeout(() => {
+      btn.classList.remove('spinning');
+      showToast('Memory data refreshed');
+    }, 800);
+  });
+
+  document.getElementById('importBtn').addEventListener('click', function() {
+    showToast('Opening import dialog...');
+  });
+
+  function showToast(message) {
+    const toast = document.getElementById('copyToast');
+    toast.innerHTML = `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${message}`;
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 2000);
+  }
+
+  // ============================================================
+  // ANIMATE STATS
+  // ============================================================
+  function animateStats() {
+    document.querySelectorAll('.stat-card-value').forEach(el => {
+      const target = parseFloat(el.getAttribute('data-target'));
+      const decimals = parseInt(el.getAttribute('data-decimals') || '0');
+      const suffixEl = el.querySelector('.value-suffix');
+      const suffix = suffixEl ? suffixEl.textContent : '';
+      const duration = 1200;
+      const startTime = performance.now();
+      
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = target * easeOut;
+        
+        const displayValue = decimals > 0 
+          ? currentValue.toFixed(decimals) 
+          : Math.floor(currentValue).toLocaleString();
+        
+        el.innerHTML = displayValue + `<span class="value-suffix">${suffix}</span>`;
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      requestAnimationFrame(update);
+    });
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    renderEpisodic(episodicData);
+    renderGraph();
+    renderEntities(entitiesData);
+    renderProcedural(proceduralData);
+    animateStats();
+  });
+</script>
+
+</body>
+</html>
