@@ -119,7 +119,9 @@
     background: var(--accent-cyan-dim);
   }
 
-  /* LAYOUT */
+  /* ============================================================
+     APP SHELL
+     ============================================================ */
   .app-shell {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -488,6 +490,18 @@
     stroke-width: 1.8;
   }
 
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -539,18 +553,102 @@
     stroke-width: 2.5;
   }
 
+  /* ============================================================
+     MAIN CONTENT — normal scrolling page
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    padding: 20px 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .main-inner {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ============================================================
+     PAGE HEADER
+     ============================================================ */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .page-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--accent-cyan);
+    font-weight: 500;
+    text-shadow: 0 0 12px var(--accent-cyan-glow);
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-subtitle .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  .page-subtitle .sub-sep {
+    color: var(--text-muted);
+  }
+
+  .page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
   .btn-ghost {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 32px;
+    gap: 7px;
+    height: 34px;
     padding: 0 12px;
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -563,92 +661,174 @@
   }
 
   .btn-ghost svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1.8;
   }
 
-  /* MAIN CONTENT */
-  .main-content {
-    grid-area: main;
-    overflow-y: auto;
-    padding: 20px 24px;
-    position: relative;
+  /* ============================================================
+     STATS CARDS ROW
+     ============================================================ */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
   }
 
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  .page-title-group {
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
   }
 
-  .page-title {
-    font-size: 22px;
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
+    opacity: 0.4;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+  }
+
+  .stat-card:hover::before {
+    opacity: 0.8;
+  }
+
+  .stat-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-icon.cyan {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+  .stat-icon.green {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+  }
+  .stat-icon.amber {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.3);
+  }
+  .stat-icon.purple {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+  }
+
+  .stat-trend {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .stat-trend.up {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+  }
+  .stat-trend.down {
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+  }
+  .stat-trend.neutral {
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+  }
+
+  .stat-trend svg {
+    width: 9px;
+    height: 9px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 24px;
     font-weight: 700;
     color: var(--text-primary);
+    line-height: 1;
     letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
 
-  .page-title .title-prefix {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent-cyan);
-    font-weight: 400;
+  .stat-sparkline {
+    height: 26px;
+    width: 100%;
+    margin-top: 2px;
   }
 
-  .page-subtitle {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .stat-sparkline svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
-  .page-subtitle .status-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.3); }
-  }
-
-  .page-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* FILTER BAR */
+  /* ============================================================
+     FILTER BAR
+     ============================================================ */
   .filter-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .filter-tabs {
     display: flex;
+    align-items: center;
     gap: 4px;
     background: var(--bg-panel);
     border: 1px solid var(--border-subtle);
@@ -660,16 +840,17 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
+    height: 28px;
+    padding: 0 12px;
+    background: transparent;
+    border: none;
     border-radius: var(--radius-sm);
+    color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
-    border: none;
-    background: transparent;
   }
 
   .filter-tab:hover {
@@ -680,32 +861,29 @@
   .filter-tab.active {
     background: var(--accent-cyan-glow);
     color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-    padding: 5px 13px;
+    box-shadow: 0 0 0 1px var(--border-strong), 0 0 12px var(--accent-cyan-glow);
   }
 
   .filter-tab .tab-count {
-    font-size: 10px;
-    padding: 1px 5px;
-    background: var(--bg-panel-2);
-    border-radius: 3px;
+    font-size: 9px;
     color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
   }
 
   .filter-tab.active .tab-count {
-    background: rgba(0, 229, 255, 0.1);
-    color: var(--accent-cyan-dim);
-  }
-
-  .filter-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--border-medium);
   }
 
   .filter-search {
+    flex: 1;
+    max-width: 280px;
+    min-width: 160px;
     position: relative;
-    width: 240px;
   }
 
   .filter-search input {
@@ -714,9 +892,9 @@
     background: var(--bg-panel);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    padding: 0 12px 0 32px;
+    padding: 0 10px 0 32px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-primary);
     outline: none;
     transition: all 0.2s ease;
@@ -733,7 +911,7 @@
 
   .filter-search-icon {
     position: absolute;
-    left: 10px;
+    left: 9px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-tertiary);
@@ -741,24 +919,360 @@
   }
 
   .filter-search-icon svg {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
   }
 
-  .dropdown {
+  .sort-dropdown {
     position: relative;
   }
 
-  .dropdown-btn {
+  .sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 10px 0 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .sort-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .sort-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .sort-btn .chev {
+    margin-left: 2px;
+  }
+
+  .sort-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .sort-menu.open {
+    display: flex;
+    animation: dropIn 0.15s ease;
+  }
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .sort-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    text-align: left;
+    width: 100%;
+  }
+
+  .sort-option:hover {
+    background: rgba(0, 229, 255, 0.06);
+    color: var(--text-primary);
+  }
+
+  .sort-option.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+  }
+
+  .sort-option svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+    opacity: 0;
+  }
+
+  .sort-option.active svg {
+    opacity: 1;
+  }
+
+  .filter-results {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-left: auto;
+  }
+
+  /* ============================================================
+     AGENT CARD GRID
+     ============================================================ */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+  }
+
+  .agent-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--text-muted);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: default;
+  }
+
+  .agent-card:hover {
+    border-color: var(--border-strong);
+    border-left-color: var(--accent-cyan);
+    box-shadow: 0 0 0 1px var(--border-medium), 0 8px 28px rgba(0, 229, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .agent-card.accent-cyan { border-left-color: var(--accent-cyan); }
+  .agent-card.accent-coral { border-left-color: var(--accent-coral); }
+  .agent-card.accent-green { border-left-color: var(--accent-green); }
+  .agent-card.accent-amber { border-left-color: var(--accent-amber); }
+  .agent-card.accent-purple { border-left-color: var(--accent-purple); }
+
+  .agent-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .agent-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--bg-deep);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .agent-avatar.cyan { background: linear-gradient(135deg, var(--accent-cyan), rgba(0, 229, 255, 0.6)); }
+  .agent-avatar.green { background: linear-gradient(135deg, var(--accent-green), rgba(46, 213, 115, 0.6)); }
+  .agent-avatar.amber { background: linear-gradient(135deg, var(--accent-amber), rgba(255, 165, 2, 0.6)); }
+  .agent-avatar.purple { background: linear-gradient(135deg, var(--accent-purple), rgba(168, 85, 247, 0.6)); }
+  .agent-avatar.coral { background: linear-gradient(135deg, var(--accent-coral), rgba(255, 107, 107, 0.6)); }
+
+  .agent-avatar .live-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .agent-avatar .live-dot.paused {
+    background: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  .agent-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .agent-type-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .agent-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .agent-status-badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 5px currentColor;
+  }
+
+  .agent-status-badge.active {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+  }
+  .agent-status-badge.paused {
+    color: var(--accent-amber);
+    background: var(--accent-amber-glow);
+    border: 1px solid rgba(255, 165, 2, 0.3);
+  }
+  .agent-status-badge.draft {
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+  }
+  .agent-status-badge.draft::before {
+    box-shadow: none;
+  }
+
+  .agent-card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .agent-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .agent-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 33px;
+  }
+
+  .agent-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .agent-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .agent-stat-icon {
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .agent-stat-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .agent-stat-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .agent-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .agent-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-configure {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 32px;
+    height: 30px;
     padding: 0 12px;
-    background: var(--bg-panel);
+    background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -767,185 +1281,826 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
+    flex: 1;
+    justify-content: center;
   }
 
-  .dropdown-btn:hover {
+  .btn-configure:hover {
     border-color: var(--border-medium);
-    color: var(--text-primary);
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.06);
   }
 
-  .dropdown-btn svg {
+  .btn-configure svg {
     width: 12px;
     height: 12px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2;
+    stroke-width: 1.8;
   }
 
-  /* AGENT CARD GRID */
-  .agent-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 14px;
-  }
-
-  .agent-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 18px;
-    position: relative;
-    transition: all 0.25s ease;
+  .btn-deploy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    justify-content: center;
+    position: relative;
     overflow: hidden;
   }
 
-  .agent-card:hover {
-    border-color: var(--border-medium);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
-
-  .agent-card::before {
+  .btn-deploy::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: left 0.4s ease;
   }
 
-  .agent-card:hover::before {
-    opacity: 1;
+  .btn-deploy:hover::before {
+    left: 100%;
   }
 
-  .agent-card-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 12px;
+  .btn-deploy:hover {
+    box-shadow: 0 0 14px var(--accent-cyan-glow);
   }
 
-  .agent-card-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 700;
-    flex-shrink: 0;
-    position: relative;
+  .btn-deploy svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
   }
 
-  .agent-card-avatar.cyan {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-  }
-
-  .agent-card-avatar.purple {
-    background: var(--accent-purple-glow);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-  }
-
-  .agent-card-avatar.green {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .agent-card-avatar.amber {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .agent-card-avatar.coral {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-  }
-
-  .agent-card-avatar .status-dot {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid var(--bg-panel);
-  }
-
-  .agent-card-avatar .status-dot.active {
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-  }
-
-  .agent-card-avatar .status-dot.paused {
-    background: var(--text-tertiary);
-    box-shadow: none;
-  }
-
-  .agent-card-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .agent-card-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .agent-card-model {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-tertiary);
-  }
-
-  .agent-card-actions {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-    display: flex;
-    gap: 4px;
-  }
-
-  .agent-card:hover .agent-card-actions {
-    opacity: 1;
-  }
-
-  .agent-card-action-btn {
-    width: 26px;
-    height: 26px;
+  .btn-toggle {
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .btn-toggle:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .btn-toggle svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .btn-toggle.is-paused {
+    color: var(--accent-amber);
+    border-color: rgba(255, 165, 2, 0.3);
+    background: var(--accent-amber-glow);
+  }
+
+  .btn-toggle.is-paused:hover {
+    color: var(--accent-green);
+    border-color: rgba(46, 213, 115, 0.3);
+    background: var(--accent-green-glow);
+  }
+
+  .btn-toggle.is-active {
+    color: var(--accent-green);
+    border-color: rgba(46, 213, 115, 0.3);
+    background: var(--accent-green-glow);
+  }
+
+  .btn-toggle.is-active:hover {
+    color: var(--accent-amber);
+    border-color: rgba(255, 165, 2, 0.3);
+    background: var(--accent-amber-glow);
+  }
+
+  /* Empty state */
+  .agent-empty {
+    grid-column: 1 / -1;
+    padding: 60px 20px;
+    text-align: center;
     color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border: 1px dashed var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  /* ============================================================
+     CONFIG DRAWER (slide-out from right)
+     ============================================================ */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 16, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .config-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 380px;
+    max-width: 92vw;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-medium);
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -16px 0 48px rgba(0,0,0,0.5);
+  }
+
+  .config-drawer.open {
+    transform: translateX(0);
+  }
+
+  .config-drawer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .drawer-header-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--bg-deep);
+    flex-shrink: 0;
+  }
+
+  .drawer-header-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .drawer-header-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .drawer-header-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+
+  .drawer-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .drawer-close:hover {
+    border-color: var(--border-medium);
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+  }
+
+  .drawer-close svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .config-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .config-section-title::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 5px var(--accent-cyan);
+  }
+
+  .config-section-title .count {
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  /* Model selector block */
+  .model-select {
+    position: relative;
+  }
+
+  .model-select-trigger {
+    width: 100%;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+
+  .model-select-trigger:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-elevated);
+  }
+
+  .model-select-trigger .model-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+    flex-shrink: 0;
+  }
+
+  .model-select-trigger .model-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .model-select-trigger .chev {
+    width: 12px;
+    height: 12px;
+    stroke: var(--text-tertiary);
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+  .model-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    z-index: 30;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .model-menu.open {
+    display: flex;
+    animation: dropIn 0.15s ease;
+  }
+
+  .model-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    color: var(--text-secondary);
+    text-align: left;
+    width: 100%;
+  }
+
+  .model-option:hover {
+    background: rgba(0, 229, 255, 0.06);
+    color: var(--text-primary);
+  }
+
+  .model-option.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+  }
+
+  .model-option-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .model-option-ctx {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+  }
+
+  .model-option.active .model-option-ctx {
+    color: var(--accent-cyan-dim);
+  }
+
+  .model-context-info {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .model-context-info .info-icon {
+    color: var(--text-muted);
+    display: flex;
+  }
+
+  .model-context-info .info-icon svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Toggle list (tools / skills) */
+  .toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    transition: background 0.12s ease;
+  }
+
+  .toggle-row:hover {
+    background: rgba(0, 229, 255, 0.04);
+  }
+
+  .toggle-row-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .toggle-row.on .toggle-row-icon {
+    background: var(--accent-cyan-glow);
+    border-color: var(--border-strong);
+    color: var(--accent-cyan);
+  }
+
+  .toggle-row-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .toggle-row-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .toggle-row-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .toggle-row-desc {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Switch */
+  .switch {
+    width: 30px;
+    height: 16px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: all 0.2s ease;
+  }
+
+  .switch.on {
+    background: var(--accent-cyan-glow);
+    border-color: var(--border-strong);
+  }
+
+  .switch.on::after {
+    left: 15px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  /* Performance inputs */
+  .perf-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .perf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .perf-field-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .perf-field-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .perf-field-value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  .slider-track {
+    position: relative;
+    height: 6px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .slider-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--accent-cyan-dim), var(--accent-cyan));
+    border-radius: 3px;
+    box-shadow: 0 0 8px var(--accent-cyan-glow);
+    transition: width 0.1s ease;
+  }
+
+  .slider-thumb {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 8px var(--accent-cyan-glow);
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+    cursor: grab;
+  }
+
+  .slider-thumb:active {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+
+  .perf-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .perf-input {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .perf-input input {
+    width: 100%;
+    height: 32px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .perf-input input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  /* System prompt textarea */
+  .prompt-textarea {
+    width: 100%;
+    min-height: 90px;
+    max-height: 200px;
+    resize: vertical;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .prompt-textarea:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .prompt-textarea::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .drawer-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .drawer-footer .btn-primary {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
-  .agent-card-action-btn:hover {
-    color: var(--accent-cyan);
-    border-color: var(--border-strong);
-    background: var(--accent-cyan-glow);
+  .btn-cancel:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
   }
 
-  .agent-card-action-btn svg {
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    min-width: 280px;
+    max-width: 360px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-left: 3px solid var(--accent-cyan);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle);
+    pointer-events: auto;
+    animation: toastIn 0.25s ease;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .toast.out {
+    animation: toastOut 0.25s ease forwards;
+  }
+
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+  }
+
+  .toast-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .toast-icon svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.2;
+  }
+
+  .toast.success { border-left-color: var(--accent-green); }
+  .toast.success .toast-icon {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border-color: rgba(46, 213, 115, 0.3);
+  }
+
+  .toast-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .toast-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .toast-msg {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .toast-close {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .toast-close:hover { color: var(--text-primary); }
+
+  .toast-close svg {
     width: 12px;
     height: 12px;
     stroke: currentColor;
@@ -953,138 +2108,88 @@
     stroke-width: 2;
   }
 
-  .agent-card-desc {
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 14px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1200px) {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .agent-grid {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
   }
 
-  .agent-card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
+  @media (max-width: 900px) {
+    .app-shell {
+      grid-template-columns: 0 1fr;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      z-index: 40;
+      box-shadow: 8px 0 32px rgba(0,0,0,0.6);
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .hamburger-btn {
+      display: flex;
+    }
+    .topbar-search {
+      display: none;
+    }
+    .main-content {
+      padding: 16px;
+    }
+    .filter-bar {
+      gap: 8px;
+    }
+    .filter-search {
+      order: 3;
+      max-width: none;
+      width: 100%;
+    }
   }
 
-  .agent-tag {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 3px 7px;
-    border-radius: 3px;
-    background: var(--bg-panel-2);
-    color: var(--text-tertiary);
+  @media (max-width: 600px) {
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
+    .agent-grid {
+      grid-template-columns: 1fr;
+    }
+    .page-title { font-size: 18px; }
+    .page-title .title-prefix { font-size: 15px; }
+    .filter-tabs { width: 100%; overflow-x: auto; }
+    .filter-tab { flex-shrink: 0; }
+  }
+
+  /* Hamburger (mobile) */
+  .hamburger-btn {
+    display: none;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
     border: 1px solid var(--border-subtle);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .agent-tag.production {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border-color: rgba(46, 213, 115, 0.2);
-  }
-
-  .agent-tag.staging {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border-color: rgba(255, 165, 2, 0.2);
-  }
-
-  .agent-tag.draft {
-    background: rgba(90, 101, 128, 0.15);
-    color: var(--text-tertiary);
-    border-color: rgba(90, 101, 128, 0.25);
-  }
-
-  .agent-card-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border-subtle);
-  }
-
-  .agent-stat {
-    text-align: center;
-  }
-
-  .agent-stat-value {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-  }
-
-  .agent-stat-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .agent-stat-value.success {
-    color: var(--accent-green);
-  }
-
-  .agent-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-subtle);
-  }
-
-  .agent-last-run {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-tertiary);
-  }
-
-  .agent-run-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 26px;
-    padding: 0 10px;
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.15s ease;
   }
 
-  .agent-run-btn:hover {
-    background: var(--accent-cyan);
-    color: var(--bg-deep);
-  }
-
-  .agent-run-btn svg {
-    width: 10px;
-    height: 10px;
+  .hamburger-btn svg {
+    width: 16px;
+    height: 16px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2.5;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .topbar-btn.spinning svg {
-    animation: spin 0.8s ease-in-out;
+    stroke-width: 2;
   }
 </style>
 </head>
@@ -1092,7 +2197,7 @@
 
 <div class="app-shell">
   <!-- LEFT SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <!-- Logo -->
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">
@@ -1163,7 +2268,7 @@
         <span>Debugger</span>
       </a>
 
-      <div class="nav-section-label">Skills & Tools</div>
+      <div class="nav-section-label">Skills &amp; Tools</div>
 
       <a href="skills.html" class="nav-item">
         <span class="nav-item-icon">
@@ -1265,6 +2370,10 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
     <div class="topbar-breadcrumb">
       <span>workspace</span>
       <span class="crumb-sep">/</span>
@@ -1275,14 +2384,18 @@
       <span class="topbar-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </span>
-      <input type="text" placeholder="Search agents, runs, workflows..." />
+      <input type="text" placeholder="Search agents, skills, tools..." oninput="searchAgents(this.value)" />
     </div>
 
     <div class="topbar-actions">
-      <button class="topbar-btn" title="Refresh">
+      <button class="topbar-btn" title="Refresh" onclick="refreshAgents(this)">
         <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       </button>
-      <button class="btn-primary">
+      <button class="topbar-btn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="btn-primary" onclick="newAgent()">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Agent
       </button>
@@ -1291,489 +2404,923 @@
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-title-group">
-        <h1 class="page-title">
-          <span class="title-prefix">//</span>
-          Agents
-        </h1>
-        <p class="page-subtitle">
-          <span class="status-indicator"></span>
-          8 active &middot; 4 paused &middot; 12 total agents
-        </p>
-      </div>
-      <div class="page-header-actions">
-        <button class="btn-ghost">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export
-        </button>
-      </div>
-    </div>
+    <div class="main-inner">
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-      <div class="filter-tabs">
-        <button class="filter-tab active" data-filter="all">
-          All <span class="tab-count">12</span>
-        </button>
-        <button class="filter-tab" data-filter="production">
-          Production <span class="tab-count">5</span>
-        </button>
-        <button class="filter-tab" data-filter="staging">
-          Staging <span class="tab-count">4</span>
-        </button>
-        <button class="filter-tab" data-filter="draft">
-          Draft <span class="tab-count">3</span>
-        </button>
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title"><span class="title-prefix">//</span> Agents</h1>
+          <div class="page-subtitle">
+            <span class="status-dot"></span>
+            <span>12 agents</span>
+            <span class="sub-sep">·</span>
+            <span style="color: var(--accent-green);">8 active</span>
+            <span class="sub-sep">·</span>
+            <span style="color: var(--accent-amber);">3 paused</span>
+          </div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-ghost" onclick="exportAgents()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="btn-primary" onclick="newAgent()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Agent
+          </button>
+        </div>
       </div>
 
-      <div class="filter-right">
+      <!-- STATS CARDS ROW -->
+      <div class="stats-row">
+        <!-- Total Agents -->
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon cyan">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+            </div>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+              +2 this week
+            </span>
+          </div>
+          <div class="stat-label">Total Agents</div>
+          <div class="stat-value">12</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none">
+              <path d="M0 20 L10 18 L20 19 L30 15 L40 16 L50 12 L60 13 L70 9 L80 10 L90 6 L100 7" stroke="#00e5ff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 20 L10 18 L20 19 L30 15 L40 16 L50 12 L60 13 L70 9 L80 10 L90 6 L100 7 L100 26 L0 26 Z" fill="url(#gradCyan)" opacity="0.25"/>
+              <defs><linearGradient id="gradCyan" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/></linearGradient></defs>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Active -->
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+              +1
+            </span>
+          </div>
+          <div class="stat-label">Active</div>
+          <div class="stat-value">8</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none">
+              <path d="M0 18 L12 16 L24 17 L36 13 L48 14 L60 10 L72 11 L84 7 L100 8" stroke="#2ed573" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 18 L12 16 L24 17 L36 13 L48 14 L60 10 L72 11 L84 7 L100 8 L100 26 L0 26 Z" fill="url(#gradGreen)" opacity="0.25"/>
+              <defs><linearGradient id="gradGreen" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#2ed573"/><stop offset="100%" stop-color="#2ed573" stop-opacity="0"/></linearGradient></defs>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Paused -->
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon amber">
+              <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            </div>
+            <span class="stat-trend neutral">—</span>
+          </div>
+          <div class="stat-label">Paused</div>
+          <div class="stat-value">3</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none">
+              <path d="M0 10 L12 12 L24 11 L36 13 L48 12 L60 14 L72 13 L84 15 L100 14" stroke="#ffa502" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 10 L12 12 L24 11 L36 13 L48 12 L60 14 L72 13 L84 15 L100 14 L100 26 L0 26 Z" fill="url(#gradAmber)" opacity="0.2"/>
+              <defs><linearGradient id="gradAmber" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#ffa502"/><stop offset="100%" stop-color="#ffa502" stop-opacity="0"/></linearGradient></defs>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Avg Success Rate -->
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon purple">
+              <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            </div>
+            <span class="stat-trend up">
+              <svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+              +2.1%
+            </span>
+          </div>
+          <div class="stat-label">Avg Success Rate</div>
+          <div class="stat-value">94.2%</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none">
+              <path d="M0 16 L12 14 L24 15 L36 11 L48 12 L60 8 L72 9 L84 6 L100 4" stroke="#a855f7" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 16 L12 14 L24 15 L36 11 L48 12 L60 8 L72 9 L84 6 L100 4 L100 26 L0 26 Z" fill="url(#gradPurple)" opacity="0.25"/>
+              <defs><linearGradient id="gradPurple" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#a855f7" stop-opacity="0"/></linearGradient></defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-status="all" onclick="filterAgents('all', this)">
+            All <span class="tab-count">12</span>
+          </button>
+          <button class="filter-tab" data-status="production" onclick="filterAgents('production', this)">
+            Production <span class="tab-count">5</span>
+          </button>
+          <button class="filter-tab" data-status="staging" onclick="filterAgents('staging', this)">
+            Staging <span class="tab-count">4</span>
+          </button>
+          <button class="filter-tab" data-status="draft" onclick="filterAgents('draft', this)">
+            Draft <span class="tab-count">3</span>
+          </button>
+        </div>
+
         <div class="filter-search">
           <span class="filter-search-icon">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
-          <input type="text" placeholder="Filter agents..." />
+          <input type="text" placeholder="Search agents..." id="agentSearch" oninput="searchAgents(this.value)" />
         </div>
-        <div class="dropdown">
-          <button class="dropdown-btn">
-            <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-            Sort: Name
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Agent Card Grid -->
-    <div class="agent-grid">
-      <!-- Agent Card 1 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar cyan">
-            CS
-            <span class="status-dot active"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Customer Support Bot</div>
-            <div class="agent-card-model">GPT-4 Turbo</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Automates customer support queries with intent detection, FAQ retrieval, and escalation routing.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag production">Production</span>
-          <span class="agent-tag">Support</span>
-          <span class="agent-tag">RAG</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">1,247</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">96.2%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">1.8s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 2 min ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
+        <div class="sort-dropdown">
+          <button class="sort-btn" id="sortBtn" onclick="toggleSortMenu()">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+            <span id="sortLabel">Recently Active</span>
+            <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
+          <div class="sort-menu" id="sortMenu">
+            <button class="sort-option active" onclick="sortAgents('recent', this)">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Recently Active
+            </button>
+            <button class="sort-option" onclick="sortAgents('runs', this)">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Most Runs
+            </button>
+            <button class="sort-option" onclick="sortAgents('success', this)">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Highest Success
+            </button>
+            <button class="sort-option" onclick="sortAgents('time', this)">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Fastest Avg Time
+            </button>
+          </div>
         </div>
+
+        <span class="filter-results" id="filterResults">Showing 10 of 10</span>
       </div>
 
-      <!-- Agent Card 2 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar purple">
-            DA
-            <span class="status-dot active"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Data Analyst Pro</div>
-            <div class="agent-card-model">GPT-4o + Code Interpreter</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Advanced data analysis agent with SQL query generation, chart creation, and statistical insights.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag production">Production</span>
-          <span class="agent-tag">Analytics</span>
-          <span class="agent-tag">SQL</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">856</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">91.8%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">4.2s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 5 min ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
+      <!-- AGENT CARD GRID -->
+      <div class="agent-grid" id="agentGrid">
+        <!-- Cards injected by JS -->
       </div>
 
-      <!-- Agent Card 3 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar green">
-            CR
-            <span class="status-dot active"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Code Reviewer</div>
-            <div class="agent-card-model">Claude 3.5 Sonnet</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Automated code review agent that checks for bugs, style issues, security vulnerabilities, and best practices.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag production">Production</span>
-          <span class="agent-tag">DevOps</span>
-          <span class="agent-tag">Security</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">623</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">98.5%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">2.5s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 8 min ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-
-      <!-- Agent Card 4 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar amber">
-            RA
-            <span class="status-dot active"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Research Assistant</div>
-            <div class="agent-card-model">GPT-4o + Web Search</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Deep research agent with web browsing, paper summarization, citation tracking, and report generation.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag staging">Staging</span>
-          <span class="agent-tag">Research</span>
-          <span class="agent-tag">Web</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">312</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">87.3%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">12.4s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 1 hour ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-
-      <!-- Agent Card 5 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar coral">
-            TC
-            <span class="status-dot paused"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Test Case Generator</div>
-            <div class="agent-card-model">Claude 3 Opus</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Generates comprehensive unit test cases from code analysis with edge case coverage and mock setup.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag staging">Staging</span>
-          <span class="agent-tag">Testing</span>
-          <span class="agent-tag">QA</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">198</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">94.1%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">3.7s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 3 hours ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-
-      <!-- Agent Card 6 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar cyan">
-            EM
-            <span class="status-dot active"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Email Composer</div>
-            <div class="agent-card-model">GPT-4 Turbo</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Personalized email composition agent with tone adjustment, template management, and multi-language support.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag production">Production</span>
-          <span class="agent-tag">Marketing</span>
-          <span class="agent-tag">Content</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">2,105</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">99.1%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">0.9s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 30 sec ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-
-      <!-- Agent Card 7 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar purple">
-            DS
-            <span class="status-dot paused"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Doc Summarizer</div>
-            <div class="agent-card-model">GPT-4o Mini</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          Document summarization agent supporting PDF, DOCX, and long-form text with key point extraction.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag staging">Staging</span>
-          <span class="agent-tag">Documents</span>
-          <span class="agent-tag">NLP</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">445</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">92.6%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">5.1s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 6 hours ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-
-      <!-- Agent Card 8 -->
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <div class="agent-card-avatar green">
-            IM
-            <span class="status-dot paused"></span>
-          </div>
-          <div class="agent-card-info">
-            <div class="agent-card-name">Image Generator</div>
-            <div class="agent-card-model">DALL-E 3 + GPT-4</div>
-          </div>
-          <div class="agent-card-actions">
-            <button class="agent-card-action-btn" title="Edit">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="agent-card-action-btn" title="Settings">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="agent-card-desc">
-          AI image generation with prompt optimization, style presets, and batch processing capabilities.
-        </div>
-        <div class="agent-card-tags">
-          <span class="agent-tag draft">Draft</span>
-          <span class="agent-tag">Media</span>
-          <span class="agent-tag">Image</span>
-        </div>
-        <div class="agent-card-stats">
-          <div class="agent-stat">
-            <div class="agent-stat-value">87</div>
-            <div class="agent-stat-label">Runs</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value success">78.2%</div>
-            <div class="agent-stat-label">Success</div>
-          </div>
-          <div class="agent-stat">
-            <div class="agent-stat-value">8.3s</div>
-            <div class="agent-stat-label">Avg Time</div>
-          </div>
-        </div>
-        <div class="agent-card-footer">
-          <span class="agent-last-run">Last run: 2 days ago</span>
-          <button class="agent-run-btn">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
     </div>
   </main>
 </div>
 
+<!-- CONFIG DRAWER -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeConfig()"></div>
+<aside class="config-drawer" id="configDrawer">
+  <div class="drawer-header">
+    <div class="drawer-header-avatar" id="drawerAvatar" style="background: linear-gradient(135deg, var(--accent-cyan), rgba(0, 229, 255, 0.6));">LA</div>
+    <div class="drawer-header-title">
+      <div class="drawer-header-name" id="drawerName">Lead Agent</div>
+      <div class="drawer-header-sub" id="drawerSub">Production · Active</div>
+    </div>
+    <button class="drawer-close" onclick="closeConfig()" title="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Model section -->
+    <div class="config-section">
+      <div class="config-section-title">Model <span class="count" id="modelCtxBadge">128K ctx</span></div>
+      <div class="model-select">
+        <button class="model-select-trigger" id="modelTrigger" onclick="toggleModelMenu()">
+          <span class="model-dot"></span>
+          <span class="model-label" id="modelLabel">gpt-4o</span>
+          <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="model-menu" id="modelMenu">
+          <button class="model-option active" data-model="gpt-4o" data-ctx="128K" onclick="selectModel(this)">
+            <span class="model-option-name">gpt-4o</span>
+            <span class="model-option-ctx">128K ctx</span>
+          </button>
+          <button class="model-option" data-model="claude-3.5-sonnet" data-ctx="200K" onclick="selectModel(this)">
+            <span class="model-option-name">claude-3.5-sonnet</span>
+            <span class="model-option-ctx">200K ctx</span>
+          </button>
+          <button class="model-option" data-model="gemini-2.0-flash" data-ctx="1M" onclick="selectModel(this)">
+            <span class="model-option-name">gemini-2.0-flash</span>
+            <span class="model-option-ctx">1M ctx</span>
+          </button>
+          <button class="model-option" data-model="o1-preview" data-ctx="128K" onclick="selectModel(this)">
+            <span class="model-option-name">o1-preview</span>
+            <span class="model-option-ctx">128K ctx</span>
+          </button>
+          <button class="model-option" data-model="llama-3.3-70b" data-ctx="128K" onclick="selectModel(this)">
+            <span class="model-option-name">llama-3.3-70b</span>
+            <span class="model-option-ctx">128K ctx</span>
+          </button>
+          <button class="model-option" data-model="deepseek-v3" data-ctx="64K" onclick="selectModel(this)">
+            <span class="model-option-name">deepseek-v3</span>
+            <span class="model-option-ctx">64K ctx</span>
+          </button>
+        </div>
+      </div>
+      <div class="model-context-info">
+        <span class="info-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </span>
+        <span>Context window determines max input + output tokens per call.</span>
+      </div>
+    </div>
+
+    <!-- Tools section -->
+    <div class="config-section">
+      <div class="config-section-title">Tools <span class="count" id="toolsCount">4 enabled</span></div>
+      <div class="toggle-list" id="toolsList">
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">search_web</div>
+            <div class="toggle-row-desc">Web search &amp; retrieval</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">code_interpreter</div>
+            <div class="toggle-row-desc">Execute Python in sandbox</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">file_manager</div>
+            <div class="toggle-row-desc">Read, write &amp; manage files</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">sql_query</div>
+            <div class="toggle-row-desc">Run SQL against datasets</div>
+          </div>
+          <div class="switch"></div>
+        </div>
+        <div class="toggle-row" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">vector_search</div>
+            <div class="toggle-row-desc">Semantic search vector stores</div>
+          </div>
+          <div class="switch"></div>
+        </div>
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'tool')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">notify</div>
+            <div class="toggle-row-desc">Send notifications to channels</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills section -->
+    <div class="config-section">
+      <div class="config-section-title">Skills <span class="count" id="skillsCount">3 enabled</span></div>
+      <div class="toggle-list" id="skillsList">
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'skill')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">research-assistant</div>
+            <div class="toggle-row-desc">Deep multi-step research</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'skill')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">code-review</div>
+            <div class="toggle-row-desc">Automated PR review</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row" onclick="toggleSwitch(this, 'skill')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">workflow-builder</div>
+            <div class="toggle-row-desc">Visual workflow composer</div>
+          </div>
+          <div class="switch"></div>
+        </div>
+        <div class="toggle-row on" onclick="toggleSwitch(this, 'skill')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">scheduler</div>
+            <div class="toggle-row-desc">Cron-based task scheduling</div>
+          </div>
+          <div class="switch on"></div>
+        </div>
+        <div class="toggle-row" onclick="toggleSwitch(this, 'skill')">
+          <div class="toggle-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="toggle-row-info">
+            <div class="toggle-row-name">memory-curator</div>
+            <div class="toggle-row-desc">Long-term memory management</div>
+          </div>
+          <div class="switch"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance section -->
+    <div class="config-section">
+      <div class="config-section-title">Performance</div>
+      <div class="perf-grid">
+        <div class="perf-field">
+          <div class="perf-field-head">
+            <span class="perf-field-label">Temperature</span>
+            <span class="perf-field-value" id="tempValue">0.7</span>
+          </div>
+          <div class="slider-track" id="tempSlider">
+            <div class="slider-fill" id="tempFill" style="width: 35%;"></div>
+            <div class="slider-thumb" id="tempThumb" style="left: 35%;"></div>
+          </div>
+        </div>
+        <div class="perf-row-2">
+          <div class="perf-input">
+            <span class="perf-field-label">Max Tokens</span>
+            <input type="number" value="4096" min="1" max="200000" />
+          </div>
+          <div class="perf-input">
+            <span class="perf-field-label">Recursion Limit</span>
+            <input type="number" value="1000" min="1" max="5000" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System prompt -->
+    <div class="config-section">
+      <div class="config-section-title">System Prompt</div>
+      <textarea class="prompt-textarea" id="systemPrompt" placeholder="Define the agent's role, constraints, and behavior...">You are the Lead Agent. Coordinate subagents, delegate tasks based on specialization, and synthesize their outputs into a coherent final response. Always cite sources and flag uncertainty.</textarea>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn-cancel" onclick="closeConfig()">Cancel</button>
+    <button class="btn-primary" onclick="saveConfig()">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Save Changes
+    </button>
+  </div>
+</aside>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
-  // Filter tab switching
-  document.querySelectorAll('.filter-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
+  /* ============================================================
+     AGENT DATA
+     ============================================================ */
+  const agents = [
+    {
+      name: "Lead Agent", initials: "LA", color: "cyan", accent: "accent-cyan",
+      type: "Lead Agent", status: "active", env: "production",
+      desc: "Coordinates subagents, delegates tasks based on specialization, and synthesizes outputs into a coherent final response.",
+      runs: 1247, success: 96.3, avgTime: "2.4s", model: "gpt-4o", temp: 0.7
+    },
+    {
+      name: "Research Subagent", initials: "RS", color: "green", accent: "accent-green",
+      type: "Subagent", status: "active", env: "production",
+      desc: "Performs deep multi-step research with web search, source verification, and structured synthesis of findings.",
+      runs: 856, success: 94.1, avgTime: "3.1s", model: "claude-3.5-sonnet", temp: 0.4
+    },
+    {
+      name: "Code Review Agent", initials: "CR", color: "purple", accent: "accent-purple",
+      type: "Skill Worker", status: "active", env: "production",
+      desc: "Reviews pull requests for correctness, security, style, and performance. Suggests targeted fixes with rationale.",
+      runs: 432, success: 98.7, avgTime: "1.8s", model: "gpt-4o", temp: 0.3
+    },
+    {
+      name: "Data Analysis Agent", initials: "DA", color: "cyan", accent: "accent-cyan",
+      type: "Subagent", status: "active", env: "staging",
+      desc: "Executes Python in sandbox to analyze datasets, build charts, and surface statistically honest insights.",
+      runs: 234, success: 91.2, avgTime: "4.2s", model: "o1-preview", temp: 0.5
+    },
+    {
+      name: "Content Writer", initials: "CW", color: "coral", accent: "accent-coral",
+      type: "Skill Worker", status: "active", env: "staging",
+      desc: "Drafts, edits, and refines long-form content. Adapts tone to brand voice and audience with revision loops.",
+      runs: 189, success: 95.8, avgTime: "3.8s", model: "claude-3.5-sonnet", temp: 0.8
+    },
+    {
+      name: "Task Scheduler", initials: "TS", color: "amber", accent: "accent-amber",
+      type: "Scheduler", status: "paused", env: "production",
+      desc: "Cron-based scheduling for recurring runs. Honors queue timeout and concurrency limits with lease-fenced claims.",
+      runs: 1456, success: 99.1, avgTime: "0.8s", model: "llama-3.3-70b", temp: 0.2
+    },
+    {
+      name: "Memory Curator", initials: "MC", color: "green", accent: "accent-green",
+      type: "Skill Worker", status: "active", env: "production",
+      desc: "Manages long-term memory: deduplication, summarization, and retrieval of past conversations and facts.",
+      runs: 567, success: 97.4, avgTime: "1.2s", model: "gpt-4o", temp: 0.3
+    },
+    {
+      name: "SQL Assistant", initials: "SQ", color: "purple", accent: "accent-purple",
+      type: "Subagent", status: "draft", env: "staging",
+      desc: "Natural-language to SQL translation against registered datasets. Currently in draft — no runs yet.",
+      runs: 0, success: null, avgTime: "—", model: "deepseek-v3", temp: 0.4
+    },
+    {
+      name: "Translation Agent", initials: "TR", color: "cyan", accent: "accent-cyan",
+      type: "Skill Worker", status: "draft", env: "draft",
+      desc: "Translates content across 40+ languages with terminology glossary support and tone preservation.",
+      runs: 0, success: null, avgTime: "—", model: "gemini-2.0-flash", temp: 0.6
+    },
+    {
+      name: "QA Tester", initials: "QA", color: "amber", accent: "accent-amber",
+      type: "Subagent", status: "active", env: "production",
+      desc: "Generates and runs test cases, reports regressions, and tracks flaky tests across the suite.",
+      runs: 312, success: 92.8, avgTime: "2.9s", model: "gpt-4o", temp: 0.4
+    }
+  ];
+
+  let currentFilter = "all";
+  let currentSearch = "";
+  let currentSort = "recent";
+
+  /* ============================================================
+     ICONS (for agent stats)
+     ============================================================ */
+  const ICON_RUNS = '<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  const ICON_SUCCESS = '<svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>';
+  const ICON_TIME = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const ICON_PLAY = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+  const ICON_SETTINGS = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+  const ICON_DEPLOY = '<svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
+
+  /* ============================================================
+     RENDER AGENT CARDS
+     ============================================================ */
+  function getVisibleAgents() {
+    let list = agents.slice();
+
+    // filter by env/status tab
+    if (currentFilter !== "all") {
+      list = list.filter(function(a){
+        if (currentFilter === "production") return a.env === "production";
+        if (currentFilter === "staging") return a.env === "staging";
+        if (currentFilter === "draft") return a.status === "draft" || a.env === "draft";
+        return true;
+      });
+    }
+
+    // search
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      list = list.filter(function(a){
+        return a.name.toLowerCase().indexOf(q) >= 0 || a.desc.toLowerCase().indexOf(q) >= 0 || a.type.toLowerCase().indexOf(q) >= 0;
+      });
+    }
+
+    // sort
+    if (currentSort === "runs") {
+      list.sort(function(a,b){ return b.runs - a.runs; });
+    } else if (currentSort === "success") {
+      list.sort(function(a,b){ return (b.success||0) - (a.success||0); });
+    } else if (currentSort === "time") {
+      list.sort(function(a,b){
+        const ta = parseFloat(a.avgTime);
+        const tb = parseFloat(b.avgTime);
+        if (isNaN(ta)) return 1;
+        if (isNaN(tb)) return -1;
+        return ta - tb;
+      });
+    }
+    // "recent" keeps insertion order (already by recency)
+
+    return list;
+  }
+
+  function renderAgents() {
+    const grid = document.getElementById("agentGrid");
+    const list = getVisibleAgents();
+
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="agent-empty">No agents match the current filters.</div>';
+    } else {
+      grid.innerHTML = list.map(function(a){ return renderCard(a); }).join("");
+    }
+
+    document.getElementById("filterResults").textContent = "Showing " + list.length + " of " + agents.length;
+  }
+
+  function renderCard(a) {
+    const liveDot = a.status === "active"
+      ? '<span class="live-dot"></span>'
+      : (a.status === "paused" ? '<span class="live-dot paused"></span>' : '');
+
+    const successVal = (a.success === null || a.success === undefined) ? "—" : a.success + "%";
+
+    let toggleBtn;
+    if (a.status === "draft") {
+      toggleBtn = '<button class="btn-toggle" title="Draft — no toggle" disabled style="opacity:0.4;cursor:not-allowed;">' + ICON_PAUSE + '</button>';
+    } else if (a.status === "active") {
+      toggleBtn = '<button class="btn-toggle is-active" title="Pause" onclick="toggleAgentStatus(this, \'' + a.name + '\')">' + ICON_PAUSE + '</button>';
+    } else {
+      toggleBtn = '<button class="btn-toggle is-paused" title="Resume" onclick="toggleAgentStatus(this, \'' + a.name + '\')">' + ICON_PLAY + '</button>';
+    }
+
+    const deployBtn = a.status === "draft"
+      ? '<button class="btn-deploy" onclick="deployAgent(\'' + a.name + '\')">' + ICON_DEPLOY + ' Deploy</button>'
+      : '<button class="btn-configure" onclick="openConfig(\'' + a.name + '\')" style="flex:1;">' + ICON_SETTINGS + ' Configure</button>';
+
+    // For non-draft, we still show Configure as primary action, plus toggle. For draft, show Deploy + Configure-less.
+    let actionsHtml;
+    if (a.status === "draft") {
+      actionsHtml = deployBtn + toggleBtn;
+    } else {
+      actionsHtml = '<button class="btn-configure" onclick="openConfig(\'' + a.name + '\')" style="flex:1;">' + ICON_SETTINGS + ' Configure</button>' + toggleBtn;
+    }
+
+    return '' +
+      '<div class="agent-card ' + a.accent + '" data-name="' + a.name + '" data-env="' + a.env + '" data-status="' + a.status + '">' +
+        '<div class="agent-card-top">' +
+          '<div class="agent-avatar ' + a.color + '">' + a.initials + liveDot + '</div>' +
+          '<div class="agent-badges">' +
+            '<span class="agent-type-badge">' + a.type + '</span>' +
+            '<span class="agent-status-badge ' + a.status + '">' + a.status + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="agent-card-title">' +
+          '<div class="agent-name">' + a.name + '</div>' +
+          '<div class="agent-desc">' + a.desc + '</div>' +
+        '</div>' +
+        '<div class="agent-stats">' +
+          '<div class="agent-stat">' +
+            '<div class="agent-stat-icon">' + ICON_RUNS + '</div>' +
+            '<div class="agent-stat-value">' + a.runs.toLocaleString() + '</div>' +
+            '<div class="agent-stat-label">Runs</div>' +
+          '</div>' +
+          '<div class="agent-stat">' +
+            '<div class="agent-stat-icon">' + ICON_SUCCESS + '</div>' +
+            '<div class="agent-stat-value">' + successVal + '</div>' +
+            '<div class="agent-stat-label">Success</div>' +
+          '</div>' +
+          '<div class="agent-stat">' +
+            '<div class="agent-stat-icon">' + ICON_TIME + '</div>' +
+            '<div class="agent-stat-value">' + a.avgTime + '</div>' +
+            '<div class="agent-stat-label">Avg Time</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="agent-card-actions">' + actionsHtml + '</div>' +
+      '</div>';
+  }
+
+  /* ============================================================
+     FILTER / SEARCH / SORT
+     ============================================================ */
+  function filterAgents(status, btn) {
+    currentFilter = status;
+    document.querySelectorAll(".filter-tab").forEach(function(t){ t.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+    renderAgents();
+  }
+
+  function searchAgents(query) {
+    currentSearch = (query || "").trim();
+    // Also sync topbar search if this came from filter search
+    const topSearch = document.querySelector(".topbar-search input");
+    const filterSearch = document.getElementById("agentSearch");
+    if (topSearch && topSearch.value !== query && document.activeElement === filterSearch) {
+      topSearch.value = query;
+    }
+    if (filterSearch && filterSearch.value !== query && document.activeElement === topSearch) {
+      filterSearch.value = query;
+    }
+    renderAgents();
+  }
+
+  function sortAgents(criteria, btn) {
+    currentSort = criteria;
+    const labels = {
+      "recent": "Recently Active",
+      "runs": "Most Runs",
+      "success": "Highest Success",
+      "time": "Fastest Avg Time"
+    };
+    document.getElementById("sortLabel").textContent = labels[criteria] || criteria;
+    document.querySelectorAll(".sort-option").forEach(function(o){ o.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+    closeSortMenu();
+    renderAgents();
+  }
+
+  function toggleSortMenu() {
+    document.getElementById("sortMenu").classList.toggle("open");
+  }
+  function closeSortMenu() {
+    document.getElementById("sortMenu").classList.remove("open");
+  }
+
+  function toggleModelMenu() {
+    document.getElementById("modelMenu").classList.toggle("open");
+  }
+  function closeModelMenu() {
+    document.getElementById("modelMenu").classList.remove("open");
+  }
+
+  function selectModel(option) {
+    document.querySelectorAll(".model-option").forEach(function(o){ o.classList.remove("active"); });
+    option.classList.add("active");
+    const model = option.getAttribute("data-model");
+    const ctx = option.getAttribute("data-ctx");
+    document.getElementById("modelLabel").textContent = model;
+    document.getElementById("modelCtxBadge").textContent = ctx + " ctx";
+    closeModelMenu();
+  }
+
+  /* ============================================================
+     CONFIG DRAWER
+     ============================================================ */
+  function openConfig(agentName) {
+    const a = agents.find(function(x){ return x.name === agentName; });
+    if (!a) return;
+
+    document.getElementById("drawerName").textContent = a.name;
+    document.getElementById("drawerSub").textContent = capitalize(a.env) + " · " + capitalize(a.status);
+    const avatar = document.getElementById("drawerAvatar");
+    avatar.textContent = a.initials;
+    const colorMap = {
+      cyan: "linear-gradient(135deg, var(--accent-cyan), rgba(0, 229, 255, 0.6))",
+      green: "linear-gradient(135deg, var(--accent-green), rgba(46, 213, 115, 0.6))",
+      amber: "linear-gradient(135deg, var(--accent-amber), rgba(255, 165, 2, 0.6))",
+      purple: "linear-gradient(135deg, var(--accent-purple), rgba(168, 85, 247, 0.6))",
+      coral: "linear-gradient(135deg, var(--accent-coral), rgba(255, 107, 107, 0.6))"
+    };
+    avatar.style.background = colorMap[a.color] || colorMap.cyan;
+
+    // Set model
+    document.querySelectorAll(".model-option").forEach(function(o){
+      o.classList.toggle("active", o.getAttribute("data-model") === a.model);
     });
+    const activeOpt = document.querySelector(".model-option.active");
+    if (activeOpt) {
+      document.getElementById("modelLabel").textContent = activeOpt.getAttribute("data-model");
+      document.getElementById("modelCtxBadge").textContent = activeOpt.getAttribute("data-ctx") + " ctx";
+    }
+
+    // Set temperature
+    const pct = Math.round(a.temp * 100);
+    document.getElementById("tempValue").textContent = a.temp.toFixed(1);
+    document.getElementById("tempFill").style.width = pct + "%";
+    document.getElementById("tempThumb").style.left = pct + "%";
+
+    // Set a contextual system prompt
+    const prompts = {
+      "Lead Agent": "You are the Lead Agent. Coordinate subagents, delegate tasks based on specialization, and synthesize their outputs into a coherent final response. Always cite sources and flag uncertainty.",
+      "Research Subagent": "You are a Research Subagent. Perform deep multi-step research with web search, verify sources, and synthesize findings into structured, citation-backed reports.",
+      "Code Review Agent": "You are a Code Reviewer. Review pull requests for correctness, security, style, and performance. Suggest targeted fixes with rationale and severity levels.",
+      "Data Analysis Agent": "You are a Data Analysis Agent. Execute Python in a sandbox to analyze datasets, build honest visualizations, and surface uncertainty in conclusions.",
+      "Content Writer": "You are a Content Writer. Draft, edit, and refine long-form content. Adapt tone to brand voice and audience; iterate with revision loops on request.",
+      "Task Scheduler": "You are a Task Scheduler. Manage cron-based recurring runs. Honor queue timeouts, concurrency limits, and lease-fenced claims. Never block on overlap.",
+      "Memory Curator": "You are a Memory Curator. Manage long-term memory: deduplicate, summarize, and retrieve past conversations and facts with appropriate recall scores.",
+      "SQL Assistant": "You are an SQL Assistant. Translate natural-language questions into safe SQL against registered datasets. Explain query plans and flag expensive operations.",
+      "Translation Agent": "You are a Translation Agent. Translate content across 40+ languages. Preserve terminology via glossaries and maintain the original tone and register.",
+      "QA Tester": "You are a QA Tester. Generate and run test cases, report regressions with repro steps, and track flaky tests across the suite for prioritization."
+    };
+    document.getElementById("systemPrompt").value = prompts[a.name] || "";
+
+    updateToggleCounts();
+
+    document.getElementById("configDrawer").classList.add("open");
+    document.getElementById("drawerBackdrop").classList.add("open");
+  }
+
+  function closeConfig() {
+    document.getElementById("configDrawer").classList.remove("open");
+    document.getElementById("drawerBackdrop").classList.remove("open");
+    closeModelMenu();
+  }
+
+  function toggleSwitch(row, kind) {
+    row.classList.toggle("on");
+    const sw = row.querySelector(".switch");
+    if (sw) sw.classList.toggle("on", row.classList.contains("on"));
+    updateToggleCounts();
+  }
+
+  function updateToggleCounts() {
+    const tools = document.querySelectorAll("#toolsList .toggle-row.on").length;
+    const skills = document.querySelectorAll("#skillsList .toggle-row.on").length;
+    document.getElementById("toolsCount").textContent = tools + " enabled";
+    document.getElementById("skillsCount").textContent = skills + " enabled";
+  }
+
+  function saveConfig() {
+    const name = document.getElementById("drawerName").textContent;
+    closeConfig();
+    showToast("success", "Configuration saved", name + " configuration has been updated.");
+  }
+
+  /* ============================================================
+     TEMPERATURE SLIDER (drag interaction)
+     ============================================================ */
+  (function setupSlider(){
+    const track = document.getElementById("tempSlider");
+    const fill = document.getElementById("tempFill");
+    const thumb = document.getElementById("tempThumb");
+    const val = document.getElementById("tempValue");
+    if (!track) return;
+    let dragging = false;
+
+    function setPct(clientX) {
+      const rect = track.getBoundingClientRect();
+      let pct = ((clientX - rect.left) / rect.width) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      fill.style.width = pct + "%";
+      thumb.style.left = pct + "%";
+      const t = (pct / 100 * 2).toFixed(1); // 0..2
+      val.textContent = t;
+    }
+
+    function onDown(e) {
+      dragging = true;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      setPct(x);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      setPct(x);
+    }
+    function onUp() { dragging = false; }
+
+    track.addEventListener("mousedown", onDown);
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    track.addEventListener("touchstart", onDown, { passive: false });
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onUp);
+  })();
+
+  /* ============================================================
+     TOGGLE STATUS
+     ============================================================ */
+  function toggleAgentStatus(el, agentName) {
+    const a = agents.find(function(x){ return x.name === agentName; });
+    if (!a) return;
+
+    if (a.status === "active") {
+      a.status = "paused";
+      showToast("default", "Agent paused", agentName + " has been paused. Scheduled runs are suspended.");
+    } else if (a.status === "paused") {
+      a.status = "active";
+      showToast("success", "Agent resumed", agentName + " is now active and accepting runs.");
+    } else {
+      return; // draft
+    }
+
+    renderAgents();
+  }
+
+  /* ============================================================
+     DEPLOY
+     ============================================================ */
+  function deployAgent(agentName) {
+    const a = agents.find(function(x){ return x.name === agentName; });
+    if (!a) return;
+    showToast("success", "Deploy started", agentName + " is being deployed to " + (a.env === "draft" ? "staging" : a.env) + ". You'll be notified when it's live.");
+    // Simulate deploy: flip to staging active after a moment
+    setTimeout(function(){
+      a.status = "active";
+      a.env = a.env === "draft" ? "staging" : a.env;
+      renderAgents();
+    }, 800);
+  }
+
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  function showToast(type, title, msg) {
+    const container = document.getElementById("toastContainer");
+    const t = document.createElement("div");
+    t.className = "toast " + (type || "default");
+
+    const iconSvg = type === "success"
+      ? '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+
+    t.innerHTML =
+      '<div class="toast-icon">' + iconSvg + '</div>' +
+      '<div class="toast-body">' +
+        '<div class="toast-title">' + title + '</div>' +
+        '<div class="toast-msg">' + msg + '</div>' +
+      '</div>' +
+      '<button class="toast-close" onclick="dismissToast(this.parentElement)">' +
+        '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>';
+
+    container.appendChild(t);
+
+    setTimeout(function(){
+      if (t.parentElement) dismissToast(t);
+    }, 4000);
+  }
+
+  function dismissToast(el) {
+    if (!el || !el.parentElement) return;
+    el.classList.add("out");
+    setTimeout(function(){
+      if (el.parentElement) el.parentElement.removeChild(el);
+    }, 250);
+  }
+
+  /* ============================================================
+     MISC
+     ============================================================ */
+  function capitalize(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
+  function newAgent() {
+    showToast("default", "New agent", "Opening the agent builder wizard...");
+  }
+
+  function exportAgents() {
+    showToast("success", "Export ready", "12 agents exported to agents-config.json");
+  }
+
+  function refreshAgents(btn) {
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.style.transition = "transform 0.6s ease";
+      svg.style.transform = "rotate(360deg)";
+      setTimeout(function(){
+        svg.style.transition = "";
+        svg.style.transform = "";
+      }, 600);
+    }
+    showToast("default", "Refreshed", "Agent list synced with the latest run data.");
+  }
+
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+  }
+
+  // Close menus on outside click
+  document.addEventListener("click", function(e) {
+    const sortDropdown = document.querySelector(".sort-dropdown");
+    if (sortDropdown && !sortDropdown.contains(e.target)) closeSortMenu();
+    const modelSelect = document.querySelector(".model-select");
+    if (modelSelect && !modelSelect.contains(e.target)) closeModelMenu();
   });
 
-  // Refresh button animation
-  document.querySelectorAll('.topbar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      this.classList.add('spinning');
-      setTimeout(() => this.classList.remove('spinning'), 800);
-    });
+  // ESC to close drawer
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      if (document.getElementById("configDrawer").classList.contains("open")) {
+        closeConfig();
+      }
+    }
   });
+
+  // Initial render
+  renderAgents();
 </script>
-
 </body>
 </html>

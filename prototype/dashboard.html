@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgentForge Console — Dashboard</title>
+<title>AgentForge Console — Chats</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,6 +53,8 @@
     --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
     --sidebar-width: 240px;
     --topbar-height: 56px;
+    --thread-width: 260px;
+    --status-width: 280px;
   }
 
   html, body {
@@ -119,7 +121,9 @@
     background: var(--accent-cyan-dim);
   }
 
-  /* LAYOUT */
+  /* ============================================================
+     APP SHELL
+     ============================================================ */
   .app-shell {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -488,6 +492,18 @@
     stroke-width: 1.8;
   }
 
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -539,863 +555,1452 @@
     stroke-width: 2.5;
   }
 
-  .btn-ghost {
-    display: inline-flex;
+  /* ============================================================
+     MAIN CONTENT — chat fills full height, no padding/scroll
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ============================================================
+     CHAT LAYOUT (3 columns)
+     ============================================================ */
+  .chat-layout {
+    display: grid;
+    grid-template-columns: var(--thread-width) 1fr var(--status-width);
+    height: 100%;
+    width: 100%;
+    position: relative;
+  }
+
+  /* ---------- THREAD PANEL (LEFT) ---------- */
+  .thread-panel {
+    background: var(--bg-panel-2);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .thread-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .thread-header-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
     align-items: center;
     gap: 6px;
-    height: 32px;
-    padding: 0 12px;
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-subtle);
+  }
+
+  .thread-header-title::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  .thread-new-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-cyan-glow);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
+    color: var(--accent-cyan);
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
-  .btn-ghost:hover {
-    border-color: var(--border-medium);
-    color: var(--text-primary);
-    background: rgba(0, 229, 255, 0.05);
+  .thread-new-btn:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    box-shadow: 0 0 10px var(--accent-cyan-glow);
   }
 
-  .btn-ghost svg {
+  .thread-new-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+  }
+
+  .thread-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .thread-search svg {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 13px;
     height: 13px;
+    stroke: var(--text-tertiary);
+    fill: none;
+    stroke-width: 2;
+    pointer-events: none;
+  }
+
+  .thread-search input {
+    width: 100%;
+    height: 30px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 10px 0 30px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .thread-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .thread-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px var(--accent-cyan-glow);
+  }
+
+  .thread-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0 12px;
+  }
+
+  .thread-group-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 10px 14px 4px;
+  }
+
+  .thread-item {
+    padding: 9px 12px 9px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+    border-left: 2px solid transparent;
+  }
+
+  .thread-item:hover {
+    background: rgba(0, 229, 255, 0.04);
+  }
+
+  .thread-item.active {
+    background: var(--accent-cyan-glow);
+    border-left-color: var(--accent-cyan);
+    box-shadow: inset 0 0 24px rgba(0, 229, 255, 0.05);
+  }
+
+  .thread-item.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  .thread-item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .thread-item-name .pin-icon {
+    width: 11px;
+    height: 11px;
+    stroke: var(--accent-amber);
+    fill: var(--accent-amber);
+    flex-shrink: 0;
+  }
+
+  .thread-item.active .thread-item-name {
+    color: var(--accent-cyan);
+  }
+
+  .thread-item-preview {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+  }
+
+  .thread-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+  }
+
+  .thread-item-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .thread-item-count {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    margin-left: auto;
+  }
+
+  /* ---------- CHAT PANEL (CENTER) ---------- */
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    background: var(--bg-deep);
+    position: relative;
+  }
+
+  .chat-header {
+    height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-panel);
+    position: relative;
+    z-index: 3;
+    flex-shrink: 0;
+  }
+
+  .hamburger-btn {
+    display: none;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .hamburger-btn svg {
+    width: 16px;
+    height: 16px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
   }
 
-  /* MAIN CONTENT */
-  .main-content {
-    grid-area: main;
-    overflow-y: auto;
-    padding: 20px 24px;
-    position: relative;
-  }
-
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  .page-title-group {
+  .chat-header-title-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
   }
 
-  .page-title {
-    font-size: 22px;
-    font-weight: 700;
+  .chat-header-title {
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text-primary);
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .page-title .title-prefix {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent-cyan);
-    font-weight: 400;
-  }
-
-  .page-subtitle {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .page-subtitle .status-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.3); }
-  }
-
-  .page-header-actions {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
-  /* STATS CARDS */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 20px;
+  .chat-header-title .title-prefix {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent-cyan);
+    font-weight: 400;
   }
 
-  .stat-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.25s ease;
-  }
-
-  .stat-card:hover {
-    border-color: var(--border-medium);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .stat-card:hover::before {
-    opacity: 1;
-  }
-
-  .stat-card-top {
+  .chat-header-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 12px;
+    align-items: center;
+    gap: 6px;
   }
 
-  .stat-card-icon {
-    width: 32px;
-    height: 32px;
+  .chat-header-subtitle .dot {
+    color: var(--text-muted);
+  }
+
+  .chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .model-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .model-selector:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-elevated);
+  }
+
+  .model-selector .model-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+  }
+
+  .model-selector .chevron {
+    width: 12px;
+    height: 12px;
+    stroke: var(--text-tertiary);
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
 
-  .stat-card-icon svg {
-    width: 16px;
-    height: 16px;
+  .icon-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .icon-btn svg {
+    width: 15px;
+    height: 15px;
     stroke: currentColor;
     fill: none;
     stroke-width: 1.8;
   }
 
-  .stat-card-icon.cyan {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
+  /* ---------- MESSAGES AREA ---------- */
+  .messages-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 0 14px;
+    position: relative;
   }
 
-  .stat-card-icon.coral {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-  }
-
-  .stat-card-icon.green {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .stat-card-icon.amber {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .stat-card-icon.purple {
-    background: var(--accent-purple-glow);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-  }
-
-  .stat-trend {
+  .error-banner {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  .stat-trend.up {
-    color: var(--accent-green);
-  }
-
-  .stat-trend.down {
+    gap: 10px;
+    margin: 0 18px 14px;
+    padding: 10px 14px;
+    background: var(--accent-coral-glow);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: var(--radius-md);
     color: var(--accent-coral);
+    font-size: 12px;
+    animation: slideDown 0.25s ease;
   }
 
-  .stat-trend svg {
-    width: 10px;
-    height: 10px;
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .error-banner svg {
+    width: 16px;
+    height: 16px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2.5;
+    stroke-width: 2;
+    flex-shrink: 0;
   }
 
-  .stat-card-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-
-  .stat-card-value {
-    font-family: var(--font-mono);
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  .stat-card-value .value-suffix {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    margin-left: 2px;
-  }
-
-  .mini-chart {
-    height: 40px;
-    width: 100%;
-  }
-
-  .mini-chart svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* DASHBOARD GRID */
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: 240px 1fr 280px;
-    gap: 16px;
-    min-height: calc(100vh - 300px);
-  }
-
-  /* === Chat Thread List === */
-  .chat-thread-list {
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  .chat-thread-list-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .chat-thread-list-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-  .chat-thread-list-body {
+  .error-banner .error-text {
     flex: 1;
-    overflow-y: auto;
-  }
-  .chat-thread-item {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border-subtle);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .chat-thread-item:hover {
-    background: var(--bg-hover);
-  }
-  .chat-thread-item.active {
-    background: var(--bg-active);
-    border-left: 2px solid var(--accent-cyan);
-  }
-  .chat-thread-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .chat-thread-preview {
+    font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--text-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .chat-thread-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 4px;
-  }
-  .chat-thread-time {
-    font-size: 10px;
-    color: var(--text-tertiary);
-    font-family: var(--font-mono);
-  }
-  .chat-thread-badge {
-    font-size: 10px;
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    padding: 1px 6px;
-    border-radius: 8px;
-    font-family: var(--font-mono);
   }
 
-  /* === Chat Window === */
-  .chat-window {
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  .chat-window-header {
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .chat-window-title {
-    font-size: 14px;
+  .error-banner .retry-btn {
+    background: var(--accent-coral);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
     font-weight: 600;
-    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
-  .chat-window-subtitle {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-top: 2px;
+
+  .error-banner .retry-btn:hover {
+    box-shadow: var(--shadow-glow-coral);
   }
-  .chat-window-actions {
-    display: flex;
-    gap: 6px;
-  }
-  .chat-window-btn {
+
+  .error-banner .dismiss-btn {
     background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    padding: 5px 8px;
+    border: none;
+    color: var(--accent-coral);
     cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.15s;
+    opacity: 0.7;
+    padding: 2px;
   }
-  .chat-window-btn:hover {
-    border-color: var(--accent-cyan);
-    color: var(--accent-cyan);
+
+  .error-banner .dismiss-btn:hover { opacity: 1; }
+
+  .error-banner .dismiss-btn svg {
+    width: 14px;
+    height: 14px;
   }
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px;
+
+  .messages-inner {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
   }
-  .chat-message {
+
+  /* message rows */
+  .msg-row {
     display: flex;
-    gap: 10px;
-    max-width: 85%;
+    gap: 12px;
+    align-items: flex-start;
+    animation: msgIn 0.3s ease;
   }
-  .chat-message.user {
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-row.user {
     flex-direction: row-reverse;
-    align-self: flex-end;
   }
-  .chat-message-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+
+  .msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 10px;
     flex-shrink: 0;
   }
-  .chat-message-avatar.user {
-    background: rgba(0, 229, 255, 0.15);
-    color: var(--accent-cyan);
-    border: 1px solid rgba(0, 229, 255, 0.3);
+
+  .msg-avatar.user {
+    background: linear-gradient(135deg, var(--accent-cyan), #0a8fa3);
+    color: var(--bg-deep);
   }
-  .chat-message-avatar.assistant {
-    background: rgba(168, 85, 247, 0.15);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.3);
+
+  .msg-avatar.assistant {
+    background: linear-gradient(135deg, var(--accent-purple), #6d28d9);
+    color: #fff;
   }
-  .chat-message-body {
+
+  .msg-body {
+    min-width: 0;
+    max-width: calc(100% - 42px);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
   }
-  .chat-message.user .chat-message-body {
+
+  .msg-row.user .msg-body {
     align-items: flex-end;
   }
-  .chat-message-sender {
-    font-size: 11px;
+
+  .msg-meta-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
     color: var(--text-tertiary);
   }
-  .chat-message-bubble {
-    padding: 10px 14px;
-    border-radius: 12px;
+
+  .msg-sender {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+  }
+
+  .msg-row.user .msg-sender { color: var(--accent-cyan-dim); }
+
+  .msg-time { color: var(--text-muted); }
+
+  .msg-bubble {
+    padding: 11px 14px;
+    border-radius: var(--radius-md);
     font-size: 13px;
     line-height: 1.6;
     color: var(--text-primary);
+    word-wrap: break-word;
+    position: relative;
   }
-  .chat-message.user .chat-message-bubble {
-    background: rgba(0, 229, 255, 0.1);
+
+  .msg-row.user .msg-bubble {
+    background: var(--accent-cyan-glow);
     border: 1px solid rgba(0, 229, 255, 0.2);
-    border-top-right-radius: 4px;
+    border-top-right-radius: 2px;
   }
-  .chat-message.assistant .chat-message-bubble {
+
+  .msg-row.assistant .msg-bubble {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-top-left-radius: 2px;
+  }
+
+  .msg-bubble code.inline {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
     background: var(--bg-deep);
     border: 1px solid var(--border-subtle);
-    border-top-left-radius: 4px;
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+    color: var(--accent-cyan);
   }
-  .chat-message-meta {
-    font-size: 10px;
-    color: var(--text-tertiary);
+
+  .msg-bubble pre.code-block {
     font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin: 8px 0;
+    overflow-x: auto;
+    color: var(--accent-green);
+    line-height: 1.5;
+    white-space: pre;
   }
-  .chat-typing-indicator {
+
+  .msg-bubble strong { color: var(--text-primary); font-weight: 600; }
+  .msg-bubble em { color: var(--accent-cyan-dim); font-style: italic; }
+
+  .msg-meta-bottom {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .msg-row.user .msg-meta-bottom { justify-content: flex-end; }
+
+  /* ---------- TOOL CALL CARDS ---------- */
+  .tool-call {
+    margin: 6px 0 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tool-call::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan-glow);
+  }
+
+  .tool-call-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+  }
+
+  .tool-call-header:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .tool-call-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-cyan);
+    flex-shrink: 0;
+  }
+
+  .tool-call-icon svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .tool-call-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+  }
+
+  .tool-call-status {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tool-call-status.completed {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.25);
+  }
+
+  .tool-call-status.running {
+    background: var(--accent-amber-glow);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 165, 2, 0.25);
+  }
+
+  .tool-call-status .status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .tool-call-status.running .status-dot {
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .tool-call-duration {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-left: auto;
+    padding-right: 18px;
+  }
+
+  .tool-call-chevron {
+    width: 12px;
+    height: 12px;
+    stroke: var(--text-tertiary);
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.2s ease;
+    position: absolute;
+    right: 10px;
+  }
+
+  .tool-call.expanded .tool-call-chevron {
+    transform: rotate(180deg);
+  }
+
+  .tool-call-body {
+    display: none;
+    border-top: 1px solid var(--border-subtle);
+    padding: 10px 12px;
+    background: var(--bg-deep);
+  }
+
+  .tool-call.expanded .tool-call-body {
+    display: block;
+  }
+
+  .tool-call-section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .tool-call-input {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .tool-call-output {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    line-height: 1.5;
+    max-height: 90px;
+    overflow-y: auto;
+  }
+
+  /* ---------- TYPING INDICATOR ---------- */
+  .typing-indicator {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 8px 14px;
-    background: var(--bg-deep);
+    padding: 12px 14px;
+    background: var(--bg-panel-2);
     border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    border-top-left-radius: 4px;
+    border-radius: var(--radius-md);
+    border-top-left-radius: 2px;
     width: fit-content;
   }
-  .chat-typing-dot {
+
+  .typing-indicator .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--text-tertiary);
-    animation: typingPulse 1.4s infinite ease-in-out;
-  }
-  .chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes typingPulse {
-    0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
-    30% { opacity: 1; transform: scale(1.1); }
+    background: var(--accent-cyan);
+    animation: typingBounce 1.2s infinite ease-in-out;
   }
 
-  /* === Chat Composer === */
-  .chat-composer {
+  .typing-indicator .dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-indicator .dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  .stream-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    background: var(--accent-cyan);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.9s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    gap: 8px;
+  }
+
+  .empty-illustration {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-cyan-glow) 0%, transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .empty-illustration::before,
+  .empty-illustration::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 1px dashed var(--border-medium);
+  }
+
+  .empty-illustration::before {
+    width: 96px;
+    height: 96px;
+    animation: spin 18s linear infinite;
+  }
+
+  .empty-illustration::after {
+    width: 72px;
+    height: 72px;
+    animation: spin 12s linear infinite reverse;
+    border-color: var(--border-subtle);
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .empty-illustration svg {
+    width: 38px;
+    height: 38px;
+    stroke: var(--accent-cyan);
+    fill: none;
+    stroke-width: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+
+  .empty-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 4px;
+  }
+
+  .empty-subtitle {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    max-width: 360px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  .suggested-prompts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .suggested-prompt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+  }
+
+  .suggested-prompt:hover {
+    border-color: var(--border-strong);
+    background: var(--accent-cyan-glow);
+    color: var(--text-primary);
+    transform: translateX(2px);
+  }
+
+  .suggested-prompt svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--accent-cyan);
+    fill: none;
+    stroke-width: 1.8;
+    flex-shrink: 0;
+  }
+
+  /* ---------- COMPOSER ---------- */
+  .composer {
     border-top: 1px solid var(--border-subtle);
-    padding: 12px 16px;
+    background: var(--bg-panel);
+    padding: 12px 18px 14px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .composer-inner {
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .composer-row {
     display: flex;
     align-items: flex-end;
-    gap: 10px;
-  }
-  .chat-composer-input {
-    flex: 1;
-    background: var(--bg-deep);
+    gap: 8px;
+    background: var(--bg-panel-2);
     border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: var(--text-primary);
-    font-size: 13px;
-    font-family: var(--font-mono);
-    resize: none;
+    border-radius: var(--radius-md);
+    padding: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .composer-row:focus-within {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .composer-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .composer-btn:hover {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .composer-btn svg {
+    width: 17px;
+    height: 17px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .composer-btn.skill.active {
+    color: var(--accent-amber);
+    background: var(--accent-amber-glow);
+  }
+
+  .composer-textarea {
+    flex: 1;
     min-height: 40px;
     max-height: 120px;
-    line-height: 1.5;
-    transition: border-color 0.15s;
-  }
-  .chat-composer-input:focus {
+    background: transparent;
+    border: none;
     outline: none;
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
+    resize: none;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    padding: 7px 4px;
+    overflow-y: auto;
   }
-  .chat-composer-input::placeholder {
+
+  .composer-textarea::placeholder {
     color: var(--text-tertiary);
   }
-  .chat-composer-btn {
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    padding: 8px 10px;
+
+  .send-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-cyan);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--bg-deep);
     cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px var(--accent-cyan-glow);
+  }
+
+  .send-btn:hover:not(:disabled) {
+    box-shadow: var(--shadow-glow-cyan);
+    transform: translateY(-1px);
+  }
+
+  .send-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .send-btn:disabled {
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .send-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+  }
+
+  .composer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+
+  .composer-hint {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .composer-hint kbd {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+  }
+
+  .char-counter {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  /* ---------- SKILL SELECTOR DROPDOWN ---------- */
+  .skill-dropdown {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 18px;
+    width: 280px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px var(--accent-cyan-glow);
+    z-index: 20;
+    overflow: hidden;
+    animation: dropIn 0.18s ease;
+  }
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .skill-dropdown.open { display: block; }
+
+  .skill-dropdown-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
     color: var(--text-secondary);
-    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .skill-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .skill-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .skill-item-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-cyan-glow);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
   }
-  .chat-composer-btn:hover {
-    border-color: var(--accent-cyan);
-    color: var(--accent-cyan);
-  }
-  .chat-composer-send {
-    background: var(--accent-cyan-glow);
-    border-color: rgba(0, 229, 255, 0.3);
-    color: var(--accent-cyan);
-  }
-  .chat-composer-send:hover {
-    background: rgba(0, 229, 255, 0.15);
+
+  .skill-item-icon svg {
+    width: 13px;
+    height: 13px;
+    stroke: var(--accent-cyan);
+    fill: none;
+    stroke-width: 2;
   }
 
-  @media (max-width: 1400px) {
-    .dashboard-grid {
-      grid-template-columns: 220px 1fr;
-    }
-    .dashboard-grid > div:last-child {
-      display: none;
-    }
-  }
-  @media (max-width: 900px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-    .dashboard-grid > div:first-child {
-      display: none;
-    }
+  .skill-item-info {
+    flex: 1;
+    min-width: 0;
   }
 
-  .panel-card {
-    background: var(--bg-panel);
+  .skill-item-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .skill-item-desc {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+
+  .skill-toggle {
+    width: 30px;
+    height: 16px;
+    border-radius: 8px;
+    background: var(--bg-deep);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    overflow: hidden;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .skill-toggle::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: all 0.2s ease;
+  }
+
+  .skill-toggle.on {
+    background: var(--accent-cyan-glow);
+    border-color: var(--accent-cyan);
+  }
+
+  .skill-toggle.on::after {
+    left: 15px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  /* ---------- STATUS PANEL (RIGHT) ---------- */
+  .status-panel {
+    background: var(--bg-panel-2);
+    border-left: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .status-section {
+    padding: 14px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .status-section:last-child { border-bottom: none; }
+
+  .quick-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .quick-stat {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+
+  .quick-stat:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-1px);
+  }
+
+  .quick-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .quick-stat-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quick-stat-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .quick-stat-icon.cyan svg { stroke: var(--accent-cyan); }
+  .quick-stat-icon.coral svg { stroke: var(--accent-coral); }
+  .quick-stat-icon.green svg { stroke: var(--accent-green); }
+  .quick-stat-icon.amber svg { stroke: var(--accent-amber); }
+
+  .quick-stat-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .quick-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 12px;
   }
 
   .panel-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .panel-title .title-bracket {
-    font-family: var(--font-mono);
-    color: var(--accent-cyan);
-    font-weight: 400;
-    font-size: 13px;
-  }
-
-  .panel-title .count {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--text-tertiary);
-    background: var(--bg-panel-2);
-    padding: 2px 7px;
-    border-radius: 3px;
-    border: 1px solid var(--border-subtle);
-    font-weight: 400;
-  }
-
-  .panel-actions {
-    display: flex;
-    gap: 6px;
-  }
-
-  /* TABLE */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .data-table thead th {
-    text-align: left;
-    padding: 10px 16px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    background: var(--bg-panel-2);
-    border-bottom: 1px solid var(--border-subtle);
-    white-space: nowrap;
-  }
-
-  .data-table tbody tr {
-    border-bottom: 1px solid var(--border-subtle);
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-
-  .data-table tbody tr:hover {
-    background: rgba(0, 229, 255, 0.03);
-  }
-
-  .data-table tbody td {
-    padding: 11px 16px;
-    vertical-align: middle;
-  }
-
-  /* Status Badge */
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-family: var(--font-mono);
-    font-size: 10px;
     font-weight: 600;
-    text-transform: capitalize;
-    white-space: nowrap;
+    color: var(--accent-cyan);
+    letter-spacing: 0.02em;
   }
 
-  .status-badge.success {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.25);
+  .panel-title .bracket {
+    color: var(--text-muted);
   }
 
-  .status-badge.running {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.25);
-  }
-
-  .status-badge.failed {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.25);
-  }
-
-  .status-badge.paused {
-    background: rgba(90, 101, 128, 0.15);
+  .panel-link {
+    font-family: var(--font-mono);
+    font-size: 10px;
     color: var(--text-tertiary);
-    border: 1px solid rgba(90, 101, 128, 0.25);
-  }
-
-  .status-badge .status-icon {
-    width: 10px;
-    height: 10px;
+    text-decoration: none;
+    transition: color 0.15s ease;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 3px;
   }
 
-  .status-badge .status-icon svg {
+  .panel-link:hover { color: var(--accent-cyan); }
+
+  .panel-link svg {
     width: 10px;
     height: 10px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 2.5;
+    stroke-width: 2;
   }
 
-  .status-badge.running .status-icon svg {
-    animation: spin 1s linear infinite;
-    stroke-dasharray: 6 2;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .run-id {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-primary);
-  }
-
-  .agent-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .agent-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .agent-dot.cyan { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
-  .agent-dot.purple { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
-  .agent-dot.green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
-  .agent-dot.amber { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
-  .agent-dot.coral { background: var(--accent-coral); box-shadow: 0 0 6px var(--accent-coral); }
-
-  .agent-name {
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 12px;
-  }
-
-  .time-cell {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-tertiary);
-  }
-
-  .duration-cell {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-secondary);
-  }
-
-  /* Active Agents List */
-  .agent-list {
-    padding: 8px;
-  }
-
-  .agent-list-item {
+  /* agent items */
+  .agent-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: background 0.15s ease;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
-  .agent-list-item:hover {
-    background: rgba(0, 229, 255, 0.05);
-  }
+  .agent-item:last-child { border-bottom: none; }
 
-  .agent-list-avatar {
-    width: 32px;
-    height: 32px;
+  .agent-avatar {
+    width: 28px;
+    height: 28px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono);
-    font-size: 11px;
     font-weight: 700;
-    flex-shrink: 0;
+    font-size: 10px;
     position: relative;
+    flex-shrink: 0;
   }
 
-  .agent-list-avatar.cyan {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-  }
+  .agent-avatar.cyan { background: linear-gradient(135deg, var(--accent-cyan), #0a8fa3); color: var(--bg-deep); }
+  .agent-avatar.purple { background: linear-gradient(135deg, var(--accent-purple), #6d28d9); color: #fff; }
+  .agent-avatar.green { background: linear-gradient(135deg, var(--accent-green), #1b7a3f); color: var(--bg-deep); }
+  .agent-avatar.amber { background: linear-gradient(135deg, var(--accent-amber), #b06f00); color: var(--bg-deep); }
 
-  .agent-list-avatar.purple {
-    background: var(--accent-purple-glow);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-  }
-
-  .agent-list-avatar.green {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .agent-list-avatar.amber {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .agent-list-avatar.coral {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-  }
-
-  .agent-list-avatar .live-dot {
+  .agent-status-dot {
     position: absolute;
     bottom: -2px;
     right: -2px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--accent-green);
-    border: 2px solid var(--bg-panel);
-    box-shadow: 0 0 4px var(--accent-green);
+    border: 2px solid var(--bg-panel-2);
   }
 
-  .agent-list-info {
+  .agent-status-dot.live {
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse 2s infinite;
+  }
+
+  .agent-status-dot.idle {
+    background: var(--text-muted);
+  }
+
+  .agent-info {
     flex: 1;
     min-width: 0;
   }
 
-  .agent-list-name {
+  .agent-name {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 2px;
   }
 
-  .agent-list-meta {
+  .agent-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .agent-meta .tag {
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .agent-meta .tag.prod { color: var(--accent-green); border-color: rgba(46,213,115,0.2); background: var(--accent-green-glow); }
+  .agent-meta .tag.staging { color: var(--accent-amber); border-color: rgba(255,165,2,0.2); background: var(--accent-amber-glow); }
+  .agent-meta .tag.research { color: var(--accent-purple); border-color: rgba(168,85,247,0.2); background: var(--accent-purple-glow); }
+
+  .agent-runs {
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-tertiary);
+    text-align: right;
+    flex-shrink: 0;
   }
 
-  .agent-list-runs {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent-cyan);
-    font-weight: 500;
+  .agent-runs strong {
+    color: var(--text-primary);
+    font-weight: 600;
   }
 
-  /* System Health */
-  .health-list {
-    padding: 8px;
-  }
-
+  /* health items */
   .health-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .health-item:last-child { border-bottom: none; }
+
+  .health-top {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: var(--radius-sm);
+    gap: 8px;
+    margin-bottom: 6px;
   }
 
   .health-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-sm);
+    width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1403,94 +2008,111 @@
   }
 
   .health-icon svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
+    width: 14px;
+    height: 14px;
     fill: none;
     stroke-width: 1.8;
   }
 
-  .health-icon.healthy {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .health-icon.warning {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .health-icon.degraded {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-  }
-
-  .health-info {
-    flex: 1;
-  }
+  .health-icon.healthy svg { stroke: var(--accent-green); }
+  .health-icon.degraded svg { stroke: var(--accent-amber); }
 
   .health-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
-
-  .health-bar {
-    height: 4px;
-    background: var(--bg-panel-2);
-    border-radius: 2px;
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
     overflow: hidden;
-    margin-bottom: 2px;
-  }
-
-  .health-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-
-  .health-bar-fill.healthy {
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-  }
-
-  .health-bar-fill.warning {
-    background: var(--accent-amber);
-    box-shadow: 0 0 6px var(--accent-amber);
-  }
-
-  .health-bar-fill.degraded {
-    background: var(--accent-coral);
-    box-shadow: 0 0 6px var(--accent-coral);
+    text-overflow: ellipsis;
   }
 
   .health-status {
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-tertiary);
-    display: flex;
-    justify-content: space-between;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
   }
 
-  .view-all-link {
+  .health-status.healthy { color: var(--accent-green); }
+  .health-status.degraded { color: var(--accent-amber); }
+
+  .health-bar {
+    height: 4px;
+    background: var(--bg-deep);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .health-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+    position: relative;
+  }
+
+  .health-fill.healthy {
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-green-dim));
+    box-shadow: 0 0 6px var(--accent-green-glow);
+  }
+
+  .health-fill.degraded {
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-amber-dim));
+    box-shadow: 0 0 6px var(--accent-amber-glow);
+  }
+
+  .health-pct {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent-cyan);
-    text-decoration: none;
-    cursor: pointer;
-    transition: opacity 0.15s ease;
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    text-align: right;
   }
 
-  .view-all-link:hover {
-    opacity: 0.8;
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1400px) {
+    .chat-layout {
+      grid-template-columns: var(--thread-width) 1fr;
+    }
+    .status-panel {
+      display: none;
+    }
   }
 
-  .side-panel + .side-panel {
-    margin-top: 16px;
+  @media (max-width: 900px) {
+    .chat-layout {
+      grid-template-columns: 1fr;
+    }
+    .thread-panel {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--thread-width);
+      z-index: 30;
+      box-shadow: 8px 0 32px rgba(0,0,0,0.6);
+    }
+    .thread-panel.open {
+      display: flex;
+    }
+    .hamburger-btn {
+      display: flex;
+    }
+    .topbar-search {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .composer-hint { display: none; }
+    .messages-inner { padding: 0 12px; }
+    .chat-header { padding: 0 12px; }
+    .composer { padding: 10px 12px 12px; }
   }
 </style>
 </head>
@@ -1674,694 +2296,848 @@
     <div class="topbar-breadcrumb">
       <span>workspace</span>
       <span class="crumb-sep">/</span>
-      <span class="crumb-current">Dashboard</span>
+      <span class="crumb-current">Chats</span>
     </div>
 
     <div class="topbar-search">
       <span class="topbar-search-icon">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </span>
-      <input type="text" placeholder="Search agents, runs, workflows..." />
+      <input type="text" placeholder="Search threads, agents, skills..." />
     </div>
 
     <div class="topbar-actions">
-      <button class="topbar-btn" title="Refresh">
+      <button class="topbar-btn" title="Refresh" onclick="this.querySelector('svg').style.animation='spin 0.6s ease'; setTimeout(()=>this.querySelector('svg').style.animation='',600)">
         <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       </button>
       <button class="topbar-btn" title="Notifications">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="btn-primary" onclick="newChat()">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        New Chat
       </button>
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN CONTENT — chat fills full height -->
   <main class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-title-group">
-        <h1 class="page-title">
-          <span class="title-prefix">//</span>
-          Chats
-        </h1>
-        <p class="page-subtitle">
-          <span class="status-indicator"></span>
-          4 threads active &middot; 128 messages today
-        </p>
-      </div>
-      <div class="page-header-actions">
-        <button class="btn-primary">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          New Chat
-        </button>
-      </div>
-    </div>
+    <div class="chat-layout">
 
-    <!-- Stats Cards Row 1 -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon cyan">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
-          </div>
-          <div class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            +12.5%
-          </div>
-        </div>
-        <div class="stat-card-label">Total Threads</div>
-        <div class="stat-card-value">47<span class="value-suffix">threads</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,30 L20,28 L40,25 L60,27 L80,22 L100,20 L120,18 L140,15 L160,12 L180,10 L200,8 L200,40 L0,40 Z" fill="url(#grad1)"/>
-            <path d="M0,30 L20,28 L40,25 L60,27 L80,22 L100,20 L120,18 L140,15 L160,12 L180,10 L200,8" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon amber">
-            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            +8.3%
-          </div>
-        </div>
-        <div class="stat-card-label">Messages Today</div>
-        <div class="stat-card-value">128<span class="value-suffix">msgs</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#ffa502;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#ffa502;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,25 L20,20 L40,22 L60,18 L80,15 L100,20 L120,12 L140,18 L160,10 L180,15 L200,8 L200,40 L0,40 Z" fill="url(#grad2)"/>
-            <path d="M0,25 L20,20 L40,22 L60,18 L80,15 L100,20 L120,12 L140,18 L160,10 L180,15 L200,8" fill="none" stroke="#ffa502" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon green">
-            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            +2.1%
-          </div>
-        </div>
-        <div class="stat-card-label">Memory Facts</div>
-        <div class="stat-card-value">23<span class="value-suffix">facts</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#2ed573;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#2ed573;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,15 L20,14 L40,12 L60,13 L80,10 L100,11 L120,9 L140,8 L160,7 L180,6 L200,5 L200,40 L0,40 Z" fill="url(#grad3)"/>
-            <path d="M0,15 L20,14 L40,12 L60,13 L80,10 L100,11 L120,9 L140,8 L160,7 L180,6 L200,5" fill="none" stroke="#2ed573" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards Row 2 -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon purple">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-          <div class="stat-trend down">
-            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
-            -5.2%
-          </div>
-        </div>
-        <div class="stat-card-label">Skills Enabled</div>
-        <div class="stat-card-value">6<span class="value-suffix">skills</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad4" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,20 L20,22 L40,18 L60,25 L80,20 L100,28 L120,22 L140,18 L160,15 L180,20 L200,12 L200,40 L0,40 Z" fill="url(#grad4)"/>
-            <path d="M0,20 L20,22 L40,18 L60,25 L80,20 L100,28 L120,22 L140,18 L160,15 L180,20 L200,12" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon cyan">
-            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-          </div>
-          <div class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            +18.7%
-          </div>
-        </div>
-        <div class="stat-card-label">MCP Tools</div>
-        <div class="stat-card-value">14<span class="value-suffix">tools</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad5" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,32 L20,30 L40,28 L60,26 L80,24 L100,22 L120,18 L140,15 L160,12 L180,10 L200,6 L200,40 L0,40 Z" fill="url(#grad5)"/>
-            <path d="M0,32 L20,30 L40,28 L60,26 L80,24 L100,22 L120,18 L140,15 L160,12 L180,10 L200,6" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-top">
-          <div class="stat-card-icon coral">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-          </div>
-          <div class="stat-trend down">
-            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
-            -3.4%
-          </div>
-        </div>
-        <div class="stat-card-label">Models</div>
-        <div class="stat-card-value">8<span class="value-suffix">models</span></div>
-        <div class="mini-chart">
-          <svg viewBox="0 0 200 40" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad6" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,15 L20,18 L40,16 L60,20 L80,18 L100,22 L120,20 L140,24 L160,22 L180,20 L200,18 L200,40 L0,40 Z" fill="url(#grad6)"/>
-            <path d="M0,15 L20,18 L40,16 L60,20 L80,18 L100,22 L120,20 L140,24 L160,22 L180,20 L200,18" fill="none" stroke="#ff6b6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chat Layout -->
-    <div class="dashboard-grid">
-      <!-- Left: Thread List -->
-      <div class="chat-thread-list">
-        <div class="chat-thread-list-header">
-          <span class="chat-thread-list-title">Threads</span>
-          <button class="chat-window-btn" title="New Chat">
-            <svg viewBox="0 0 24 24" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <!-- THREAD PANEL (LEFT) -->
+      <section class="thread-panel" id="threadPanel">
+        <div class="thread-header">
+          <div class="thread-header-title">Threads</div>
+          <button class="thread-new-btn" title="New chat" onclick="newChat()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
-        <div class="chat-thread-list-body" id="threadList">
-          <div class="chat-thread-item active" onclick="selectThread(this, 'Q4 Financial Report Analysis', 24)">
-            <div class="chat-thread-name">Q4 Financial Report Analysis</div>
-            <div class="chat-thread-preview">Analyze the cash flow statement...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">2m ago</span>
-              <span class="chat-thread-badge">24</span>
-            </div>
-          </div>
-          <div class="chat-thread-item" onclick="selectThread(this, 'API Integration Planning', 18)">
-            <div class="chat-thread-name">API Integration Planning</div>
-            <div class="chat-thread-preview">Let me check the auth flow...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">15m ago</span>
-              <span class="chat-thread-badge">18</span>
-            </div>
-          </div>
-          <div class="chat-thread-item" onclick="selectThread(this, 'Code Review — PR #342', 31)">
-            <div class="chat-thread-name">Code Review — PR #342</div>
-            <div class="chat-thread-preview">Found a potential race condition...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">1h ago</span>
-              <span class="chat-thread-badge">31</span>
-            </div>
-          </div>
-          <div class="chat-thread-item" onclick="selectThread(this, 'Market Research Summary', 12)">
-            <div class="chat-thread-name">Market Research Summary</div>
-            <div class="chat-thread-preview">Here are the top 5 competitors...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">3h ago</span>
-              <span class="chat-thread-badge">12</span>
-            </div>
-          </div>
-          <div class="chat-thread-item" onclick="selectThread(this, 'Database Schema Design', 47)">
-            <div class="chat-thread-name">Database Schema Design</div>
-            <div class="chat-thread-preview">The migration plan looks good...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">Yesterday</span>
-              <span class="chat-thread-badge">47</span>
-            </div>
-          </div>
-          <div class="chat-thread-item" onclick="selectThread(this, 'Deployment Strategy', 8)">
-            <div class="chat-thread-name">Deployment Strategy</div>
-            <div class="chat-thread-preview">Docker Compose with Nginx...</div>
-            <div class="chat-thread-meta">
-              <span class="chat-thread-time">Yesterday</span>
-              <span class="chat-thread-badge">8</span>
-            </div>
-          </div>
+        <div class="thread-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search conversations..." id="threadSearch" oninput="filterThreads(this.value)" />
         </div>
-      </div>
+        <div class="thread-list" id="threadList">
+          <!-- Pinned -->
+          <div class="thread-group-label">Pinned</div>
+          <div class="thread-item active" onclick="selectThread(this, 'Q4 Financial Report Analysis', 6)">
+            <div class="thread-item-name">
+              <svg class="pin-icon" viewBox="0 0 24 24"><path d="M12 17v5M9 10.76V6h6v4.76a2 2 0 00.59 1.41L18 14H6l1.41-1.83A2 2 0 008 10.76z"/></svg>
+              Q4 Financial Report Analysis
+            </div>
+            <div class="thread-item-preview">Top 3 Risks — Acme Corp Q4 2025: working capital deterioration...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">10:48 AM</span>
+              <span class="thread-item-count">6</span>
+            </div>
+          </div>
 
-      <!-- Center: Chat Window -->
-      <div class="chat-window">
-        <div class="chat-window-header">
-          <div>
-            <div class="chat-window-title" id="chatWindowTitle">Q4 Financial Report Analysis</div>
-            <div class="chat-window-subtitle" id="chatWindowSubtitle">24 messages &middot; started 2 hours ago</div>
-          </div>
-          <div class="chat-window-actions">
-            <button class="chat-window-btn" title="Memory">
-              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-            </button>
-            <button class="chat-window-btn" title="Settings">
-              <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-          <div class="chat-message user">
-            <div class="chat-message-avatar user">You</div>
-            <div class="chat-message-body">
-              <div class="chat-message-sender">You</div>
-              <div class="chat-message-bubble">Analyze the Q4 cash flow statement and identify any red flags in operating, investing, or financing activities.</div>
-              <div class="chat-message-meta">2h ago</div>
+          <!-- Today -->
+          <div class="thread-group-label">Today</div>
+          <div class="thread-item" onclick="selectThread(this, 'API Integration Planning', 4)">
+            <div class="thread-item-name">API Integration Planning</div>
+            <div class="thread-item-preview">The OAuth2 flow should use PKCE for the public client...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">09:31 AM</span>
+              <span class="thread-item-count">4</span>
             </div>
           </div>
-          <div class="chat-message assistant">
-            <div class="chat-message-avatar assistant">AI</div>
-            <div class="chat-message-body">
-              <div class="chat-message-sender">DeerFlow Agent</div>
-              <div class="chat-message-bubble">
-                I've analyzed the Q4 cash flow statement. Here are the key findings:
-                <br><br>
-                <strong>Operating Activities:</strong> +$2.4M (healthy, +12% YoY). Driven by net income and non-cash adjustments.
-                <br><br>
-                <strong>Investing Activities:</strong> -$1.8M (elevated capex). Two acquisitions closed in Q4 totaling $800K.
-                <br><br>
-                <strong>Financing Activities:</strong> -$600K. Debt repayment of $1.2M offset by new credit facility draw of $600K.
-                <br><br>
-                <strong>Red Flags:</strong>
-                <br>1. DSO increased from 42 to 58 days — possible collection issues
-                <br>2. Capex-to-depreciation ratio at 2.1x (industry avg 1.3x)
-                <br>3. Operating cash flow coverage of dividends dropped to 1.4x (was 2.1x in Q3)
-              </div>
-              <div class="chat-message-meta">2h ago &middot; model: gpt-4o &middot; 1,847 tokens</div>
+          <div class="thread-item" onclick="selectThread(this, 'Code Review PR #342', 3)">
+            <div class="thread-item-name">Code Review PR #342</div>
+            <div class="thread-item-preview">Main concern: the new verify_token path drops the audience check...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">08:52 AM</span>
+              <span class="thread-item-count">3</span>
             </div>
           </div>
-          <div class="chat-message user">
-            <div class="chat-message-avatar user">You</div>
-            <div class="chat-message-body">
-              <div class="chat-message-sender">You</div>
-              <div class="chat-message-bubble">What's the impact of the increased DSO on free cash flow?</div>
-              <div class="chat-message-meta">1h ago</div>
+          <div class="thread-item" onclick="selectThread(this, 'Market Research Summary', 2)">
+            <div class="thread-item-name">Market Research Summary</div>
+            <div class="thread-item-preview">The TAM for the observability segment is ~$34B growing at 18% CAGR...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">08:03 AM</span>
+              <span class="thread-item-count">2</span>
             </div>
           </div>
-          <div class="chat-message assistant">
-            <div class="chat-message-avatar assistant">AI</div>
-            <div class="chat-message-body">
-              <div class="chat-message-sender">DeerFlow Agent</div>
-              <div class="chat-message-bubble">
-                The 16-day DSO increase (42 → 58) ties up approximately $1.1M in working capital, reducing FCF from $1.8M to ~$700K. This is a material impact:
-                <br><br>
-                • Q4 FCF margin dropped from 14.2% to 5.5%
-                <br>• Cash conversion cycle extended by 16 days
-                <br>• If trend persists into Q1, FCF could turn negative
-                <br><br>
-                Recommend reviewing AR aging report and collection procedures.
-              </div>
-              <div class="chat-message-meta">1h ago &middot; model: gpt-4o &middot; 2,234 tokens</div>
+
+          <!-- Yesterday -->
+          <div class="thread-group-label">Yesterday</div>
+          <div class="thread-item" onclick="selectThread(this, 'Database Schema Design', 5)">
+            <div class="thread-item-name">Database Schema Design</div>
+            <div class="thread-item-preview">Shared-db, shared-schema design with row-level security...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">Yesterday</span>
+              <span class="thread-item-count">5</span>
             </div>
           </div>
-          <div class="chat-message user">
-            <div class="chat-message-avatar user">You</div>
-            <div class="chat-message-body">
-              <div class="chat-message-sender">You</div>
-              <div class="chat-message-bubble">Generate a summary report with recommendations for the board.</div>
-              <div class="chat-message-meta">2m ago</div>
+          <div class="thread-item" onclick="selectThread(this, 'Deployment Strategy', 2)">
+            <div class="thread-item-name">Deployment Strategy</div>
+            <div class="thread-item-preview">Blue-green with the new canary controller at 5% traffic...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">Yesterday</span>
+              <span class="thread-item-count">2</span>
             </div>
           </div>
-          <!-- Typing indicator -->
-          <div class="chat-message assistant">
-            <div class="chat-message-avatar assistant">AI</div>
-            <div class="chat-message-body">
-              <div class="chat-typing-indicator">
-                <div class="chat-typing-dot"></div>
-                <div class="chat-typing-dot"></div>
-                <div class="chat-typing-dot"></div>
-              </div>
+
+          <!-- Earlier -->
+          <div class="thread-group-label">Earlier</div>
+          <div class="thread-item" onclick="selectThread(this, 'User Onboarding Flow', 2)">
+            <div class="thread-item-name">User Onboarding Flow</div>
+            <div class="thread-item-preview">Reduce the activation funnel from 4 steps to 2 with progressive disclosure...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">Oct 6</span>
+              <span class="thread-item-count">2</span>
+            </div>
+          </div>
+          <div class="thread-item" onclick="selectThread(this, 'Performance Optimization', 2)">
+            <div class="thread-item-name">Performance Optimization</div>
+            <div class="thread-item-preview">The N+1 query on /api/runs was fixed by eager-loading the agent relation...</div>
+            <div class="thread-item-meta">
+              <span class="thread-item-time">Oct 5</span>
+              <span class="thread-item-count">2</span>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- CHAT PANEL (CENTER) -->
+      <section class="chat-panel">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <button class="hamburger-btn" onclick="toggleThreadPanel()" title="Threads">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="chat-header-title-group">
+            <div class="chat-header-title" id="chatTitle">
+              <span class="title-prefix">//</span>
+              Q4 Financial Report Analysis
+            </div>
+            <div class="chat-header-subtitle" id="chatSubtitle">
+              <span>6 messages</span>
+              <span class="dot">·</span>
+              <span>Started 10:42 AM</span>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <div class="model-selector" onclick="cycleModel(this)" title="Model">
+              <span class="model-dot"></span>
+              <span id="modelLabel">gpt-4o</span>
+              <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <button class="icon-btn" title="Memory">
+              <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </button>
+            <button class="icon-btn" title="Settings">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+          <div class="error-banner" id="errorBanner" style="display:none;">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="error-text">Connection lost. Retrying…</span>
+            <button class="retry-btn" onclick="retryConnection()">Retry</button>
+            <button class="dismiss-btn" onclick="dismissError()">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="messages-inner" id="messagesInner">
+            <!-- messages injected by JS -->
+          </div>
+        </div>
+
         <!-- Composer -->
-        <div class="chat-composer">
-          <button class="chat-composer-btn" title="Attach file">
-            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-          </button>
-          <button class="chat-composer-btn" title="Skills">
-            <svg viewBox="0 0 24 24" width="16" height="16"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"/></svg>
-          </button>
-          <textarea class="chat-composer-input" id="chatInput" placeholder="Ask anything, or select a skill..." rows="1"></textarea>
-          <button class="chat-composer-btn chat-composer-send" title="Send" onclick="sendMessage()">
-            <svg viewBox="0 0 24 24" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right: System Health -->
-      <div>
-        <!-- Active Agents -->
-        <div class="panel-card side-panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <span class="title-bracket">[</span>
-              Active Agents
+        <div class="composer">
+          <div class="skill-dropdown" id="skillDropdown">
+            <div class="skill-dropdown-header">
+              <span>Enable Skills</span>
+              <span style="color:var(--text-muted)">5</span>
             </div>
-            <a href="agents.html" class="view-all-link">All →</a>
+            <div class="skill-item" onclick="event.stopPropagation()">
+              <div class="skill-item-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <div class="skill-item-info">
+                <div class="skill-item-name">search_web</div>
+                <div class="skill-item-desc">Live web search & retrieval</div>
+              </div>
+              <div class="skill-toggle on" onclick="toggleSkill(this)"></div>
+            </div>
+            <div class="skill-item" onclick="event.stopPropagation()">
+              <div class="skill-item-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+              <div class="skill-item-info">
+                <div class="skill-item-name">code_interpreter</div>
+                <div class="skill-item-desc">Execute & inspect Python</div>
+              </div>
+              <div class="skill-toggle on" onclick="toggleSkill(this)"></div>
+            </div>
+            <div class="skill-item" onclick="event.stopPropagation()">
+              <div class="skill-item-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="skill-item-info">
+                <div class="skill-item-name">file_reader</div>
+                <div class="skill-item-desc">Parse PDFs & documents</div>
+              </div>
+              <div class="skill-toggle" onclick="toggleSkill(this)"></div>
+            </div>
+            <div class="skill-item" onclick="event.stopPropagation()">
+              <div class="skill-item-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+              <div class="skill-item-info">
+                <div class="skill-item-name">vector_search</div>
+                <div class="skill-item-desc">Semantic memory recall</div>
+              </div>
+              <div class="skill-toggle on" onclick="toggleSkill(this)"></div>
+            </div>
+            <div class="skill-item" onclick="event.stopPropagation()">
+              <div class="skill-item-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg></div>
+              <div class="skill-item-info">
+                <div class="skill-item-name">calculator</div>
+                <div class="skill-item-desc">Precise numeric computation</div>
+              </div>
+              <div class="skill-toggle" onclick="toggleSkill(this)"></div>
+            </div>
           </div>
-          <div class="agent-list">
-            <div class="agent-list-item">
-              <div class="agent-list-avatar cyan">
-                DF
-                <span class="live-dot"></span>
-              </div>
-              <div class="agent-list-info">
-                <div class="agent-list-name">Lead Agent</div>
-                <div class="agent-list-meta">Production</div>
-              </div>
-              <div class="agent-list-runs">3 active</div>
+
+          <div class="composer-inner">
+            <div class="composer-row">
+              <button class="composer-btn" title="Attach file">
+                <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <button class="composer-btn skill" id="skillBtn" title="Skills" onclick="toggleSkillSelector(event)">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </button>
+              <textarea class="composer-textarea" id="composerInput" placeholder="Ask anything, or select a skill..." oninput="autoResize(this); updateCharCount()" onkeydown="handleKeyDown(event)"></textarea>
+              <button class="send-btn" id="sendBtn" disabled onclick="sendMessage()">
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
             </div>
-            <div class="agent-list-item">
-              <div class="agent-list-avatar purple">
-                SA
-                <span class="live-dot"></span>
+            <div class="composer-footer">
+              <div class="composer-hint">
+                <span><kbd>Enter</kbd> send · <kbd>Shift</kbd>+<kbd>Enter</kbd> newline</span>
               </div>
-              <div class="agent-list-info">
-                <div class="agent-list-name">Subagent</div>
-                <div class="agent-list-meta">Research</div>
-              </div>
-              <div class="agent-list-runs">2 active</div>
+              <div class="char-counter" id="charCounter">0 / 4000</div>
             </div>
-            <div class="agent-list-item">
-              <div class="agent-list-avatar green">
-                SK
-                <span class="live-dot"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATUS PANEL (RIGHT) -->
+      <aside class="status-panel">
+        <!-- Quick Stats -->
+        <div class="status-section">
+          <div class="quick-stats">
+            <div class="quick-stat">
+              <div class="quick-stat-top">
+                <div class="quick-stat-icon cyan"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
               </div>
-              <div class="agent-list-info">
-                <div class="agent-list-name">Skill Worker</div>
-                <div class="agent-list-meta">Production</div>
-              </div>
-              <div class="agent-list-runs">1 active</div>
+              <div class="quick-stat-value">47</div>
+              <div class="quick-stat-label">Total Threads</div>
             </div>
-            <div class="agent-list-item">
-              <div class="agent-list-avatar amber">
-                SC
+            <div class="quick-stat">
+              <div class="quick-stat-top">
+                <div class="quick-stat-icon coral"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
               </div>
-              <div class="agent-list-info">
-                <div class="agent-list-name">Scheduler</div>
-                <div class="agent-list-meta">Staging</div>
-              </div>
-              <div class="agent-list-runs" style="color: var(--text-tertiary);">idle</div>
+              <div class="quick-stat-value">128</div>
+              <div class="quick-stat-label">Messages Today</div>
             </div>
+            <div class="quick-stat">
+              <div class="quick-stat-top">
+                <div class="quick-stat-icon green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+              </div>
+              <div class="quick-stat-value">23</div>
+              <div class="quick-stat-label">Memory Facts</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-top">
+                <div class="quick-stat-icon amber"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              </div>
+              <div class="quick-stat-value">6</div>
+              <div class="quick-stat-label">Skills Enabled</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Agents -->
+        <div class="status-section">
+          <div class="panel-header">
+            <div class="panel-title"><span class="bracket">[</span> Active Agents <span class="bracket">]</span></div>
+            <a class="panel-link" href="agents.html">All <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a>
+          </div>
+          <div class="agent-item">
+            <div class="agent-avatar cyan">DF<span class="agent-status-dot live"></span></div>
+            <div class="agent-info">
+              <div class="agent-name">Lead Agent</div>
+              <div class="agent-meta"><span class="tag prod">Production</span></div>
+            </div>
+            <div class="agent-runs"><strong>3</strong> active</div>
+          </div>
+          <div class="agent-item">
+            <div class="agent-avatar purple">SA<span class="agent-status-dot live"></span></div>
+            <div class="agent-info">
+              <div class="agent-name">Subagent</div>
+              <div class="agent-meta"><span class="tag research">Research</span></div>
+            </div>
+            <div class="agent-runs"><strong>2</strong> active</div>
+          </div>
+          <div class="agent-item">
+            <div class="agent-avatar green">SK<span class="agent-status-dot live"></span></div>
+            <div class="agent-info">
+              <div class="agent-name">Skill Worker</div>
+              <div class="agent-meta"><span class="tag prod">Production</span></div>
+            </div>
+            <div class="agent-runs"><strong>1</strong> active</div>
+          </div>
+          <div class="agent-item">
+            <div class="agent-avatar amber">SC<span class="agent-status-dot idle"></span></div>
+            <div class="agent-info">
+              <div class="agent-name">Scheduler</div>
+              <div class="agent-meta"><span class="tag staging">Staging</span></div>
+            </div>
+            <div class="agent-runs"><strong>0</strong> idle</div>
           </div>
         </div>
 
         <!-- System Health -->
-        <div class="panel-card side-panel">
+        <div class="status-section">
           <div class="panel-header">
-            <div class="panel-title">
-              <span class="title-bracket">[</span>
-              System Health
-            </div>
+            <div class="panel-title"><span class="bracket">[</span> System Health <span class="bracket">]</span></div>
           </div>
-          <div class="health-list">
-            <div class="health-item">
-              <div class="health-icon healthy">
-                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
-              </div>
-              <div class="health-info">
-                <div class="health-name">Gateway API :8001</div>
-                <div class="health-bar">
-                  <div class="health-bar-fill healthy" style="width: 98%"></div>
-                </div>
-                <div class="health-status">
-                  <span>Healthy</span>
-                  <span>98%</span>
-                </div>
-              </div>
+          <div class="health-item">
+            <div class="health-top">
+              <div class="health-icon healthy"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div>
+              <div class="health-name">Gateway API :8001</div>
+              <div class="health-status healthy">Healthy</div>
             </div>
-            <div class="health-item">
-              <div class="health-icon healthy">
-                <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-              </div>
-              <div class="health-info">
-                <div class="health-name">PostgreSQL</div>
-                <div class="health-bar">
-                  <div class="health-bar-fill healthy" style="width: 92%"></div>
-                </div>
-                <div class="health-status">
-                  <span>Healthy</span>
-                  <span>92%</span>
-                </div>
-              </div>
+            <div class="health-bar"><div class="health-fill healthy" style="width:98%"></div></div>
+            <div class="health-pct">98%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-top">
+              <div class="health-icon healthy"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+              <div class="health-name">PostgreSQL</div>
+              <div class="health-status healthy">Healthy</div>
             </div>
-            <div class="health-item">
-              <div class="health-icon warning">
-                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
-              <div class="health-info">
-                <div class="health-name">Model Gateway</div>
-                <div class="health-bar">
-                  <div class="health-bar-fill warning" style="width: 76%"></div>
-                </div>
-                <div class="health-status">
-                  <span>Degraded</span>
-                  <span>76%</span>
-                </div>
-              </div>
+            <div class="health-bar"><div class="health-fill healthy" style="width:92%"></div></div>
+            <div class="health-pct">92%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-top">
+              <div class="health-icon degraded"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+              <div class="health-name">Model Gateway</div>
+              <div class="health-status degraded">Degraded</div>
             </div>
-            <div class="health-item">
-              <div class="health-icon healthy">
-                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-              <div class="health-info">
-                <div class="health-name">Sandbox</div>
-                <div class="health-bar">
-                  <div class="health-bar-fill healthy" style="width: 85%"></div>
-                </div>
-                <div class="health-status">
-                  <span>Healthy</span>
-                  <span>85%</span>
-                </div>
-              </div>
+            <div class="health-bar"><div class="health-fill degraded" style="width:76%"></div></div>
+            <div class="health-pct">76%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-top">
+              <div class="health-icon healthy"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div class="health-name">Sandbox</div>
+              <div class="health-status healthy">Healthy</div>
             </div>
+            <div class="health-bar"><div class="health-fill healthy" style="width:85%"></div></div>
+            <div class="health-pct">85%</div>
           </div>
         </div>
-      </div>
+      </aside>
+
     </div>
   </main>
 </div>
 
 <script>
-  // Simple interactivity
-  document.querySelectorAll('.topbar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      this.classList.add('spinning');
-      setTimeout(() => this.classList.remove('spinning'), 800);
-    });
-  });
-
-  // Thread data
-  var threadData = {
-    'Q4 Financial Report Analysis': [
-      { role: 'user', text: 'Analyze the Q4 cash flow statement and identify any red flags in operating, investing, or financing activities.', time: '2h ago' },
-      { role: 'assistant', text: "I've analyzed the Q4 cash flow statement. Here are the key findings:\n\nOperating Activities: +$2.4M (healthy, +12% YoY). Driven by net income and non-cash adjustments.\n\nInvesting Activities: -$1.8M (elevated capex). Two acquisitions closed in Q4 totaling $800K.\n\nFinancing Activities: -$600K. Debt repayment of $1.2M offset by new credit facility draw of $600K.\n\nRed Flags:\n1. DSO increased from 42 to 58 days — possible collection issues\n2. Capex-to-depreciation ratio at 2.1x (industry avg 1.3x)\n3. Operating cash flow coverage of dividends dropped to 1.4x (was 2.1x in Q3)", time: '2h ago', meta: 'model: gpt-4o · 1,847 tokens' },
-      { role: 'user', text: "What's the impact of the increased DSO on free cash flow?", time: '1h ago' },
-      { role: 'assistant', text: 'The 16-day DSO increase (42 → 58) ties up approximately $1.1M in working capital, reducing FCF from $1.8M to ~$700K.\n\n• Q4 FCF margin dropped from 14.2% to 5.5%\n• Cash conversion cycle extended by 16 days\n• If trend persists into Q1, FCF could turn negative\n\nRecommend reviewing AR aging report and collection procedures.', time: '1h ago', meta: 'model: gpt-4o · 2,234 tokens' },
-      { role: 'user', text: 'Generate a summary report with recommendations for the board.', time: '2m ago' }
-    ],
-    'API Integration Planning': [
-      { role: 'user', text: 'Help me plan the authentication flow for our new API.', time: '15m ago' },
-      { role: 'assistant', text: 'Here\'s a recommended auth flow for your API:\n\n1. OAuth 2.0 with PKCE for third-party clients\n2. JWT for first-party SPAs (short-lived access + refresh token rotation)\n3. API keys for service-to-service calls\n\nKey considerations: token revocation, rate limiting per key, and scope-based access control.', time: '15m ago', meta: 'model: claude-3.5-sonnet · 1,203 tokens' },
-      { role: 'user', text: 'Let me check the auth flow for edge cases...', time: '14m ago' }
-    ],
-    'Code Review — PR #342': [
-      { role: 'user', text: 'Review PR #342 — refactored the message queue handler.', time: '1h ago' },
-      { role: 'assistant', text: 'Reviewed PR #342. Overall solid refactor.\n\nIssues found:\n1. Found a potential race condition in the consumer pool — concurrent ack() calls can lead to message loss\n2. Missing error handler on the reconnect logic (line 87)\n3. The backoff strategy should use exponential + jitter, not fixed intervals\n\nOtherwise, the separation of concerns and test coverage look great.', time: '1h ago', meta: 'model: gpt-4o · 3,451 tokens' }
-    ],
-    'Market Research Summary': [
-      { role: 'user', text: 'Summarize the competitive landscape for AI coding tools.', time: '3h ago' },
-      { role: 'assistant', text: 'Here are the top 5 competitors in the AI coding tools space:\n\n1. GitHub Copilot — 30% market share, $10/mo\n2. Cursor — 15% market share, $20/mo\n3. Codeium — 12% market share, freemium\n4. Tabnine — 8% market share, $12/mo\n5. Amazon Q Developer — 5% market share, bundled\n\nKey differentiators: context awareness, multi-file editing, and IDE integration depth.', time: '3h ago', meta: 'model: gpt-4o · 1,876 tokens' }
-    ],
-    'Database Schema Design': [
-      { role: 'user', text: 'Design a schema for the thread and message persistence layer.', time: 'Yesterday' },
-      { role: 'assistant', text: 'The migration plan looks good. Proposed schema:\n\n• threads table: id, user_id, title, created_at, updated_at, metadata JSONB\n• messages table: id, thread_id, role, content, model, tokens, created_at\n• checkpoints table: thread_id, checkpoint_id, parent_id, data JSONB\n\nIndexes on (thread_id, created_at) and (user_id, updated_at).', time: 'Yesterday', meta: 'model: claude-3.5-sonnet · 2,109 tokens' }
-    ],
-    'Deployment Strategy': [
-      { role: 'user', text: 'Plan the Docker Compose deployment for production.', time: 'Yesterday' },
-      { role: 'assistant', text: 'Docker Compose with Nginx (port 2026) as reverse proxy, Gateway API on 8001, and Next.js frontend on 3000. All services use loopback binding by default. Health checks on Gateway /health endpoint.', time: 'Yesterday', meta: 'model: gpt-4o · 987 tokens' }
-    ]
+  /* ============================================================
+     THREAD DATA
+     ============================================================ */
+  const threadsData = {
+    'Q4 Financial Report Analysis': {
+      startTime: '10:42 AM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'10:42 AM', meta:'gpt-4o · 142 tok',
+          text:"Can you analyze the Q4 financial report for Acme Corp? Focus on revenue growth, margin trends, and any red flags in the cash flow statement." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'10:43 AM', meta:'gpt-4o · 1,284 tok · 2.1s',
+          toolCall:{ name:'search_web', status:'completed', duration:'1.2s',
+            input:'{\n  "query": "Acme Corp Q4 2025 earnings report 10-K",\n  "limit": 5,\n  "freshness": "30d"\n}',
+            output:'Found 5 results.\n[1] Acme Corp Investor Relations — Q4 2025 10-K filing (sec.gov)\n[2] Q4 2025 Earnings Call Transcript\n[3] Acme Corp 8-K Current Report\nFetched 3 documents (241 KB) into context.' },
+          text:"I've pulled the latest **Q4 2025 10-K filing** for Acme Corp. Here's the initial breakdown:\n\n**Revenue Growth**: Total revenue came in at ` $847.2M `, up **18.4% YoY** — beating consensus estimates of $812M.\n\n**Margin Trends**: Gross margin expanded 220bps to 64.1%, driven by a mix shift toward the higher-margin Platform segment.\n\nLet me run the cash flow analysis next." },
+        { role:'user', sender:'You', avatar:'You', time:'10:44 AM', meta:'gpt-4o · 38 tok',
+          text:"Great. What about free cash flow and the working capital changes?" },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'10:45 AM', meta:'gpt-4o · 1,602 tok · 2.4s',
+          toolCall:{ name:'code_interpreter', status:'completed', duration:'2.4s',
+            input:'ocf = 214.0   # operating cash flow ($M)\ncapex = 71.2   # capex ($M)\nfcf = ocf - capex\nprev_fcf = 109.0\ndso_q3 = 46\ndso_q4 = 52\nprint(f"FCF = ${fcf:.1f}M | YoY: +{(fcf/prev_fcf-1)*100:.0f}% | DSO: {dso_q4}d (+{dso_q4-dso_q3})")',
+            output:'FCF = $142.8M | YoY: +31% | DSO: 52 days (+6)' },
+          text:"Free cash flow came in at **$142.8M**, up **31% YoY** — a strong headline result. However, there's a **red flag** in the working capital line:\n\n```\nfcf = ocf - capex\n    = $214M - $71.2M\n    = $142.8M\n```\n\nDSO (days sales outstanding) rose to 52 days, up 6 days from Q3. That suggests revenue recognition may be pulling forward, or collections are slowing. I'd flag the working capital build for the audit committee." },
+        { role:'user', sender:'You', avatar:'You', time:'10:46 AM', meta:'gpt-4o · 24 tok',
+          text:"Summarize the top 3 risks for the investment memo." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'10:48 AM', meta:'gpt-4o · 512 tok · 1.8s',
+          text:"**Top 3 Risks — Acme Corp Q4 2025:**\n\n1. **Working capital deterioration** — DSO up 6 days; receivables grew faster than revenue.\n2. **Customer concentration** — Top 3 customers = 41% of revenue (vs 34% prior year).\n3. **Stock-based comp dilution** — SBC at 9.2% of revenue, diluting FCF quality.\n\nRecommend adding these to the IC memo under *Risk Factors*, with the DSO trend flagged as a monitoring item for Q1." }
+      ]
+    },
+    'API Integration Planning': {
+      startTime: '09:28 AM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'09:28 AM', meta:'gpt-4o · 96 tok',
+          text:"We're integrating the new billing API. The auth uses OAuth2 — should we use the client-credentials or authorization-code flow for our server-to-server calls?" },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'09:30 AM', meta:'gpt-4o · 680 tok · 1.4s',
+          text:"For **server-to-server** billing calls, use the ` client_credentials ` grant — it's designed exactly for machine-to-machine auth with no user context.\n\nUse the ` authorization_code ` flow with **PKCE** only for the public client (your SPA or mobile app) where a user is present.\n\nKey points:\n- Store the client secret in a secrets manager, never in env files committed to git.\n- Request a token with scope ` billing:read billing:write `.\n- Cache the token until ~60s before expiry, then refresh.\n\nWant me to draft the token-fetch middleware?" },
+        { role:'user', sender:'You', avatar:'You', time:'09:30 AM', meta:'gpt-4o · 18 tok',
+          text:"Yes, draft it in the DeerFlow harness style." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'09:31 AM', meta:'gpt-4o · 920 tok · 1.6s',
+          text:"Here's a minimal token-fetch middleware following the harness pattern:\n\n```\nasync def get_billing_token() -> str:\n    token = await cache.get(\"billing_token\")\n    if token:\n        return token\n    resp = await httpx.post(TOKEN_URL, data={\n        \"grant_type\": \"client_credentials\",\n        \"scope\": \"billing:read billing:write\",\n    }, auth=(CLIENT_ID, CLIENT_SECRET))\n    resp.raise_for_status()\n    token = resp.json()[\"access_token\"]\n    ttl = resp.json()[\"expires_in\"] - 60\n    await cache.set(\"billing_token\", token, ttl)\n    return token\n```\n\nIt caches with a 60s safety margin and fails fast on non-2xx. Drop it in ` packages/harness/deerflow/middleware/ `." }
+      ]
+    },
+    'Code Review PR #342': {
+      startTime: '08:50 AM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'08:50 AM', meta:'gpt-4o · 54 tok',
+          text:"Review PR #342 — it refactors the auth middleware. Focus on security regressions." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'08:51 AM', meta:'gpt-4o · 1,140 tok · 1.9s',
+          toolCall:{ name:'code_interpreter', status:'completed', duration:'0.8s',
+            input:'{\n  "repo": "deer-flow",\n  "pr": 342,\n  "action": "read_diff",\n  "focus": "security"\n}',
+            output:'+412 -89 across 7 files\nFiles: middleware/auth.py (+120 -64), tests/test_auth.py (+88 -12), ...\nFlagged: auth.py:142 verify_token drops audience check' },
+          text:"Reviewed the diff (+412 / -89 across 7 files). **Main concern**: the new ` verify_token ` path in ` middleware/auth.py:142 ` **drops the ` audience ` (aud) check**.\n\nThat's a **security regression** — a token minted for service A could be accepted by service B, enabling cross-service impersonation.\n\n```\n- if payload.get(\"aud\") != self.audience:\n-     raise AuthError(\"invalid audience\")\n+ # audience validated upstream by the gateway\n```\n\nThe gateway does *not* validate ` aud ` for internal calls, so this check must stay. Recommend blocking the PR until the check is restored." },
+        { role:'user', sender:'You', avatar:'You', time:'08:52 AM', meta:'gpt-4o · 14 tok',
+          text:"Good catch. Leave the review comment and request changes." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'08:52 AM', meta:'gpt-4o · 220 tok · 1.0s',
+          text:"Done — posted a **request changes** review on PR #342 citing the missing ` aud ` check at ` middleware/auth.py:142 `, with a suggested fix to restore the audience validation. The PR is now blocked from merge until a maintainer resolves the thread." }
+      ]
+    },
+    'Market Research Summary': {
+      startTime: '08:01 AM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'08:01 AM', meta:'gpt-4o · 42 tok',
+          text:"Summarize the observability market — TAM, growth, top 3 players." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'08:03 AM', meta:'gpt-4o · 740 tok · 1.5s',
+          text:"**Observability Market — 2025 Snapshot:**\n\n- **TAM**: ~$34B, growing at **18% CAGR** through 2028.\n- **Drivers**: cloud-native sprawl, AIOps adoption, open-telemetry standardization.\n- **Top 3 players**: Datadog (~22% share), New Relic, Grafana Labs (fastest-growing, OSS-led).\n\nThe mid-market is the contested segment — buyers want unified metrics+logs+traces without the per-host pricing tax. Differentiation is shifting from data collection to AI-driven root-cause analysis." }
+      ]
+    },
+    'Database Schema Design': {
+      startTime: 'Yesterday 4:12 PM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'Yesterday 4:12 PM', meta:'gpt-4o · 38 tok',
+          text:"Design a schema for a multi-tenant SaaS with per-tenant row-level isolation. PostgreSQL." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'Yesterday 4:14 PM', meta:'gpt-4o · 1,360 tok · 2.2s',
+          toolCall:{ name:'code_interpreter', status:'completed', duration:'1.1s',
+            input:'CREATE TABLE tenants (\n  id UUID PRIMARY KEY,\n  name TEXT NOT NULL,\n  plan TEXT NOT NULL\n);\nCREATE TABLE documents (\n  id UUID PRIMARY KEY,\n  tenant_id UUID NOT NULL REFERENCES tenants(id),\n  content TEXT,\n  created_at TIMESTAMPTZ DEFAULT now()\n);\nALTER TABLE documents ENABLE ROW LEVEL SECURITY;\nCREATE POLICY tenant_isolation ON documents\n  USING (tenant_id = current_setting(\'app.tenant_id\')::uuid);',
+            output:'Schema created — 2 tables, 1 policy. RLS enabled on documents.' },
+          text:"Here's a **shared-db, shared-schema** design with **row-level security** — best for cost efficiency at scale:\n\n```\nCREATE TABLE tenants (\n  id UUID PRIMARY KEY,\n  name TEXT NOT NULL,\n  plan TEXT NOT NULL\n);\nCREATE TABLE documents (\n  id UUID PRIMARY KEY,\n  tenant_id UUID NOT NULL REFERENCES tenants(id),\n  content TEXT,\n  created_at TIMESTAMPTZ DEFAULT now()\n);\nALTER TABLE documents ENABLE ROW LEVEL SECURITY;\nCREATE POLICY tenant_isolation ON documents\n  USING (tenant_id = current_setting('app.tenant_id')::uuid);\n```\n\nThe app sets ` app.tenant_id ` per request; RLS guarantees a tenant can only see its own rows. Add a composite index on ` (tenant_id, created_at) ` for the list queries." },
+        { role:'user', sender:'You', avatar:'You', time:'Yesterday 4:15 PM', meta:'gpt-4o · 22 tok',
+          text:"What about the migration path if a tenant outgrows shared schema?" },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'Yesterday 4:16 PM', meta:'gpt-4o · 480 tok · 1.2s',
+          text:"For tenants that outgrow the shared schema, the standard path is **schema-per-tenant** or **db-per-tenant** with a **connection router**:\n\n1. Add a ` deployment_model ` column to ` tenants ` (` shared ` / ` isolated `).\n2. The router reads the model at auth time and picks the pool.\n3. Migrate a tenant via logical replication: create the isolated schema, backfill with ` pg_dump --data-only ` filtered by ` tenant_id `, then cut over in a single transaction.\n\nKeep RLS on the shared path even after isolation — defense in depth." }
+      ]
+    },
+    'Deployment Strategy': {
+      startTime: 'Yesterday 2:30 PM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'Yesterday 2:30 PM', meta:'gpt-4o · 34 tok',
+          text:"Recommend a zero-downtime deployment strategy for the Gateway. We have a canary controller now." },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'Yesterday 2:31 PM', meta:'gpt-4o · 560 tok · 1.3s',
+          text:"Use **blue-green with a canary ramp**:\n\n1. Deploy the new build to the **green** pool (0% traffic).\n2. Ramp canary to **5% → 25% → 50%** over 15min, holding at each step.\n3. The canary controller watches error-rate, p99 latency, and SSE reconnects — auto-rollback if any breach thresholds.\n4. On green-healthy, flip the router to 100% and drain blue.\n\nThis gives you instant rollback (just re-flip the router) and bounded blast-radius during the ramp. Keep DB migrations **expand-then-contract** so both pools stay compatible mid-cutover." }
+      ]
+    },
+    'User Onboarding Flow': {
+      startTime: 'Oct 6 11:00 AM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'Oct 6 11:00 AM', meta:'gpt-4o · 30 tok',
+          text:"Our activation funnel drops 60% at step 3. How do we fix it?" },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'Oct 6 11:02 AM', meta:'gpt-4o · 520 tok · 1.1s',
+          text:"Step 3 (workspace config) is where users hit a wall of decisions. Fix it with **progressive disclosure**:\n\n1. Collapse the 4-step funnel to **2 steps**: invite → land in a pre-configured workspace with sample data.\n2. Defer all config to in-context prompts after the first \"aha\" moment.\n3. Show a pre-filled template gallery instead of a blank config form.\n\nThe principle: get users to value *before* asking them to configure anything. A/B test the 2-step variant against control — target a 15-point lift in 7-day activation." }
+      ]
+    },
+    'Performance Optimization': {
+      startTime: 'Oct 5 3:20 PM',
+      messages: [
+        { role:'user', sender:'You', avatar:'You', time:'Oct 5 3:20 PM', meta:'gpt-4o · 28 tok',
+          text:"The /api/runs endpoint is slow under load. Where's the bottleneck?" },
+        { role:'assistant', sender:'DeerFlow Agent', avatar:'AI', time:'Oct 5 3:22 PM', meta:'gpt-4o · 610 tok · 1.3s',
+          text:"Profiled the trace — the bottleneck is an **N+1 query**: ` /api/runs ` fetches the run list, then issues one query per run to load its ` agent ` relation.\n\nFix: switch to **eager loading** with a single join:\n\n```\nruns = await session.exec(\n    select(Run).options(joinedload(Run.agent))\n)\n```\n\nThis collapses N+1 into 2 queries. On the index side, add ` (status, created_at) ` composite + ` agent_id ` FK index. In testing this dropped p95 from 1.4s → 180ms at 200 RPS." }
+      ]
+    }
   };
 
-  function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  /* Canned assistant responses for sendMessage() streaming */
+  const cannedResponses = [
+    { text:"Let me break that down.\n\n**Key points:**\n1. The request is well-scoped — I can act on it directly.\n2. I'll lean on the `search_web` skill for fresh context if needed.\n3. I'll surface any assumptions before committing to an answer.", meta:"gpt-4o · 640 tok · 1.3s" },
+    { text:"Here's my read.\n\nThe core issue is that the current design conflates **control flow** with **data flow**. Separating them — a router layer for control, a context object for data — will make the path testable and the boundaries explicit.\n\nWant me to sketch the refactor?", meta:"gpt-4o · 380 tok · 1.1s",
+      toolCall:{ name:"vector_search", status:"completed", duration:"0.7s",
+        input:'{\n  "query": "control flow vs data flow separation",\n  "k": 4\n}',
+        output:"4 chunks retrieved from memory:\n- design-notes/router-pattern.md\n- arch/context-object.md\n- middleware/dispatch.md\n- tests/router.spec.ts" } },
+    { text:"Done — I ran the computation.\n\n```\nresult = inputs.map(x => x * factor).reduce((a,b)=>a+b, 0)\n// result = 1,284.50\n```\nThe aggregate is **1,284.50**, consistent with the prior estimate within a 2% tolerance. No anomalies detected.", meta:"gpt-4o · 410 tok · 1.4s",
+      toolCall:{ name:"code_interpreter", status:"completed", duration:"1.4s",
+        input:"const inputs = [120, 340, 210, 95, 410]\nconst factor = 1.085\nconst result = inputs.map(x => x * factor).reduce((a,b)=>a+b, 0)",
+        output:"result = 1284.5" } },
+    { text:"Good question. The short answer: **yes, it's safe to ship** — with two guardrails.\n\n1. Keep the feature flag default-off for 24h of soak.\n2. Wire the canary controller to auto-rollback on error-rate > 1%.\n\nI've drafted the rollout checklist; say the word and I'll open the PR.", meta:"gpt-4o · 320 tok · 1.0s" },
+    { text:"Let me search for the latest on that.\n\nBased on the retrieval, the recommended pattern is a **two-phase commit** with an idempotency key on every write. That gives you exactly-once semantics without locking the hot path.\n\n```\nPOST /runs  { idempotency_key: uuid, ... }\n```\nI'll wire this into the harness write path next.", meta:"gpt-4o · 520 tok · 1.5s",
+      toolCall:{ name:"search_web", status:"completed", duration:"1.0s",
+        input:'{\n  "query": "exactly-once delivery idempotency key pattern 2025",\n  "limit": 5\n}',
+        output:"Found 5 results.\n[1] Martin Kleppmann — Exactly-once semantics\n[2] Stripe Idempotency Keys API guide\n[3] AWS SQS deduplication docs" } }
+  ];
+
+  /* ---------- icon fragments for tool cards ---------- */
+  const ICON_SEARCH = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  const ICON_CODE   = '<svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
+  const ICON_DB     = '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
+  const ICON_TOOL   = '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
+  const ICON_CALC   = '<svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>';
+
+  function toolIcon(name){
+    if(/search|web/i.test(name)) return ICON_SEARCH;
+    if(/code|interpreter|runner/i.test(name)) return ICON_CODE;
+    if(/vector|db|sql|memory/i.test(name)) return ICON_DB;
+    if(/calc/i.test(name)) return ICON_CALC;
+    return ICON_TOOL;
   }
 
-  function formatMessage(text) {
-    return escapeHtml(text).replace(/\n/g, '<br>');
+  /* ---------- state ---------- */
+  let currentThread = "Q4 Financial Report Analysis";
+  let isStreaming = false;
+
+  /* ---------- helpers ---------- */
+  function escapeHtml(s){
+    if(s==null) return "";
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function nowTime(){
+    const d=new Date(); let h=d.getHours(); const m=String(d.getMinutes()).padStart(2,"0");
+    const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+m+" "+ap;
+  }
+  function scrollToBottom(){
+    const area=document.getElementById("messagesArea");
+    area.scrollTop=area.scrollHeight;
   }
 
-  function selectThread(el, threadName, msgCount) {
-    // Update active state
-    document.querySelectorAll('.chat-thread-item').forEach(function(item) {
-      item.classList.remove('active');
-    });
-    el.classList.add('active');
-
-    // Update header
-    document.getElementById('chatWindowTitle').textContent = threadName;
-    document.getElementById('chatWindowSubtitle').textContent = msgCount + ' messages · started recently';
-
-    // Load messages
-    var messages = threadData[threadName] || [];
-    var chatMessages = document.getElementById('chatMessages');
-    chatMessages.innerHTML = '';
-
-    messages.forEach(function(msg) {
-      var msgEl = document.createElement('div');
-      msgEl.className = 'chat-message ' + msg.role;
-      var avatar = msg.role === 'user' ? 'You' : 'AI';
-      var sender = msg.role === 'user' ? 'You' : 'DeerFlow Agent';
-      var meta = msg.meta ? '<div class="chat-message-meta">' + msg.time + ' · ' + msg.meta + '</div>' : '<div class="chat-message-meta">' + msg.time + '</div>';
-
-      msgEl.innerHTML =
-        '<div class="chat-message-avatar ' + msg.role + '">' + avatar + '</div>' +
-        '<div class="chat-message-body">' +
-          '<div class="chat-message-sender">' + sender + '</div>' +
-          '<div class="chat-message-bubble">' + formatMessage(msg.text) + '</div>' +
-          meta +
-        '</div>';
-      chatMessages.appendChild(msgEl);
-    });
-
-    // Add typing indicator if last message is from user
-    if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
-      var typingEl = document.createElement('div');
-      typingEl.className = 'chat-message assistant';
-      typingEl.innerHTML =
-        '<div class="chat-message-avatar assistant">AI</div>' +
-        '<div class="chat-message-body">' +
-          '<div class="chat-typing-indicator">' +
-            '<div class="chat-typing-dot"></div>' +
-            '<div class="chat-typing-dot"></div>' +
-            '<div class="chat-typing-dot"></div>' +
-          '</div>' +
-        '</div>';
-      chatMessages.appendChild(typingEl);
-    }
-
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function sendMessage() {
-    var input = document.getElementById('chatInput');
-    var text = input.value.trim();
-    if (!text) return;
-
-    var chatMessages = document.getElementById('chatMessages');
-
-    // Remove any existing typing indicator
-    var existingTyping = chatMessages.querySelector('.chat-typing-indicator');
-    if (existingTyping) {
-      existingTyping.closest('.chat-message').remove();
-    }
-
-    // Add user message
-    var msgEl = document.createElement('div');
-    msgEl.className = 'chat-message user';
-    msgEl.innerHTML =
-      '<div class="chat-message-avatar user">You</div>' +
-      '<div class="chat-message-body">' +
-        '<div class="chat-message-sender">You</div>' +
-        '<div class="chat-message-bubble">' + escapeHtml(text) + '</div>' +
-        '<div class="chat-message-meta">just now</div>' +
-      '</div>';
-    chatMessages.appendChild(msgEl);
-
-    // Clear input
-    input.value = '';
-    input.style.height = 'auto';
-
-    // Add typing indicator
-    var typingEl = document.createElement('div');
-    typingEl.className = 'chat-message assistant';
-    typingEl.innerHTML =
-      '<div class="chat-message-avatar assistant">AI</div>' +
-      '<div class="chat-message-body">' +
-        '<div class="chat-typing-indicator">' +
-          '<div class="chat-typing-dot"></div>' +
-          '<div class="chat-typing-dot"></div>' +
-          '<div class="chat-typing-dot"></div>' +
-        '</div>' +
-      '</div>';
-    chatMessages.appendChild(typingEl);
-
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    // Simulate response after delay
-    setTimeout(function() {
-      typingEl.remove();
-      var respEl = document.createElement('div');
-      respEl.className = 'chat-message assistant';
-      respEl.innerHTML =
-        '<div class="chat-message-avatar assistant">AI</div>' +
-        '<div class="chat-message-body">' +
-          '<div class="chat-message-sender">DeerFlow Agent</div>' +
-          '<div class="chat-message-bubble">I\'ll process your request. In the deer-flow production system, this would stream a response via SSE from the Gateway API, with tool calls and subagent delegation handled by the LangGraph runtime.</div>' +
-          '<div class="chat-message-meta">just now · model: gpt-4o · streaming</div>' +
-        '</div>';
-      chatMessages.appendChild(respEl);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 1500);
-  }
-
-  // Auto-resize textarea
-  var chatInput = document.getElementById('chatInput');
-  if (chatInput) {
-    chatInput.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
-    // Send on Enter (without shift)
-    chatInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
+  /* formatMessage: escape HTML, support ```code```, **bold**, *italic*, `inline`, \n */
+  function formatMessage(text){
+    if(!text) return "";
+    let esc=String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const parts=esc.split(/```/);
+    let html="";
+    parts.forEach(function(part,i){
+      if(i%2===1){
+        let code=part.replace(/^[^\n]*\n/,"");
+        html+='<pre class="code-block">'+code+"</pre>";
+      } else {
+        let t=part
+          .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+          .replace(/`([^`]+)`/g,'<code class="inline">$1</code>')
+          .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,"$1<em>$2</em>")
+          .replace(/\n/g,"<br>");
+        html+=t;
       }
     });
+    return html;
   }
-</script>
 
+  function renderToolCall(tc, running){
+    const status = running ? "running" : (tc.status||"completed");
+    return '<div class="tool-call">'
+      + '<div class="tool-call-header" onclick="toggleToolCall(this)">'
+      +   '<div class="tool-call-icon">'+toolIcon(tc.name)+'</div>'
+      +   '<span class="tool-call-name">'+escapeHtml(tc.name)+'</span>'
+      +   '<span class="tool-call-status '+status+'"><span class="status-dot"></span>'+status+'</span>'
+      +   '<span class="tool-call-duration">'+escapeHtml(tc.duration||"")+'</span>'
+      +   '<svg class="tool-call-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+      + '</div>'
+      + '<div class="tool-call-body">'
+      +   '<div class="tool-call-section-label">Input</div>'
+      +   '<div class="tool-call-input">'+escapeHtml(tc.input)+'</div>'
+      +   '<div class="tool-call-section-label">Output</div>'
+      +   '<div class="tool-call-output">'+escapeHtml(tc.output)+'</div>'
+      + '</div></div>';
+  }
+
+  function renderMessage(msg){
+    const cls = msg.role==="user" ? "user" : "assistant";
+    let bubble = formatMessage(msg.text);
+    if(msg.toolCall) bubble = renderToolCall(msg.toolCall) + bubble;
+    return '<div class="msg-row '+cls+'">'
+      + '<div class="msg-avatar '+cls+'">'+escapeHtml(msg.avatar)+'</div>'
+      + '<div class="msg-body">'
+      +   '<div class="msg-meta-top"><span class="msg-sender">'+escapeHtml(msg.sender)+'</span><span class="msg-time">'+escapeHtml(msg.time)+'</span></div>'
+      +   '<div class="msg-bubble">'+bubble+'</div>'
+      +   '<div class="msg-meta-bottom">'+escapeHtml(msg.meta||"")+'</div>'
+      + '</div></div>';
+  }
+
+  /* ---------- thread selection ---------- */
+  function selectThread(el, threadName, msgCount){
+    document.querySelectorAll(".thread-item").forEach(function(t){ t.classList.remove("active"); });
+    if(el) el.classList.add("active");
+    currentThread = threadName;
+    const data = threadsData[threadName];
+    const count = data ? data.messages.length : (msgCount||0);
+    document.getElementById("chatTitle").innerHTML = '<span class="title-prefix">//</span> '+escapeHtml(threadName);
+    document.getElementById("chatSubtitle").innerHTML =
+      '<span>'+count+' messages</span><span class="dot">·</span><span>Started '+(data?escapeHtml(data.startTime):"—")+'</span>';
+    hideEmptyState();
+    const inner=document.getElementById("messagesInner");
+    if(data && data.messages.length){
+      inner.innerHTML = data.messages.map(renderMessage).join("");
+    } else {
+      inner.innerHTML = "";
+    }
+    scrollToBottom();
+    document.getElementById("threadPanel").classList.remove("open");
+  }
+
+  /* ---------- typing + streaming ---------- */
+  function showTypingIndicator(){
+    const inner=document.getElementById("messagesInner");
+    const row=document.createElement("div");
+    row.className="msg-row assistant";
+    row.id="typingRow";
+    row.innerHTML='<div class="msg-avatar assistant">AI</div>'
+      + '<div class="msg-body">'
+      +   '<div class="msg-meta-top"><span class="msg-sender">DeerFlow Agent</span><span class="msg-time">'+nowTime()+'</span></div>'
+      +   '<div class="typing-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>'
+      + '</div>';
+    inner.appendChild(row);
+    scrollToBottom();
+  }
+  function removeTypingIndicator(){
+    const r=document.getElementById("typingRow");
+    if(r) r.remove();
+  }
+
+  function pickResponse(text){
+    const withTool = cannedResponses.filter(function(r){ return r.toolCall; });
+    const plain    = cannedResponses.filter(function(r){ return !r.toolCall; });
+    const useTool = Math.random() < 0.6 && withTool.length;
+    const list = useTool ? withTool : (plain.length?plain:cannedResponses);
+    return list[Math.floor(Math.random()*list.length)];
+  }
+
+  function finishStream(row, resp){
+    const cur=row.querySelector(".stream-cursor"); if(cur) cur.remove();
+    const body=row.querySelector(".msg-body");
+    const meta=document.createElement("div");
+    meta.className="msg-meta-bottom";
+    meta.textContent = resp.meta || "gpt-4o · streamed · 1.2s";
+    body.appendChild(meta);
+    if(currentThread && threadsData[currentThread]){
+      threadsData[currentThread].messages.push({
+        role:"assistant", sender:"DeerFlow Agent", avatar:"AI",
+        time: nowTime(), meta: resp.meta, text: resp.text, toolCall: resp.toolCall
+      });
+    }
+    isStreaming=false;
+    updateCharCount();
+    scrollToBottom();
+  }
+
+  function streamAssistantResponse(resp){
+    const inner=document.getElementById("messagesInner");
+    const row=document.createElement("div");
+    row.className="msg-row assistant";
+    row.innerHTML='<div class="msg-avatar assistant">AI</div>'
+      + '<div class="msg-body">'
+      +   '<div class="msg-meta-top"><span class="msg-sender">DeerFlow Agent</span><span class="msg-time">'+nowTime()+'</span></div>'
+      +   '<div class="msg-bubble"><span class="stream-text"></span><span class="stream-cursor"></span></div>'
+      + '</div>';
+    inner.appendChild(row);
+    scrollToBottom();
+    const bubble=row.querySelector(".msg-bubble");
+    const streamText=row.querySelector(".stream-text");
+
+    function startStreaming(){
+      const tokens=resp.text.split(/(\s+)/);
+      let revealed=""; let i=0;
+      const timer=setInterval(function(){
+        if(i>=tokens.length){ clearInterval(timer); finishStream(row, resp); return; }
+        revealed += (tokens[i]||"") + (tokens[i+1]||"");
+        i+=2;
+        streamText.innerHTML=formatMessage(revealed);
+        scrollToBottom();
+      },45);
+    }
+
+    if(resp.toolCall){
+      bubble.insertAdjacentHTML("afterbegin", renderToolCall(resp.toolCall, true));
+      scrollToBottom();
+      setTimeout(function(){
+        const card=bubble.querySelector(".tool-call");
+        if(card){
+          const st=card.querySelector(".tool-call-status");
+          st.className="tool-call-status completed";
+          st.innerHTML='<span class="status-dot"></span>completed';
+        }
+        startStreaming();
+      },700);
+    } else {
+      startStreaming();
+    }
+  }
+
+  /* ---------- send ---------- */
+  function sendMessage(){
+    const ta=document.getElementById("composerInput");
+    const text=ta.value.trim();
+    if(!text || isStreaming) return;
+    if(!currentThread || !threadsData[currentThread]){
+      currentThread = currentThread || "New Conversation";
+      threadsData[currentThread] = { startTime: nowTime(), messages: [] };
+    }
+    hideEmptyState();
+    const userMsg={ role:"user", sender:"You", avatar:"You", time: nowTime(),
+      meta:"gpt-4o · "+Math.max(8, text.split(/\s+/).length)+" tok", text:text };
+    threadsData[currentThread].messages.push(userMsg);
+    const inner=document.getElementById("messagesInner");
+    inner.insertAdjacentHTML("beforeend", renderMessage(userMsg));
+    scrollToBottom();
+    ta.value=""; autoResize(ta); updateCharCount();
+    isStreaming=true; updateCharCount();
+    showTypingIndicator();
+    setTimeout(function(){
+      removeTypingIndicator();
+      streamAssistantResponse(pickResponse(text));
+    },1000);
+  }
+
+  /* ---------- empty state ---------- */
+  function buildEmptyState(){
+    const area=document.getElementById("messagesArea");
+    const es=document.createElement("div");
+    es.className="empty-state";
+    es.id="emptyState";
+    es.style.display="none";
+    es.innerHTML=
+        '<div class="empty-illustration">'
+        + '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>'
+        + '</div>'
+        + '<div class="empty-heading">Start a New Conversation</div>'
+        + '<div class="empty-subtitle">Pick up where you left off, or begin fresh. Your agent has full thread memory and active skills ready to go.</div>'
+        + '<div class="suggested-prompts">'
+        +   '<button class="suggested-prompt" onclick="startConversation(\'Analyze a financial report\')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Analyze a financial report</button>'
+        +   '<button class="suggested-prompt" onclick="startConversation(\'Review a pull request\')"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Review a pull request</button>'
+        +   '<button class="suggested-prompt" onclick="startConversation(\'Design a database schema\')"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Design a database schema</button>'
+        + '</div>';
+    area.insertBefore(es, document.getElementById("messagesInner"));
+  }
+  function showEmptyState(){
+    const es=document.getElementById("emptyState");
+    if(es) es.style.display="flex";
+    document.getElementById("messagesInner").style.display="none";
+  }
+  function hideEmptyState(){
+    const es=document.getElementById("emptyState");
+    if(es) es.style.display="none";
+    document.getElementById("messagesInner").style.display="";
+  }
+  function startConversation(prompt){
+    if(!currentThread || !threadsData[currentThread]){
+      currentThread = currentThread || "New Conversation";
+      threadsData[currentThread] = { startTime: nowTime(), messages: [] };
+    }
+    hideEmptyState();
+    document.getElementById("composerInput").value = prompt;
+    sendMessage();
+  }
+
+  /* ---------- new chat ---------- */
+  function newChat(){
+    document.querySelectorAll(".thread-item").forEach(function(t){ t.classList.remove("active"); });
+    currentThread = "New Conversation";
+    threadsData["New Conversation"] = { startTime: nowTime(), messages: [] };
+    document.getElementById("chatTitle").innerHTML = '<span class="title-prefix">//</span> New Conversation';
+    document.getElementById("chatSubtitle").innerHTML = '<span>0 messages</span><span class="dot">·</span><span>Started '+nowTime()+'</span>';
+    document.getElementById("messagesInner").innerHTML = "";
+    showEmptyState();
+    document.getElementById("threadPanel").classList.remove("open");
+    document.getElementById("composerInput").focus();
+  }
+
+  /* ---------- error banner ---------- */
+  function showError(){ document.getElementById("errorBanner").style.display="flex"; }
+  function dismissError(){ document.getElementById("errorBanner").style.display="none"; }
+  function retryConnection(){ dismissError(); }
+
+  /* ---------- thread search / mobile panel ---------- */
+  function filterThreads(q){
+    const ql=q.toLowerCase().trim();
+    document.querySelectorAll(".thread-item").forEach(function(it){
+      const name=it.querySelector(".thread-item-name").textContent.toLowerCase();
+      it.style.display = !ql || name.indexOf(ql)>=0 ? "" : "none";
+    });
+  }
+  function toggleThreadPanel(){
+    document.getElementById("threadPanel").classList.toggle("open");
+  }
+  function cycleModel(el){
+    const models=["gpt-4o","claude-3.5-sonnet","gemini-1.5-pro","o1-preview"];
+    const cur=document.getElementById("modelLabel").textContent.trim();
+    let idx=models.indexOf(cur);
+    idx=(idx+1)%models.length;
+    document.getElementById("modelLabel").textContent=models[idx];
+  }
+
+  /* ---------- skill selector ---------- */
+  function toggleSkillSelector(e){
+    if(e) e.stopPropagation();
+    const dd=document.getElementById("skillDropdown");
+    const btn=document.getElementById("skillBtn");
+    dd.classList.toggle("open");
+    btn.classList.toggle("active", dd.classList.contains("open"));
+  }
+  function toggleSkill(el){ el.classList.toggle("on"); }
+
+  /* ---------- tool call expand ---------- */
+  function toggleToolCall(el){
+    el.closest(".tool-call").classList.toggle("expanded");
+  }
+
+  /* ---------- composer ---------- */
+  function autoResize(el){
+    el.style.height="auto";
+    el.style.height=Math.min(120, Math.max(40, el.scrollHeight))+"px";
+  }
+  function updateCharCount(){
+    const ta=document.getElementById("composerInput");
+    const n=ta.value.length;
+    document.getElementById("charCounter").textContent=n+" / 4000";
+    document.getElementById("sendBtn").disabled = (n===0) || isStreaming;
+  }
+  function handleKeyDown(e){
+    if(e.key==="Enter" && !e.shiftKey){
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  /* ---------- init ---------- */
+  document.addEventListener("click", function(e){
+    const dd=document.getElementById("skillDropdown");
+    const btn=document.getElementById("skillBtn");
+    if(dd && btn && !dd.contains(e.target) && !btn.contains(e.target)){
+      dd.classList.remove("open");
+      btn.classList.remove("active");
+    }
+  });
+  document.addEventListener("DOMContentLoaded", function(){
+    buildEmptyState();
+    const firstActive = document.querySelector(".thread-item.active");
+    selectThread(firstActive, "Q4 Financial Report Analysis", 6);
+    updateCharCount();
+    // Demo the error banner is wired (not shown by default)
+  });
+</script>
 </body>
 </html>

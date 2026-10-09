@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgentForge Console — Tools Management</title>
+<title>AgentForge Console — Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -44,17 +44,13 @@
     --accent-purple: #a855f7;
     --accent-purple-dim: rgba(168, 85, 247, 0.6);
     --accent-purple-glow: rgba(168, 85, 247, 0.15);
-    --accent-blue: #3b82f6;
-    --accent-blue-glow: rgba(59, 130, 246, 0.15);
     --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 10px;
     --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 40px rgba(0, 229, 255, 0.05);
-    --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.15), 0 0 40px rgba(255, 107, 107, 0.05);
     --sidebar-width: 240px;
-    --rightbar-width: 300px;
     --topbar-height: 56px;
   }
 
@@ -73,7 +69,7 @@
     position: relative;
   }
 
-  /* Noise / Grain Overlay */
+  /* NOISE / GRAIN OVERLAY */
   body::before {
     content: '';
     position: fixed;
@@ -88,7 +84,7 @@
     background-size: 256px 256px;
   }
 
-  /* Grid Background Pattern */
+  /* GRID BACKGROUND PATTERN */
   body::after {
     content: '';
     position: fixed;
@@ -105,45 +101,40 @@
     background-position: -1px -1px;
   }
 
-  /* Custom Scrollbar */
+  /* CUSTOM SCROLLBAR */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-
   ::-webkit-scrollbar-track {
     background: var(--bg-panel);
   }
-
   ::-webkit-scrollbar-thumb {
     background: var(--border-medium);
     border-radius: 3px;
     transition: background 0.2s ease;
   }
-
   ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-cyan-dim);
   }
 
   /* ============================================================
-     LAYOUT
+     APP SHELL
      ============================================================ */
   .app-shell {
     display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr var(--rightbar-width);
+    grid-template-columns: var(--sidebar-width) 1fr;
     grid-template-rows: var(--topbar-height) 1fr;
     grid-template-areas:
-      "sidebar topbar rightbar"
-      "sidebar main rightbar";
+      "sidebar topbar"
+      "sidebar main";
     height: 100vh;
     width: 100vw;
     position: relative;
     z-index: 1;
   }
 
-  /* ============================================================
-     LEFT SIDEBAR
-     ============================================================ */
+  /* LEFT SIDEBAR */
   .sidebar {
     grid-area: sidebar;
     background: var(--bg-panel);
@@ -178,7 +169,6 @@
   .sidebar-logo-icon {
     width: 28px;
     height: 28px;
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -214,7 +204,7 @@
 
   .sidebar-nav {
     flex: 1;
-    padding: 12px 10px;
+    padding: 16px 10px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -228,7 +218,7 @@
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    padding: 12px 10px 6px;
+    padding: 12px 10px 8px;
   }
 
   .nav-item {
@@ -295,6 +285,12 @@
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 3px;
+    background: var(--accent-coral-glow);
+    color: var(--accent-coral);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .nav-item-badge.cyan {
     background: var(--accent-cyan-glow);
     color: var(--accent-cyan);
     border: 1px solid var(--border-strong);
@@ -369,9 +365,17 @@
     margin-top: 2px;
   }
 
-  /* ============================================================
-     TOP BAR
-     ============================================================ */
+  .user-more {
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .user-profile:hover .user-more {
+    opacity: 1;
+  }
+
+  /* TOP BAR */
   .topbar {
     grid-area: topbar;
     background: var(--bg-panel);
@@ -402,59 +406,55 @@
     color: var(--text-muted);
   }
 
-  .topbar-search {
-    flex: 1;
-    max-width: 360px;
-    position: relative;
-  }
-
-  .topbar-search input {
-    width: 100%;
-    height: 34px;
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 0 12px 0 34px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-primary);
-    outline: none;
-    transition: all 0.2s ease;
-  }
-
-  .topbar-search input::placeholder {
-    color: var(--text-tertiary);
-  }
-
-  .topbar-search input:focus {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
-  }
-
-  .topbar-search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-tertiary);
-    pointer-events: none;
-  }
-
-  .topbar-search-icon svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
   .topbar-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-left: auto;
   }
 
+  .topbar-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .topbar-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-coral);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 0 6px var(--accent-coral);
+  }
+
+  /* BUTTONS */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -506,1164 +506,12 @@
     stroke-width: 2.5;
   }
 
-  /* ============================================================
-     CATEGORY FILTER TABS
-     ============================================================ */
-  .category-tabs {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 3px;
-  }
-
-  .category-tab {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 5px 10px;
-    border-radius: 3px;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .category-tab:hover {
-    color: var(--text-secondary);
-  }
-
-  .category-tab.active {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-    padding: 4px 9px;
-  }
-
-  /* ============================================================
-     MAIN CONTENT
-     ============================================================ */
-  .main-content {
-    grid-area: main;
-    overflow-y: auto;
-    padding: 20px 24px;
-    position: relative;
-  }
-
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  .page-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .page-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .page-title .title-prefix {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent-cyan);
-    font-weight: 400;
-  }
-
-  .page-subtitle {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .page-subtitle .status-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.3); }
-  }
-
-  /* ============================================================
-     STATS CARDS
-     ============================================================ */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-
-  .stat-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.25s ease;
-  }
-
-  .stat-card:hover {
-    border-color: var(--border-medium);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-cyan-dim), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .stat-card:hover::before {
-    opacity: 1;
-  }
-
-  .stat-card-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    position: relative;
-  }
-
-  .stat-card-icon svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-  }
-
-  .stat-card-icon.cyan {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-  }
-
-  .stat-card-icon.green {
-    background: rgba(46, 213, 115, 0.1);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .stat-card-icon.amber {
-    background: rgba(255, 165, 2, 0.1);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .stat-card-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-
-  .stat-card-value {
-    font-family: var(--font-mono);
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  .stat-card-value .value-suffix {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    margin-left: 2px;
-  }
-
-  .stat-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .stat-trend {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  .stat-trend.up {
-    color: var(--accent-green);
-  }
-
-  .stat-trend.down {
-    color: var(--accent-coral);
-  }
-
-  .stat-trend svg {
-    width: 10px;
-    height: 10px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2.5;
-  }
-
-  .stat-period {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  .stat-sparkline {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 120px;
-    height: 40px;
-    opacity: 0.4;
-  }
-
-  .stat-sparkline svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* ============================================================
-     TOOLS TABLE
-     ============================================================ */
-  .tools-table-container {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  .tools-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .tools-table thead th {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    text-align: left;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-panel-2);
-    white-space: nowrap;
-  }
-
-  .tools-table thead th:first-child {
-    width: 40px;
-  }
-
-  .tools-table thead th:last-child {
-    text-align: right;
-  }
-
-  .tools-table tbody td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    font-size: 12px;
-    color: var(--text-secondary);
-    vertical-align: middle;
-  }
-
-  .tools-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .tools-table tbody tr {
-    transition: background 0.15s ease;
-    cursor: pointer;
-  }
-
-  .tools-table tbody tr:hover {
-    background: rgba(0, 229, 255, 0.03);
-  }
-
-  .tools-table tbody tr.selected {
-    background: rgba(0, 229, 255, 0.06);
-    box-shadow: inset 2px 0 0 var(--accent-cyan);
-    position: relative;
-  }
-
-  .tools-table tbody tr.selected td:first-child {
-    padding-left: 14px;
-  }
-
-  /* Status Dot */
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .status-dot.active {
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  .status-dot.degraded {
-    background: var(--accent-amber);
-    box-shadow: 0 0 6px var(--accent-amber);
-  }
-
-  .status-dot.error {
-    background: var(--accent-coral);
-    box-shadow: 0 0 6px var(--accent-coral);
-    animation: pulse-dot 1.5s ease-in-out infinite;
-  }
-
-  .status-dot.disabled {
-    background: var(--text-muted);
-  }
-
-  /* Tool Name Cell */
-  .tool-name-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .tool-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 14px;
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-  }
-
-  .tool-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .tool-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .tool-desc {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-  }
-
-  /* Type Badge */
-  .type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .type-badge.web {
-    background: var(--accent-cyan-glow);
-    color: var(--accent-cyan);
-    border: 1px solid var(--border-strong);
-  }
-
-  .type-badge.file {
-    background: var(--accent-green-glow);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .type-badge.code {
-    background: var(--accent-purple-glow);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-  }
-
-  .type-badge.database {
-    background: var(--accent-amber-glow);
-    color: var(--accent-amber);
-    border: 1px solid rgba(255, 165, 2, 0.2);
-  }
-
-  .type-badge.api {
-    background: var(--accent-blue-glow);
-    color: var(--accent-blue);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-  }
-
-  .type-badge.mcp {
-    background: var(--accent-coral-glow);
-    color: var(--accent-coral);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-  }
-
-  .type-badge svg {
-    width: 10px;
-    height: 10px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2.5;
-  }
-
-  /* Provider */
-  .provider-text {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-secondary);
-  }
-
-  /* Calls Today */
-  .calls-value {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  /* Success Rate Mini Bar */
-  .success-rate-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .mini-progress {
-    width: 60px;
-    height: 4px;
-    background: var(--bg-elevated);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .mini-progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-
-  .mini-progress-fill.green {
-    background: var(--accent-green);
-    box-shadow: 0 0 4px rgba(46, 213, 115, 0.4);
-  }
-
-  .mini-progress-fill.amber {
-    background: var(--accent-amber);
-    box-shadow: 0 0 4px rgba(255, 165, 2, 0.4);
-  }
-
-  .mini-progress-fill.coral {
-    background: var(--accent-coral);
-    box-shadow: 0 0 4px rgba(255, 107, 107, 0.4);
-  }
-
-  .success-rate-text {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    min-width: 36px;
-  }
-
-  /* Latency */
-  .latency-text {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-secondary);
-  }
-
-  .latency-text.good {
-    color: var(--accent-green);
-  }
-
-  .latency-text.warn {
-    color: var(--accent-amber);
-  }
-
-  .latency-text.slow {
-    color: var(--accent-coral);
-  }
-
-  /* Actions */
-  .actions-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-  }
-
-  /* Toggle Switch */
-  .toggle-switch {
-    position: relative;
-    width: 32px;
-    height: 18px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: 9px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-  }
-
-  .toggle-switch.active {
-    background: rgba(46, 213, 115, 0.2);
-    border-color: rgba(46, 213, 115, 0.3);
-  }
-
-  .toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 12px;
-    height: 12px;
-    background: var(--text-tertiary);
-    border-radius: 50%;
-    transition: all 0.2s ease;
-  }
-
-  .toggle-switch.active::after {
-    left: 16px;
-    background: var(--accent-green);
-    box-shadow: 0 0 6px var(--accent-green);
-  }
-
-  .icon-btn {
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 3px;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    opacity: 0;
-  }
-
-  .tools-table tbody tr:hover .icon-btn {
-    opacity: 1;
-  }
-
-  .icon-btn:hover {
-    border-color: var(--border-medium);
-    color: var(--accent-cyan);
-  }
-
-  .icon-btn.delete:hover {
-    color: var(--accent-coral);
-    border-color: rgba(255, 107, 107, 0.2);
-  }
-
-  .icon-btn svg {
-    width: 12px;
-    height: 12px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
-  /* ============================================================
-     RIGHT SIDEBAR - TOOL DETAILS
-     ============================================================ */
-  .rightbar {
-    grid-area: rightbar;
-    background: var(--bg-panel);
-    border-left: 1px solid var(--border-subtle);
-    overflow-y: auto;
-    padding: 16px;
-    position: relative;
-  }
-
-  .rightbar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(180deg, transparent 0%, var(--accent-cyan-glow) 30%, var(--accent-cyan-glow) 70%, transparent 100%);
-    opacity: 0.4;
-  }
-
-  .rightbar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .rightbar-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .rightbar-title::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    background: var(--accent-cyan);
-    box-shadow: 0 0 6px var(--accent-cyan);
-  }
-
-  .rightbar-close {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 3px;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .rightbar-close:hover {
-    color: var(--accent-coral);
-    border-color: rgba(255, 107, 107, 0.2);
-  }
-
-  .rightbar-close svg {
-    width: 12px;
-    height: 12px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
-  /* Tool Detail Header */
-  .tool-detail-header {
-    margin-bottom: 16px;
-  }
-
-  .tool-detail-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-medium);
-    margin-bottom: 12px;
-  }
-
-  .tool-detail-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
-
-  .tool-detail-desc {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    line-height: 1.5;
-    margin-bottom: 10px;
-  }
-
-  .tool-detail-type-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .tool-detail-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 3px;
-  }
-
-  .tool-detail-status.active {
-    background: rgba(46, 213, 115, 0.1);
-    color: var(--accent-green);
-    border: 1px solid rgba(46, 213, 115, 0.2);
-  }
-
-  .tool-detail-status.active::before {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 4px var(--accent-green);
-  }
-
-  /* Rightbar Sections */
-  .rightbar-section {
-    margin-bottom: 18px;
-  }
-
-  .rightbar-section-title {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .rightbar-section-title::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--accent-cyan);
-  }
-
-  /* Config Display */
-  .config-display {
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    line-height: 1.7;
-    overflow-x: auto;
-  }
-
-  .config-line {
-    display: flex;
-    gap: 8px;
-  }
-
-  .config-key {
-    color: var(--accent-cyan);
-    flex-shrink: 0;
-  }
-
-  .config-value {
-    color: var(--text-secondary);
-    word-break: break-all;
-  }
-
-  .config-value.string {
-    color: var(--accent-green);
-  }
-
-  .config-value.number {
-    color: var(--accent-amber);
-  }
-
-  .config-value.boolean {
-    color: var(--accent-purple);
-  }
-
-  .config-bracket {
-    color: var(--text-muted);
-  }
-
-  /* Usage Chart */
-  .usage-chart-container {
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-  }
-
-  .usage-chart-labels {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-
-  .usage-chart-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
-    height: 80px;
-  }
-
-  .usage-bar {
-    flex: 1;
-    background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
-    border-radius: 2px 2px 0 0;
-    position: relative;
-    transition: all 0.3s ease;
-    min-height: 4px;
-    opacity: 0.7;
-  }
-
-  .usage-bar:hover {
-    opacity: 1;
-  }
-
-  .usage-bar::after {
-    content: attr(data-label);
-    position: absolute;
-    bottom: -16px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: var(--font-mono);
-    font-size: 8px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-
-  .usage-chart-footer {
-    margin-top: 24px;
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 10px;
-  }
-
-  .usage-total-label {
-    color: var(--text-tertiary);
-  }
-
-  .usage-total-value {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  /* Test Tool Button */
-  .test-tool-btn {
-    width: 100%;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: var(--accent-purple-glow);
-    color: var(--accent-purple);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .test-tool-btn:hover {
-    background: rgba(168, 85, 247, 0.2);
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
-    transform: translateY(-1px);
-  }
-
-  .test-tool-btn svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
-  /* Tool Detail Stats Grid */
-  .tool-detail-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-  .tool-detail-stat {
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 10px;
-  }
-
-  .tool-detail-stat-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-  }
-
-  .tool-detail-stat-value {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  /* ============================================================
-     MODAL / TEST TOOL OVERLAY
-     ============================================================ */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(10, 14, 26, 0.8);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
-
-  .modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .modal {
-    width: 520px;
-    max-width: 90vw;
-    max-height: 80vh;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 229, 255, 0.1);
-    transform: translateY(10px) scale(0.98);
-    transition: transform 0.2s ease;
-  }
-
-  .modal-overlay.active .modal {
-    transform: translateY(0) scale(1);
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-panel-2);
-  }
-
-  .modal-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .modal-title svg {
-    width: 16px;
-    height: 16px;
-    stroke: var(--accent-purple);
-    fill: none;
-    stroke-width: 2;
-  }
-
-  .modal-close {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 3px;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .modal-close:hover {
-    color: var(--accent-coral);
-    border-color: rgba(255, 107, 107, 0.2);
-  }
-
-  .modal-close svg {
-    width: 12px;
-    height: 12px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-  }
-
-  .modal-body {
-    padding: 18px;
-    max-height: calc(80vh - 120px);
-    overflow-y: auto;
-  }
-
-  .modal-field {
-    margin-bottom: 14px;
-  }
-
-  .modal-field:last-child {
-    margin-bottom: 0;
-  }
-
-  .modal-field label {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-
-  .modal-field textarea {
-    width: 100%;
-    min-height: 80px;
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-primary);
-    outline: none;
-    resize: vertical;
-    transition: all 0.2s ease;
-    line-height: 1.5;
-  }
-
-  .modal-field textarea:focus {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
-  }
-
-  .modal-field textarea::placeholder {
-    color: var(--text-muted);
-  }
-
-  .modal-result {
-    background: var(--bg-deep);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1.6;
-    color: var(--text-secondary);
-    max-height: 200px;
-    overflow-y: auto;
-    position: relative;
-  }
-
-  .modal-result::before {
-    content: 'RESULT';
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--accent-green);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-  }
-
-  .modal-result .result-key {
-    color: var(--accent-cyan);
-  }
-
-  .modal-result .result-string {
-    color: var(--accent-green);
-  }
-
-  .modal-result .result-number {
-    color: var(--accent-amber);
-  }
-
-  .modal-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 14px 18px;
-    border-top: 1px solid var(--border-subtle);
-    background: var(--bg-panel-2);
-  }
-
   .btn-ghost {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     height: 32px;
-    padding: 0 14px;
+    padding: 0 12px;
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
@@ -1681,29 +529,1224 @@
     background: rgba(0, 229, 255, 0.05);
   }
 
-  .btn-purple {
+  .btn-ghost svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  .main-content {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 24px;
+    position: relative;
+  }
+
+  /* ============================================================
+     PAGE HEADER
+     ============================================================ */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .page-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .page-title {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-title .title-bracket {
+    color: var(--accent-cyan);
+    font-weight: 400;
+  }
+
+  .page-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .page-subtitle .sep {
+    color: var(--text-muted);
+  }
+
+  .status-indicator {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    height: 32px;
-    padding: 0 14px;
-    background: var(--accent-purple);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
+    gap: 6px;
+    color: var(--accent-green);
+  }
+
+  .status-indicator::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--accent-green); }
+    50% { opacity: 0.6; box-shadow: 0 0 10px var(--accent-green); }
+  }
+
+  /* ============================================================
+     STATS ROW
+     ============================================================ */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
     transition: all 0.2s ease;
   }
 
-  .btn-purple:hover {
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
-    transform: translateY(-1px);
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--stat-color, var(--accent-cyan)), transparent);
+    opacity: 0.6;
   }
 
-  .btn-purple svg {
+  .stat-card:hover {
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+  }
+
+  .stat-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .stat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .stat-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+  }
+
+  .stat-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .stat-icon.cyan {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.05));
+    color: var(--accent-cyan);
+  }
+
+  .stat-icon.green {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.05));
+    color: var(--accent-green);
+  }
+
+  .stat-icon.purple {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
+    color: var(--accent-purple);
+  }
+
+  .stat-icon.amber {
+    background: linear-gradient(135deg, rgba(255, 165, 2, 0.2), rgba(255, 165, 2, 0.05));
+    color: var(--accent-amber);
+  }
+
+  .stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .stat-trend svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+
+  .stat-sparkline {
+    height: 24px;
+    width: 100%;
+  }
+
+  .stat-sparkline svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* ============================================================
+     FILTER BAR
+     ============================================================ */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .filter-tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid transparent;
+  }
+
+  .filter-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .filter-tab.active {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.12);
+    padding: 5px 11px;
+  }
+
+  .filter-tab .tab-count {
+    font-size: 9px;
+    opacity: 0.7;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .filter-bar-search {
+    flex: 1;
+    max-width: 320px;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .filter-bar-search input {
+    width: 100%;
+    height: 34px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .filter-bar-search input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .filter-bar-search input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+  }
+
+  .filter-bar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  .filter-bar-search:focus-within .filter-bar-search-icon {
+    color: var(--accent-cyan);
+  }
+
+  .filter-bar-search-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .sort-dropdown {
+    position: relative;
+  }
+
+  .sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .sort-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+  }
+
+  .sort-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.2s ease;
+  }
+
+  .sort-dropdown.open .sort-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .sort-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .sort-dropdown.open .sort-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .sort-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .sort-menu-item:hover {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .sort-menu-item.active {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .sort-menu-item .check {
+    margin-left: auto;
+    opacity: 0;
+    color: var(--accent-cyan);
+  }
+
+  .sort-menu-item.active .check {
+    opacity: 1;
+  }
+
+  /* ============================================================
+     TOOLS GRID
+     ============================================================ */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    padding-bottom: 24px;
+  }
+
+  .tool-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 229, 255, 0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .tool-card.mcp::before {
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(168, 85, 247, 0.06), transparent 60%);
+  }
+
+  .tool-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 229, 255, 0.08);
+  }
+
+  .tool-card.mcp:hover {
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.08);
+  }
+
+  .tool-card:hover::before {
+    opacity: 1;
+  }
+
+  .tool-card.disabled {
+    opacity: 0.55;
+  }
+
+  .tool-card.disabled:hover {
+    opacity: 0.75;
+  }
+
+  .tool-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .tool-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+  }
+
+  .tool-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .tool-icon.builtin {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.05));
+    color: var(--accent-cyan);
+  }
+
+  .tool-icon.mcp {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
+    color: var(--accent-purple);
+  }
+
+  .tool-card-top-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    width: fit-content;
+  }
+
+  .type-badge.builtin {
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    border: 1px solid var(--border-strong);
+  }
+
+  .type-badge.mcp {
+    background: var(--accent-purple-glow);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+  }
+
+  .type-badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 4px currentColor;
+  }
+
+  /* Toggle switch */
+  .toggle-switch {
+    width: 38px;
+    height: 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .toggle-switch:hover {
+    border-color: var(--border-medium);
+  }
+
+  .toggle-switch.on {
+    background: var(--accent-cyan-glow);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 6px rgba(0, 229, 255, 0.1);
+  }
+
+  .toggle-switch.on::after {
+    left: 20px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
+  }
+
+  .tool-card-body {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+
+  .tool-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    letter-spacing: -0.01em;
+  }
+
+  .tool-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .tool-endpoint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-purple-dim);
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 4px 8px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .tool-endpoint svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+  .tool-endpoint span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tool-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    padding: 2px 6px;
+    background: var(--bg-panel-2);
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 10px;
+  }
+
+  .tool-version::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .tool-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    margin-top: auto;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
+    z-index: 1;
+    gap: 8px;
+  }
+
+  .tool-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .tool-status .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 5px var(--accent-green);
+  }
+
+  .tool-status.off {
+    color: var(--text-muted);
+  }
+
+  .tool-status.off .status-dot {
+    background: var(--text-muted);
+    box-shadow: none;
+  }
+
+  .configure-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .configure-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+
+  .tool-card.mcp .configure-btn:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+  }
+
+  .configure-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .empty-state svg {
+    width: 40px;
+    height: 40px;
+    stroke: var(--text-muted);
+    fill: none;
+    stroke-width: 1.4;
+    margin-bottom: 12px;
+  }
+
+  /* ============================================================
+     MCP MODAL
+     ============================================================ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 16, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.2s ease;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 40px rgba(168, 85, 247, 0.08);
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    gap: 12px;
+  }
+
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .modal-title-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
+    color: var(--accent-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .modal-title-icon svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .modal-close:hover {
+    color: var(--accent-coral);
+    border-color: var(--accent-coral-dim);
+    background: var(--accent-coral-glow);
+  }
+
+  .modal-close svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+  }
+
+  .modal-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .modal-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+
+  .mcp-server-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .mcp-server-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .mcp-server-row:hover {
+    border-color: var(--border-medium);
+  }
+
+  .mcp-server-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
+    color: var(--accent-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+  }
+
+  .mcp-server-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .mcp-server-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mcp-server-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+
+  .mcp-server-endpoint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mcp-server-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .mcp-server-status.connected {
+    color: var(--accent-green);
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+  }
+
+  .mcp-server-status.disconnected {
+    color: var(--accent-coral);
+    background: var(--accent-coral-glow);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .mcp-server-status::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 4px currentColor;
+  }
+
+  .mcp-server-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .mcp-icon-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .mcp-icon-btn:hover {
+    color: var(--accent-cyan);
+    border-color: var(--border-medium);
+    background: rgba(0, 229, 255, 0.05);
+  }
+
+  .mcp-icon-btn.danger:hover {
+    color: var(--accent-coral);
+    border-color: var(--accent-coral-dim);
+    background: var(--accent-coral-glow);
+  }
+
+  .mcp-icon-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+  /* Add server form */
+  .mcp-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .mcp-form-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .mcp-form-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .mcp-form-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .mcp-form-input {
+    height: 32px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .mcp-form-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .mcp-form-input:focus {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px var(--accent-purple-glow);
+  }
+
+  .mcp-form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 2px;
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    min-width: 240px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .toast.show {
+    transform: translateX(0);
+  }
+
+  .toast::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--toast-color, var(--accent-cyan));
+    box-shadow: 0 0 8px var(--toast-color, var(--accent-cyan));
+  }
+
+  .toast-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--toast-glow, var(--accent-cyan-glow));
+    color: var(--toast-color, var(--accent-cyan));
+  }
+
+  .toast-icon svg {
     width: 12px;
     height: 12px;
     stroke: currentColor;
@@ -1711,58 +1754,21 @@
     stroke-width: 2.5;
   }
 
-  /* Empty state for right panel */
-  .empty-detail {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    text-align: center;
-  }
-
-  .empty-detail-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    background: var(--bg-panel-2);
-    border: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
-    color: var(--text-muted);
-  }
-
-  .empty-detail-icon svg {
-    width: 22px;
-    height: 22px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.5;
-  }
-
-  .empty-detail-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-  }
-
-  .empty-detail-desc {
-    font-size: 11px;
-    color: var(--text-muted);
+  .toast-text {
+    flex: 1;
     font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .toast-text .toast-tool {
+    color: var(--toast-color, var(--accent-cyan));
+    font-weight: 600;
   }
 
   /* ============================================================
      ANIMATIONS
      ============================================================ */
-  .animate-in {
-    animation: fadeInUp 0.4s ease forwards;
-    opacity: 0;
-  }
-
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -1774,869 +1780,1146 @@
     }
   }
 
-  .delay-1 { animation-delay: 0.05s; }
-  .delay-2 { animation-delay: 0.1s; }
-  .delay-3 { animation-delay: 0.15s; }
-  .delay-4 { animation-delay: 0.2s; }
+  .tool-card {
+    animation: fadeInUp 0.4s ease backwards;
+  }
+
+  .tool-card:nth-child(1) { animation-delay: 0.02s; }
+  .tool-card:nth-child(2) { animation-delay: 0.05s; }
+  .tool-card:nth-child(3) { animation-delay: 0.08s; }
+  .tool-card:nth-child(4) { animation-delay: 0.11s; }
+  .tool-card:nth-child(5) { animation-delay: 0.14s; }
+  .tool-card:nth-child(6) { animation-delay: 0.17s; }
+  .tool-card:nth-child(7) { animation-delay: 0.20s; }
+  .tool-card:nth-child(8) { animation-delay: 0.23s; }
+  .tool-card:nth-child(9) { animation-delay: 0.26s; }
+  .tool-card:nth-child(10) { animation-delay: 0.29s; }
+  .tool-card:nth-child(11) { animation-delay: 0.32s; }
+  .tool-card:nth-child(12) { animation-delay: 0.35s; }
+  .tool-card:nth-child(13) { animation-delay: 0.38s; }
+  .tool-card:nth-child(14) { animation-delay: 0.41s; }
+
+  .stat-card {
+    animation: fadeInUp 0.4s ease backwards;
+  }
+  .stat-card:nth-child(1) { animation-delay: 0.02s; }
+  .stat-card:nth-child(2) { animation-delay: 0.06s; }
+  .stat-card:nth-child(3) { animation-delay: 0.10s; }
+  .stat-card:nth-child(4) { animation-delay: 0.14s; }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1200px) {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .tools-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .app-shell {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "topbar"
+        "main";
+    }
+    .sidebar {
+      display: none;
+    }
+    .main-content {
+      padding: 16px;
+    }
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
+    .filter-bar {
+      gap: 8px;
+    }
+    .filter-bar-search {
+      max-width: none;
+      order: 3;
+      flex-basis: 100%;
+    }
+    .tools-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
 <body>
+  <div class="app-shell">
 
-<div class="app-shell">
-
-  <!-- ============================================================
-       LEFT SIDEBAR
-       ============================================================ -->
-  <aside class="sidebar">
-    <!-- Logo -->
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
-          <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
-        </svg>
-      </div>
-      <span class="sidebar-logo-text">Agent<span>Forge</span></span>
-      <span class="sidebar-logo-tag">v2.4</span>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Workspace</div>
-
-      <a href="dashboard.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </span>
-        <span>Chats</span>
-      </a>
-
-      <a href="agents.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
-        </span>
-        <span>Agents</span>
-        <span class="nav-item-badge">12</span>
-      </a>
-
-      <a href="scheduled-tasks.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
-        </span>
-        <span>Scheduled Tasks</span>
-      </a>
-
-      <a href="runs.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </span>
-        <span>Runs</span>
-      </a>
-
-      <div class="nav-section-label">Build</div>
-
-      <a href="workflows.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </span>
-        <span>Workflows</span>
-        <span class="nav-item-badge cyan">5</span>
-      </a>
-
-      <a href="editor.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </span>
-        <span>Editor</span>
-      </a>
-
-      <a href="debugger.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        </span>
-        <span>Debugger</span>
-      </a>
-
-      <div class="nav-section-label">Skills & Tools</div>
-
-      <a href="skills.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </span>
-        <span>Skills</span>
-      </a>
-
-      <a href="tools.html" class="nav-item active">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        </span>
-        <span>Tools</span>
-      </a>
-
-      <a href="models.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </span>
-        <span>Models</span>
-      </a>
-
-      <div class="nav-section-label">Data</div>
-
-      <a href="datasets.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        </span>
-        <span>Datasets</span>
-      </a>
-
-      <a href="vector-stores.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        </span>
-        <span>Vector Stores</span>
-        <span class="nav-item-badge">3</span>
-      </a>
-
-      <a href="memory.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </span>
-        <span>Memory</span>
-      </a>
-
-      <div class="nav-section-label">Observability</div>
-
-      <a href="traces.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </span>
-        <span>Traces</span>
-      </a>
-
-      <a href="evaluations.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-        </span>
-        <span>Evaluations</span>
-      </a>
-
-      <a href="logs.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        </span>
-        <span>Logs</span>
-      </a>
-
-      <div class="nav-section-label">Settings</div>
-
-      <a href="api-keys.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        </span>
-        <span>API Keys</span>
-      </a>
-
-      <a href="team.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        </span>
-        <span>Team</span>
-      </a>
-    </nav>
-
-    <!-- User Profile -->
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="user-avatar">JH</div>
-        <div class="user-info">
-          <div class="user-name">Jialun Huang</div>
-          <div class="user-role">Pro Plan</div>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- ============================================================
-       TOP BAR
-       ============================================================ -->
-  <header class="topbar">
-    <div class="topbar-breadcrumb">
-      <span>workspace</span>
-      <span class="crumb-sep">/</span>
-      <span class="crumb-current">Tools</span>
-    </div>
-
-    <div class="topbar-search">
-      <span class="topbar-search-icon">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </span>
-      <input type="text" id="toolSearch" placeholder="Search tools..." />
-    </div>
-
-    <div class="category-tabs" id="categoryTabs">
-      <div class="category-tab active" data-category="all">All</div>
-      <div class="category-tab" data-category="built-in">Built-in</div>
-      <div class="category-tab" data-category="mcp">MCP</div>
-    </div>
-
-    <div class="topbar-actions">
-      <button class="btn-primary" id="addToolBtn">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Tool
-      </button>
-    </div>
-  </header>
-
-  <!-- ============================================================
-       MAIN CONTENT
-       ============================================================ -->
-  <main class="main-content">
-    <!-- Page Header -->
-    <div class="page-header animate-in">
-      <div class="page-title-group">
-        <h1 class="page-title">
-          <span class="title-prefix">//</span>
-          Tools Management
-        </h1>
-        <div class="page-subtitle">
-          <span class="status-indicator"></span>
-          28 tools configured &middot; 24 active
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Row -->
-    <div class="stats-grid animate-in delay-1">
-      <div class="stat-card">
-        <div class="stat-card-icon cyan">
-          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        </div>
-        <div class="stat-card-label">Total Tools</div>
-        <div class="stat-card-value" data-target="28">28</div>
-        <div class="stat-card-footer">
-          <span class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            12.5%
-          </span>
-          <span class="stat-period">vs last month</span>
-        </div>
-        <div class="stat-sparkline">
-          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-            <path d="M0,30 L20,25 L40,28 L60,18 L80,20 L100,12 L120,8" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+    <!-- ============================================================
+         LEFT SIDEBAR
+         ============================================================ -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="24" height="24" rx="4" stroke="#00e5ff" stroke-width="2"/>
+            <path d="M10 16h4l2-4 2 8 2-4h4" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="16" cy="16" r="2" fill="#ff6b6b"/>
           </svg>
         </div>
+        <span class="sidebar-logo-text">Agent<span>Forge</span></span>
+        <span class="sidebar-logo-tag">v2.4</span>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-card-icon green">
-          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-        <div class="stat-card-label">Active</div>
-        <div class="stat-card-value" data-target="24">24</div>
-        <div class="stat-card-footer">
-          <span class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            8.3%
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Workspace</div>
+
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           </span>
-          <span class="stat-period">vs last month</span>
-        </div>
-        <div class="stat-sparkline">
-          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-            <path d="M0,28 L20,22 L40,25 L60,15 L80,18 L100,10 L120,6" stroke="#2ed573" stroke-width="1.5" fill="none"/>
-          </svg>
-        </div>
-      </div>
+          <span>Chats</span>
+        </a>
 
-      <div class="stat-card">
-        <div class="stat-card-icon amber">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><polyline points="17 6 23 6 23 12"/></svg>
-        </div>
-        <div class="stat-card-label">Total Calls Today</div>
-        <div class="stat-card-value" data-target="12.4" data-decimals="1">12.4<span class="value-suffix">k</span></div>
-        <div class="stat-card-footer">
-          <span class="stat-trend up">
-            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            23.1%
+        <a href="agents.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
           </span>
-          <span class="stat-period">vs yesterday</span>
-        </div>
-        <div class="stat-sparkline">
-          <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-            <path d="M0,32 L20,28 L40,20 L60,22 L80,14 L100,10 L120,4" stroke="#ffa502" stroke-width="1.5" fill="none"/>
-          </svg>
+          <span>Agents</span>
+          <span class="nav-item-badge">12</span>
+        </a>
+
+        <a href="scheduled-tasks.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+          </span>
+          <span>Scheduled Tasks</span>
+        </a>
+
+        <a href="runs.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </span>
+          <span>Runs</span>
+        </a>
+
+        <div class="nav-section-label">Build</div>
+
+        <a href="workflows.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </span>
+          <span>Workflows</span>
+          <span class="nav-item-badge cyan">5</span>
+        </a>
+
+        <a href="editor.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </span>
+          <span>Editor</span>
+        </a>
+
+        <a href="debugger.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          </span>
+          <span>Debugger</span>
+        </a>
+
+        <div class="nav-section-label">Skills &amp; Tools</div>
+
+        <a href="skills.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </span>
+          <span>Skills</span>
+        </a>
+
+        <a href="tools.html" class="nav-item active">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </span>
+          <span>Tools</span>
+        </a>
+
+        <a href="models.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </span>
+          <span>Models</span>
+        </a>
+
+        <div class="nav-section-label">Data</div>
+
+        <a href="datasets.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </span>
+          <span>Datasets</span>
+        </a>
+
+        <a href="vector-stores.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span>Vector Stores</span>
+          <span class="nav-item-badge">3</span>
+        </a>
+
+        <a href="memory.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </span>
+          <span>Memory</span>
+        </a>
+
+        <div class="nav-section-label">Observability</div>
+
+        <a href="traces.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span>Traces</span>
+        </a>
+
+        <a href="evaluations.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </span>
+          <span>Evaluations</span>
+        </a>
+
+        <a href="logs.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+          </span>
+          <span>Logs</span>
+        </a>
+
+        <div class="nav-section-label">Settings</div>
+
+        <a href="api-keys.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </span>
+          <span>API Keys</span>
+        </a>
+
+        <a href="team.html" class="nav-item">
+          <span class="nav-item-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </span>
+          <span>Team</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">JH</div>
+          <div class="user-info">
+            <div class="user-name">Jialun Huang</div>
+            <div class="user-role">Pro Plan</div>
+          </div>
+          <svg class="user-more" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
         </div>
       </div>
-    </div>
+    </aside>
 
-    <!-- Tools Table -->
-    <div class="tools-table-container animate-in delay-2">
-      <table class="tools-table" id="toolsTable">
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Tool Name</th>
-            <th>Type</th>
-            <th>Provider</th>
-            <th>Calls Today</th>
-            <th>Success Rate</th>
-            <th>Latency</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="toolsTableBody">
-          <!-- Rows will be populated by JS -->
-        </tbody>
-      </table>
-    </div>
-  </main>
+    <!-- ============================================================
+         TOP BAR
+         ============================================================ -->
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>workspace</span>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current">Tools</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-btn" title="Refresh" onclick="this.querySelector('svg').style.animation='spin 0.6s ease'; setTimeout(()=>this.querySelector('svg').style.animation='',600)">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </button>
+        <button class="topbar-btn" title="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="btn-primary" onclick="openMCPConfig()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Tool
+        </button>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <main class="main-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title"><span class="title-bracket">//</span>Tools</h1>
+          <div class="page-subtitle">
+            <span id="totalCount">14</span> tools
+            <span class="sep">·</span>
+            <span><span id="enabledCount">12</span> enabled</span>
+            <span class="sep">·</span>
+            <span><span id="mcpCount">4</span> MCP</span>
+            <span class="sep">·</span>
+            <span class="status-indicator">all systems operational</span>
+          </div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn-ghost" onclick="openMCPConfig()">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            Configure MCP
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card" style="--stat-color: var(--accent-cyan);">
+          <div class="stat-card-top">
+            <div class="stat-icon cyan">
+              <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">14</div>
+          <div class="stat-label">Total Tools</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,18 12,14 24,16 36,10 48,12 60,7 72,9 84,5 100,6" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,18 12,14 24,16 36,10 48,12 60,7 72,9 84,5 100,6 100,24 0,24" fill="rgba(0,229,255,0.08)" stroke="none"/></svg>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--stat-color: var(--accent-green);">
+          <div class="stat-card-top">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">10</div>
+          <div class="stat-label">Built-in</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,16 14,12 28,14 42,8 56,11 70,6 84,9 100,7" fill="none" stroke="#2ed573" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,16 14,12 28,14 42,8 56,11 70,6 84,9 100,7 100,24 0,24" fill="rgba(46,213,115,0.08)" stroke="none"/></svg>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--stat-color: var(--accent-purple);">
+          <div class="stat-card-top">
+            <div class="stat-icon purple">
+              <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">4</div>
+          <div class="stat-label">MCP Servers</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,20 16,16 32,17 48,12 64,14 80,8 100,10" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,20 16,16 32,17 48,12 64,14 80,8 100,10 100,24 0,24" fill="rgba(168,85,247,0.08)" stroke="none"/></svg>
+          </div>
+        </div>
+
+        <div class="stat-card" style="--stat-color: var(--accent-amber);">
+          <div class="stat-card-top">
+            <div class="stat-icon amber">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="stat-trend">
+              <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+              +2
+            </span>
+          </div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">Enabled</div>
+          <div class="stat-sparkline">
+            <svg viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,20 14,18 28,15 42,13 56,10 70,8 84,6 100,4" fill="none" stroke="#ffa502" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="0,20 14,18 28,15 42,13 56,10 70,8 84,6 100,4 100,24 0,24" fill="rgba(255,165,2,0.08)" stroke="none"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-tabs">
+          <div class="filter-tab active" data-filter="all" onclick="filterTools('all')">All <span class="tab-count">14</span></div>
+          <div class="filter-tab" data-filter="builtin" onclick="filterTools('builtin')">Built-in <span class="tab-count">10</span></div>
+          <div class="filter-tab" data-filter="mcp" onclick="filterTools('mcp')">MCP <span class="tab-count">4</span></div>
+        </div>
+        <div class="filter-bar-search">
+          <span class="filter-bar-search-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="text" id="toolSearch" placeholder="Search tools..." oninput="searchTools(this.value)" />
+        </div>
+        <div class="sort-dropdown" id="sortDropdown">
+          <button class="sort-btn" id="sortBtn" onclick="event.stopPropagation(); document.getElementById('sortDropdown').classList.toggle('open')">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
+            <span id="sortLabel">Name A-Z</span>
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sort-menu">
+            <div class="sort-menu-item active" data-sort="name-asc" onclick="sortTools('name-asc', this)">Name A-Z<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="name-desc" onclick="sortTools('name-desc', this)">Name Z-A<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="type" onclick="sortTools('type', this)">Type<span class="check">✓</span></div>
+            <div class="sort-menu-item" data-sort="enabled" onclick="sortTools('enabled', this)">Enabled First<span class="check">✓</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tools Grid -->
+      <div class="tools-grid" id="toolsGrid">
+
+        <!-- 1. search_web -->
+        <div class="tool-card" data-type="builtin" data-name="search_web" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'search_web')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">search_web</div>
+            <div class="tool-desc">Web search via Google/Bing. Returns ranked results with snippets, URLs and metadata for grounding agent responses.</div>
+            <div class="tool-version">v2.1</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('search_web')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. code_interpreter -->
+        <div class="tool-card" data-type="builtin" data-name="code_interpreter" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'code_interpreter')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">code_interpreter</div>
+            <div class="tool-desc">Python 3.11 code execution in a sandboxed runtime. Supports data analysis, plotting and stateful variable reuse.</div>
+            <div class="tool-version">v3.0</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('code_interpreter')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. file_manager -->
+        <div class="tool-card" data-type="builtin" data-name="file_manager" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'file_manager')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">file_manager</div>
+            <div class="tool-desc">File CRUD operations with path-safe sandboxing. Read, write, list and delete across the workspace volume.</div>
+            <div class="tool-version">v1.5</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('file_manager')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. url_fetcher -->
+        <div class="tool-card" data-type="builtin" data-name="url_fetcher" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'url_fetcher')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">url_fetcher</div>
+            <div class="tool-desc">Fetch and parse web pages into clean markdown. Handles JS-rendered content, rate limits and retries.</div>
+            <div class="tool-version">v2.3</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('url_fetcher')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. calculator -->
+        <div class="tool-card" data-type="builtin" data-name="calculator" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'calculator')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">calculator</div>
+            <div class="tool-desc">Math expression evaluator with safe parsing. Supports arithmetic, trig, statistics and unit conversions.</div>
+            <div class="tool-version">v1.2</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('calculator')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 6. datetime -->
+        <div class="tool-card" data-type="builtin" data-name="datetime" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'datetime')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">datetime</div>
+            <div class="tool-desc">Date and time utilities. Format, parse, compare and compute durations across timezones with DST awareness.</div>
+            <div class="tool-version">v1.0</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('datetime')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 7. json_handler -->
+        <div class="tool-card" data-type="builtin" data-name="json_handler" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 00-2 2v5a2 2 0 01-2 2 2 2 0 01-2-2"/><path d="M16 21h1a2 2 0 002-2v-5a2 2 0 012-2 2 2 0 012 2"/><path d="M8 21H7a2 2 0 01-2-2v-5a2 2 0 00-2-2 2 2 0 00-2 2"/><path d="M16 3h1a2 2 0 012 2v5a2 2 0 002 2 2 2 0 002-2"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'json_handler')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">json_handler</div>
+            <div class="tool-desc">JSON parse, validate and transform. Supports JSONPath queries, schema validation and deep merge.</div>
+            <div class="tool-version">v2.0</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('json_handler')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 8. shell_exec -->
+        <div class="tool-card" data-type="builtin" data-name="shell_exec" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'shell_exec')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">shell_exec</div>
+            <div class="tool-desc">Shell command execution in a sandboxed container. Allowlist filtering, timeout enforcement and stdout capture.</div>
+            <div class="tool-version">v1.8</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('shell_exec')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 9. image_gen -->
+        <div class="tool-card disabled" data-type="builtin" data-name="image_gen" data-enabled="false">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch" onclick="toggleTool(this, 'image_gen')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">image_gen</div>
+            <div class="tool-desc">DALL-E image generation. Text-to-image with style presets, size options and async polling for high-res outputs.</div>
+            <div class="tool-version">v1.1</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status off"><span class="status-dot"></span>Disabled</div>
+            <button class="configure-btn" onclick="configureTool('image_gen')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 10. pdf_reader -->
+        <div class="tool-card" data-type="builtin" data-name="pdf_reader" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon builtin">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge builtin">Built-in</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'pdf_reader')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">pdf_reader</div>
+            <div class="tool-desc">PDF text extraction with layout preservation. OCR fallback for scanned docs, table detection and page-level chunking.</div>
+            <div class="tool-version">v1.3</div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Active</div>
+            <button class="configure-btn" onclick="configureTool('pdf_reader')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 11. github_mcp -->
+        <div class="tool-card mcp" data-type="mcp" data-name="github_mcp" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon mcp">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.5a3 3 0 00-1-2.3c3-.3 6-1.5 6-6.5a4.6 4.6 0 00-1.3-3.2 4.3 4.3 0 00-.1-3.2s-1-.3-3.5 1.3a12 12 0 00-6 0C6.5 2 5.5 2.3 5.5 2.3a4.3 4.3 0 00-.1 3.2A4.6 4.6 0 004 8.7c0 5 3 6.2 6 6.5a3 3 0 00-1 2.3V22"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge mcp">MCP</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'github_mcp')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">github_mcp</div>
+            <div class="tool-desc">GitHub API access — repos, pull requests, issues and actions. Read/write with scoped tokens and webhook events.</div>
+            <div class="tool-endpoint">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>mcp://github:3000</span>
+            </div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Connected</div>
+            <button class="configure-btn" onclick="configureTool('github_mcp')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 12. slack_mcp -->
+        <div class="tool-card mcp" data-type="mcp" data-name="slack_mcp" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon mcp">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge mcp">MCP</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'slack_mcp')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">slack_mcp</div>
+            <div class="tool-desc">Slack messaging API. Send messages, search channels, manage threads and react — all with workspace-scoped permissions.</div>
+            <div class="tool-endpoint">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>mcp://slack:3000</span>
+            </div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Connected</div>
+            <button class="configure-btn" onclick="configureTool('slack_mcp')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 13. postgres_mcp -->
+        <div class="tool-card mcp" data-type="mcp" data-name="postgres_mcp" data-enabled="true">
+          <div class="tool-card-top">
+            <div class="tool-icon mcp">
+              <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge mcp">MCP</span>
+            </div>
+            <div class="toggle-switch on" onclick="toggleTool(this, 'postgres_mcp')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">postgres_mcp</div>
+            <div class="tool-desc">PostgreSQL query tool. Run parameterized SQL, introspect schemas and stream large result sets safely.</div>
+            <div class="tool-endpoint">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>mcp://postgres:5432</span>
+            </div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status"><span class="status-dot"></span>Connected</div>
+            <button class="configure-btn" onclick="configureTool('postgres_mcp')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+        <!-- 14. filesystem_mcp -->
+        <div class="tool-card mcp disabled" data-type="mcp" data-name="filesystem_mcp" data-enabled="false">
+          <div class="tool-card-top">
+            <div class="tool-icon mcp">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            </div>
+            <div class="tool-card-top-meta">
+              <span class="type-badge mcp">MCP</span>
+            </div>
+            <div class="toggle-switch" onclick="toggleTool(this, 'filesystem_mcp')"></div>
+          </div>
+          <div class="tool-card-body">
+            <div class="tool-name">filesystem_mcp</div>
+            <div class="tool-desc">Filesystem access across local and mounted volumes. Browse, read and write with configurable root allowlists.</div>
+            <div class="tool-endpoint">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>mcp://fs:8080</span>
+            </div>
+          </div>
+          <div class="tool-card-bottom">
+            <div class="tool-status off"><span class="status-dot"></span>Disconnected</div>
+            <button class="configure-btn" onclick="configureTool('filesystem_mcp')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              Configure
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
 
   <!-- ============================================================
-       RIGHT SIDEBAR - TOOL DETAILS
+       MCP CONFIGURATION MODAL
        ============================================================ -->
-  <aside class="rightbar">
-    <div class="rightbar-header">
-      <div class="rightbar-title">Tool Details</div>
-    </div>
-
-    <div id="toolDetailContent">
-      <div class="empty-detail">
-        <div class="empty-detail-icon">
-          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+  <div class="modal-overlay" id="mcpModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="modal-title-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          MCP Server Configuration
         </div>
-        <div class="empty-detail-title">Select a tool</div>
-        <div class="empty-detail-desc">Click any tool row to view details</div>
+        <button class="modal-close" onclick="closeMCPConfig()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-    </div>
-  </aside>
-</div>
+      <div class="modal-body">
+        <div class="modal-section-label">Connected Servers</div>
+        <div class="mcp-server-list" id="mcpServerList">
+          <div class="mcp-server-row">
+            <div class="mcp-server-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.5a3 3 0 00-1-2.3c3-.3 6-1.5 6-6.5a4.6 4.6 0 00-1.3-3.2 4.3 4.3 0 00-.1-3.2s-1-.3-3.5 1.3a12 12 0 00-6 0C6.5 2 5.5 2.3 5.5 2.3a4.3 4.3 0 00-.1 3.2A4.6 4.6 0 004 8.7c0 5 3 6.2 6 6.5a3 3 0 00-1 2.3V22"/></svg>
+            </div>
+            <div class="mcp-server-info">
+              <div class="mcp-server-name">github_mcp</div>
+              <div class="mcp-server-endpoint">mcp://github:3000</div>
+            </div>
+            <span class="mcp-server-status connected">Connected</span>
+            <div class="mcp-server-actions">
+              <button class="mcp-icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="mcp-icon-btn danger" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+          </div>
+          <div class="mcp-server-row">
+            <div class="mcp-server-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            </div>
+            <div class="mcp-server-info">
+              <div class="mcp-server-name">slack_mcp</div>
+              <div class="mcp-server-endpoint">mcp://slack:3000</div>
+            </div>
+            <span class="mcp-server-status connected">Connected</span>
+            <div class="mcp-server-actions">
+              <button class="mcp-icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="mcp-icon-btn danger" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+          </div>
+          <div class="mcp-server-row">
+            <div class="mcp-server-icon">
+              <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div class="mcp-server-info">
+              <div class="mcp-server-name">postgres_mcp</div>
+              <div class="mcp-server-endpoint">mcp://postgres:5432</div>
+            </div>
+            <span class="mcp-server-status connected">Connected</span>
+            <div class="mcp-server-actions">
+              <button class="mcp-icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="mcp-icon-btn danger" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+          </div>
+          <div class="mcp-server-row">
+            <div class="mcp-server-icon">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            </div>
+            <div class="mcp-server-info">
+              <div class="mcp-server-name">filesystem_mcp</div>
+              <div class="mcp-server-endpoint">mcp://fs:8080</div>
+            </div>
+            <span class="mcp-server-status disconnected">Disconnected</span>
+            <div class="mcp-server-actions">
+              <button class="mcp-icon-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="mcp-icon-btn danger" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+          </div>
+        </div>
 
-<!-- ============================================================
-     TEST TOOL MODAL
-     ============================================================ -->
-<div class="modal-overlay" id="testModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">
-        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Test Tool: <span id="modalToolName">Tavily Search</span>
-      </div>
-      <button class="modal-close" id="modalClose">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-field">
-        <label>Input Parameters</label>
-        <textarea id="testInput" placeholder="Enter search query...">latest AI developments in 2026</textarea>
-      </div>
-      <div class="modal-field">
-        <label>Response</label>
-        <div class="modal-result" id="testResult">
-<span class="result-key">status</span>: <span class="result-string">"success"</span>,
-<span class="result-key">results</span>: [
-  {
-    <span class="result-key">title</span>: <span class="result-string">"AI Breakthroughs in 2026"</span>,
-    <span class="result-key">url</span>: <span class="result-string">"https://example.com/ai-2026"</span>,
-    <span class="result-key">content</span>: <span class="result-string">"Major advancements in multimodal models..."</span>
-  },
-  {
-    <span class="result-key">title</span>: <span class="result-string">"Agent Systems Evolution"</span>,
-    <span class="result-key">url</span>: <span class="result-string">"https://example.com/agents"</span>,
-    <span class="result-key">content</span>: <span class="result-string">"Autonomous agents reshape workflows..."</span>
-  }
-],
-<span class="result-key">latency_ms</span>: <span class="result-number">247</span>,
-<span class="result-key">results_count</span>: <span class="result-number">5</span>
+        <div class="modal-section-label">Add New Server</div>
+        <div class="mcp-add-form">
+          <div class="mcp-form-row">
+            <div class="mcp-form-field">
+              <label class="mcp-form-label">Server Name</label>
+              <input type="text" class="mcp-form-input" placeholder="my_server_mcp" />
+            </div>
+            <div class="mcp-form-field">
+              <label class="mcp-form-label">Endpoint</label>
+              <input type="text" class="mcp-form-input" placeholder="mcp://host:port" />
+            </div>
+          </div>
+          <div class="mcp-form-field">
+            <label class="mcp-form-label">Auth Token</label>
+            <input type="password" class="mcp-form-input" placeholder="••••••••••••••••" />
+          </div>
+          <div class="mcp-form-actions">
+            <button class="btn-ghost" onclick="closeMCPConfig()">Cancel</button>
+            <button class="btn-primary" onclick="addMCPServer()">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Server
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost" id="modalCancel">Cancel</button>
-      <button class="btn-purple" id="runTestBtn">
-        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Run Test
-      </button>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeMCPConfig()">Close</button>
+        <button class="btn-primary" onclick="saveMCPConfig()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Changes
+        </button>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div class="toast-container" id="toastContainer"></div>
 
 <script>
   // ============================================================
-  // TOOLS DATA
+  // 1. filterTools(type) — filter cards by Built-in / MCP / All
   // ============================================================
-  const toolsData = [
-    { id: 1, name: 'Tavily Search', icon: '🔍', desc: 'Web search and content retrieval', type: 'built-in', provider: 'Tavily', status: 'active', calls: 2847, success: 98.5, latency: 247,
-      config: { api_key: 'tvly-xxx...', search_depth: 'advanced', max_results: 5, include_answer: true, include_images: false },
-      usage: [1800, 2100, 1950, 2400, 2600, 2300, 2847] },
-    { id: 2, name: 'Jina Reader', icon: '📄', desc: 'URL content extraction and parsing', type: 'built-in', provider: 'Jina', status: 'active', calls: 1923, success: 97.2, latency: 312,
-      config: { api_key: 'jina_xxx...', mode: 'markdown', timeout: 30000, retry_count: 2 },
-      usage: [1200, 1400, 1600, 1800, 1750, 1900, 1923] },
-    { id: 3, name: 'File System', icon: '📁', desc: 'Read and write local files', type: 'built-in', provider: 'Built-in', status: 'active', calls: 3421, success: 99.8, latency: 12,
-      config: { allowed_paths: ['/workspace', '/data'], max_file_size: '50MB', allowed_extensions: ['txt', 'md', 'json', 'py', 'js'] },
-      usage: [2800, 3000, 3200, 3100, 3300, 3400, 3421] },
-    { id: 4, name: 'Python Executor', icon: '🐍', desc: 'Execute Python code in sandbox', type: 'built-in', provider: 'Built-in', status: 'active', calls: 1654, success: 94.3, latency: 890,
-      config: { runtime: 'python3.11', timeout: 30000, memory_limit: '512MB', network_access: false },
-      usage: [1100, 1300, 1500, 1450, 1600, 1700, 1654] },
-    { id: 5, name: 'PostgreSQL Query', icon: '🐘', desc: 'Execute SQL queries on database', type: 'mcp', provider: 'PostgreSQL', status: 'active', calls: 892, success: 96.1, latency: 45,
-      config: { host: 'db.internal', port: 5432, database: 'production', read_only: true, max_rows: 1000 },
-      usage: [600, 700, 750, 800, 850, 880, 892] },
-    { id: 6, name: 'Redis Cache', icon: '⚡', desc: 'Redis key-value store operations', type: 'mcp', provider: 'Redis', status: 'active', calls: 2156, success: 99.9, latency: 3,
-      config: { host: 'cache.internal', port: 6379, db: 0, ttl_default: 3600, max_connections: 50 },
-      usage: [1800, 1900, 2000, 2050, 2100, 2120, 2156] },
-    { id: 7, name: 'GitHub API', icon: '🐙', desc: 'Interact with GitHub repositories', type: 'mcp', provider: 'GitHub', status: 'active', calls: 534, success: 95.7, latency: 180,
-      config: { token: 'ghp_xxx...', base_url: 'https://api.github.com', rate_limit_safety: 0.8, default_repo: 'agentforge/core' },
-      usage: [300, 380, 420, 460, 490, 510, 534] },
-    { id: 8, name: 'Slack Notifier', icon: '💬', desc: 'Send messages to Slack channels', type: 'mcp', provider: 'Slack', status: 'degraded', calls: 287, success: 87.3, latency: 95,
-      config: { webhook_url: 'https://hooks.slack.com/xxx', default_channel: '#alerts', username: 'AgentForge Bot' },
-      usage: [200, 220, 250, 270, 280, 275, 287] },
-    { id: 9, name: 'Feishu Docs', icon: '📝', desc: 'Read and write Feishu documents', type: 'mcp', provider: 'Feishu', status: 'active', calls: 412, success: 93.8, latency: 156,
-      config: { app_id: 'cli_xxx...', app_secret: 'xxx...', tenant_access_token: 'cached' },
-      usage: [280, 320, 350, 380, 400, 410, 412] },
-    { id: 10, name: 'SerpAPI Search', icon: '🔎', desc: 'Google search results via API', type: 'built-in', provider: 'SerpAPI', status: 'disabled', calls: 0, success: 0, latency: 0,
-      config: { api_key: 'serp_xxx...', engine: 'google', location: 'United States', num_results: 10 },
-      usage: [0, 0, 0, 0, 0, 0, 0] },
-    { id: 11, name: 'Code Interpreter', icon: '💻', desc: 'Multi-language code execution', type: 'built-in', provider: 'OpenAI', status: 'active', calls: 768, success: 91.2, latency: 1200,
-      config: { model: 'gpt-4-code-interpreter', allowed_languages: ['python', 'javascript'], timeout: 60000 },
-      usage: [500, 580, 640, 680, 720, 750, 768] },
-    { id: 12, name: 'MCP: Browser', icon: '🌐', desc: 'Browser automation via MCP', type: 'mcp', provider: 'MCP', status: 'active', calls: 623, success: 89.5, latency: 2400,
-      config: { mcp_server: 'browser-mcp', headless: true, default_viewport: '1280x720', timeout: 30000 },
-      usage: [400, 480, 520, 560, 590, 610, 623] },
-    { id: 13, name: 'MCP: Filesystem', icon: '📂', desc: 'File operations via MCP protocol', type: 'mcp', provider: 'MCP', status: 'error', calls: 15, success: 12.0, latency: 5000,
-      config: { mcp_server: 'filesystem-mcp', root_dir: '/workspace', allowed_operations: ['read', 'write', 'list'] },
-      usage: [200, 180, 150, 100, 50, 20, 15] },
-    { id: 14, name: 'Weather API', icon: '🌤️', desc: 'Real-time weather data lookup', type: 'mcp', provider: 'Custom', status: 'active', calls: 124, success: 98.0, latency: 134,
-      config: { api_key: 'weather_xxx...', units: 'metric', default_location: 'Shanghai', cache_ttl: 1800 },
-      usage: [80, 95, 100, 110, 115, 120, 124] },
-    { id: 15, name: 'Image Generator', icon: '🎨', desc: 'Generate images from text prompts', type: 'built-in', provider: 'OpenAI', status: 'degraded', calls: 345, success: 82.1, latency: 4500,
-      config: { model: 'dall-e-3', size: '1024x1024', quality: 'standard', max_prompt_length: 4000 },
-      usage: [200, 250, 280, 300, 320, 330, 345] },
-  ];
+  let currentFilter = 'all';
 
-  const typeLabels = {
-    'built-in': 'Built-in',
-    mcp: 'MCP'
-  };
-
-  const daysLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  function filterTools(type) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.filter === type);
+    });
+    applyFilters();
+  }
 
   // ============================================================
-  // RENDER TOOLS TABLE
+  // 2. searchTools(query) — filter cards by name
   // ============================================================
-  function renderToolsTable(filter = 'all', searchQuery = '') {
-    const tbody = document.getElementById('toolsTableBody');
-    let filtered = toolsData;
+  function searchTools(query) {
+    currentSearch = (query || '').toLowerCase().trim();
+    applyFilters();
+  }
 
-    if (filter !== 'all') {
-      filtered = filtered.filter(t => t.type === filter);
+  let currentSearch = '';
+  let currentSort = 'name-asc';
+
+  function applyFilters() {
+    const grid = document.getElementById('toolsGrid');
+    const cards = Array.from(grid.querySelectorAll('.tool-card'));
+
+    cards.forEach(card => {
+      const type = card.dataset.type;
+      const name = (card.dataset.name || '').toLowerCase();
+      const desc = (card.querySelector('.tool-desc') ? card.querySelector('.tool-desc').textContent : '').toLowerCase();
+
+      const matchesFilter = (currentFilter === 'all' || currentFilter === type);
+      const matchesSearch = (currentSearch === '' || name.includes(currentSearch) || desc.includes(currentSearch));
+      card.style.display = (matchesFilter && matchesSearch) ? '' : 'none';
+    });
+
+    sortCards(currentSort);
+    updateEmptyState(grid);
+  }
+
+  function updateEmptyState(grid) {
+    let existing = grid.querySelector('.empty-state');
+    const visible = Array.from(grid.querySelectorAll('.tool-card')).filter(c => c.style.display !== 'none');
+    if (visible.length === 0) {
+      if (!existing) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div>No tools match your filters.</div>';
+        grid.appendChild(empty);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  }
+
+  // ============================================================
+  // 3. sortTools(criteria) — sort cards by name / type / enabled
+  // ============================================================
+  function sortTools(criteria, menuItem) {
+    if (menuItem) {
+      document.querySelectorAll('.sort-menu-item').forEach(i => i.classList.remove('active'));
+      menuItem.classList.add('active');
+      document.getElementById('sortLabel').textContent = menuItem.textContent.replace('✓', '').trim();
+      document.getElementById('sortDropdown').classList.remove('open');
+    }
+    currentSort = criteria;
+    sortCards(criteria);
+  }
+
+  function sortCards(criteria) {
+    const grid = document.getElementById('toolsGrid');
+    const cards = Array.from(grid.querySelectorAll('.tool-card'));
+
+    cards.sort((a, b) => {
+      if (criteria === 'name-asc') {
+        return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+      } else if (criteria === 'name-desc') {
+        return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+      } else if (criteria === 'type') {
+        if (a.dataset.type !== b.dataset.type) {
+          return a.dataset.type === 'builtin' ? -1 : 1;
+        }
+        return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+      } else if (criteria === 'enabled') {
+        const ae = a.dataset.enabled === 'true' ? 0 : 1;
+        const be = b.dataset.enabled === 'true' ? 0 : 1;
+        if (ae !== be) return ae - be;
+        return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+      }
+      return 0;
+    });
+
+    cards.forEach(card => grid.appendChild(card));
+  }
+
+  // ============================================================
+  // 4. toggleTool(el, toolName) — toggle enable/disable with toast
+  // ============================================================
+  function toggleTool(el, toolName) {
+    const card = el.closest('.tool-card');
+    const turningOn = !el.classList.contains('on');
+
+    el.classList.toggle('on', turningOn);
+    card.dataset.enabled = turningOn ? 'true' : 'false';
+    card.classList.toggle('disabled', !turningOn);
+
+    // Update status text + dot
+    const status = card.querySelector('.tool-status');
+    if (status) {
+      status.classList.toggle('off', !turningOn);
+      const label = status.lastChild;
+      if (label && label.nodeType === 3) {
+        label.nodeValue = card.dataset.type === 'mcp'
+          ? (turningOn ? 'Connected' : 'Disconnected')
+          : (turningOn ? 'Active' : 'Disabled');
+      }
     }
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.name.toLowerCase().includes(q) ||
-        t.desc.toLowerCase().includes(q) ||
-        t.provider.toLowerCase().includes(q)
-      );
-    }
+    updateCounts();
+    showToast(toolName, turningOn);
+  }
 
-    tbody.innerHTML = filtered.map(tool => {
-      const successClass = tool.success >= 95 ? 'green' : tool.success >= 80 ? 'amber' : 'coral';
-      const latencyClass = tool.latency < 100 ? 'good' : tool.latency < 1000 ? 'warn' : 'slow';
-      const latencyText = tool.status === 'disabled' ? '—' : `${tool.latency}ms`;
-      const callsText = tool.status === 'disabled' ? '—' : tool.calls.toLocaleString();
-      const successText = tool.status === 'disabled' ? '—' : `${tool.success}%`;
-      const successWidth = tool.status === 'disabled' ? 0 : tool.success;
-      const isMcp = tool.type === 'mcp';
-
-      return `
-        <tr data-tool-id="${tool.id}">
-          <td>
-            <div class="status-dot ${tool.status}" title="${tool.status.charAt(0).toUpperCase() + tool.status.slice(1)}"></div>
-          </td>
-          <td>
-            <div class="tool-name-cell">
-              <div class="tool-icon">${tool.icon}</div>
-              <div class="tool-info">
-                <div class="tool-name">${tool.name}</div>
-                <div class="tool-desc">${tool.desc}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <span class="type-badge ${tool.type}">
-              ${isMcp ? '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : ''}
-              ${typeLabels[tool.type]}
-            </span>
-          </td>
-          <td><span class="provider-text">${tool.provider}</span></td>
-          <td><span class="calls-value">${callsText}</span></td>
-          <td>
-            <div class="success-rate-cell">
-              <div class="mini-progress">
-                <div class="mini-progress-fill ${successClass}" style="width: ${successWidth}%"></div>
-              </div>
-              <span class="success-rate-text">${successText}</span>
-            </div>
-          </td>
-          <td><span class="latency-text ${latencyClass}">${latencyText}</span></td>
-          <td>
-            <div class="actions-cell">
-              <div class="toggle-switch ${tool.status === 'active' ? 'active' : ''}" data-tool-id="${tool.id}" title="${tool.status === 'active' ? 'Disable' : 'Enable'}"></div>
-              <button class="icon-btn" title="Edit">
-                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="icon-btn delete" title="Delete">
-                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-
-    // Re-bind row click events
-    bindRowEvents();
-    bindToggleEvents();
+  function updateCounts() {
+    const cards = document.querySelectorAll('.tool-card');
+    const enabled = Array.from(cards).filter(c => c.dataset.enabled === 'true').length;
+    const mcp = Array.from(cards).filter(c => c.dataset.type === 'mcp').length;
+    document.getElementById('enabledCount').textContent = enabled;
+    document.getElementById('mcpCount').textContent = mcp;
+    document.getElementById('totalCount').textContent = cards.length;
   }
 
   // ============================================================
-  // ROW CLICK -> SELECT & SHOW DETAILS
+  // Toast notifications
   // ============================================================
-  let selectedToolId = null;
+  function showToast(toolName, enabled) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.setProperty('--toast-color', enabled ? 'var(--accent-cyan)' : 'var(--text-tertiary)');
+    toast.style.setProperty('--toast-glow', enabled ? 'var(--accent-cyan-glow)' : 'rgba(90, 101, 128, 0.15)');
 
-  function bindRowEvents() {
-    document.querySelectorAll('#toolsTableBody tr').forEach(row => {
-      row.addEventListener('click', function(e) {
-        if (e.target.closest('.toggle-switch') || e.target.closest('.icon-btn')) return;
+    const iconSvg = enabled
+      ? '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
-        const id = parseInt(this.dataset.toolId);
-        const isSelected = this.classList.contains('selected');
-
-        document.querySelectorAll('#toolsTableBody tr').forEach(r => r.classList.remove('selected'));
-
-        if (!isSelected) {
-          this.classList.add('selected');
-          selectedToolId = id;
-          showToolDetails(id);
-        } else {
-          selectedToolId = null;
-          showEmptyDetail();
-        }
-      });
-    });
-  }
-
-  // ============================================================
-  // TOGGLE SWITCH
-  // ============================================================
-  function bindToggleEvents() {
-    document.querySelectorAll('.toggle-switch').forEach(toggle => {
-      toggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const id = parseInt(this.dataset.toolId);
-        const tool = toolsData.find(t => t.id === id);
-        if (!tool) return;
-
-        if (tool.status === 'disabled') {
-          tool.status = 'active';
-          this.classList.add('active');
-        } else {
-          tool.status = 'disabled';
-          this.classList.remove('active');
-        }
-
-        // Update status dot in the same row
-        const row = this.closest('tr');
-        const statusDot = row.querySelector('.status-dot');
-        statusDot.className = `status-dot ${tool.status}`;
-        statusDot.title = tool.status.charAt(0).toUpperCase() + tool.status.slice(1);
-
-        // If this tool is selected, update details panel
-        if (selectedToolId === id) {
-          showToolDetails(id);
-        }
-      });
-    });
-  }
-
-  // ============================================================
-  // SHOW TOOL DETAILS IN RIGHT PANEL
-  // ============================================================
-  function showToolDetails(toolId) {
-    const tool = toolsData.find(t => t.id === toolId);
-    if (!tool) return;
-
-    const successClass = tool.success >= 95 ? 'green' : tool.success >= 80 ? 'amber' : 'coral';
-    const isMcp = tool.type === 'mcp';
-
-    // Build config display
-    const configLines = Object.entries(tool.config).map(([key, value]) => {
-      let valClass = 'string';
-      let valDisplay = JSON.stringify(value);
-      if (typeof value === 'number') { valClass = 'number'; valDisplay = value; }
-      if (typeof value === 'boolean') { valClass = 'boolean'; valDisplay = value; }
-      return `<div class="config-line"><span class="config-key">${key}</span><span class="config-bracket">:</span> <span class="config-value ${valClass}">${valDisplay}</span></div>`;
-    }).join('');
-
-    // Build usage chart bars
-    const maxUsage = Math.max(...tool.usage, 1);
-    const usageBars = tool.usage.map((val, i) => {
-      const height = (val / maxUsage) * 100;
-      return `<div class="usage-bar" style="height: ${height}%" data-label="${daysLabels[i]}" title="${val.toLocaleString()} calls"></div>`;
-    }).join('');
-
-    const totalUsage = tool.usage.reduce((a, b) => a + b, 0);
-
-    const detailHtml = `
-      <div class="tool-detail-header animate-in">
-        <div class="tool-detail-icon">${tool.icon}</div>
-        <div class="tool-detail-name">${tool.name}</div>
-        <div class="tool-detail-desc">${tool.desc}</div>
-        <div class="tool-detail-type-row">
-          <span class="type-badge ${tool.type}">
-            ${isMcp ? '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : ''}
-            ${typeLabels[tool.type]}
-          </span>
-          <span class="tool-detail-status ${tool.status}">
-            ${tool.status.charAt(0).toUpperCase() + tool.status.slice(1)}
-          </span>
-        </div>
-      </div>
-
-      <div class="tool-detail-stats">
-        <div class="tool-detail-stat">
-          <div class="tool-detail-stat-label">Calls Today</div>
-          <div class="tool-detail-stat-value">${tool.calls.toLocaleString()}</div>
-        </div>
-        <div class="tool-detail-stat">
-          <div class="tool-detail-stat-label">Success Rate</div>
-          <div class="tool-detail-stat-value" style="color: var(--accent-${successClass})">${tool.success}%</div>
-        </div>
-        <div class="tool-detail-stat">
-          <div class="tool-detail-stat-label">Avg Latency</div>
-          <div class="tool-detail-stat-value">${tool.latency}ms</div>
-        </div>
-        <div class="tool-detail-stat">
-          <div class="tool-detail-stat-label">Provider</div>
-          <div class="tool-detail-stat-value" style="font-size: 12px;">${tool.provider}</div>
-        </div>
-      </div>
-
-      <div class="rightbar-section">
-        <div class="rightbar-section-title">Configuration</div>
-        <div class="config-display">
-          ${configLines}
-        </div>
-      </div>
-
-      <div class="rightbar-section">
-        <div class="rightbar-section-title">Usage (Last 7 Days)</div>
-        <div class="usage-chart-container">
-          <div class="usage-chart-bars">
-            ${usageBars}
-          </div>
-          <div class="usage-chart-footer">
-            <span class="usage-total-label">Total</span>
-            <span class="usage-total-value">${totalUsage.toLocaleString()} calls</span>
-          </div>
-        </div>
-      </div>
-
-      <button class="test-tool-btn" id="testToolBtn">
-        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Test Tool
-      </button>
+    toast.innerHTML = `
+      <div class="toast-icon">${iconSvg}</div>
+      <div class="toast-text"><span class="toast-tool">${toolName}</span> ${enabled ? 'enabled' : 'disabled'}</div>
     `;
+    container.appendChild(toast);
 
-    document.getElementById('toolDetailContent').innerHTML = detailHtml;
+    requestAnimationFrame(() => toast.classList.add('show'));
 
-    // Bind test tool button
-    document.getElementById('testToolBtn').addEventListener('click', () => {
-      openTestModal(tool);
-    });
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2400);
   }
 
-  function showEmptyDetail() {
-    document.getElementById('toolDetailContent').innerHTML = `
-      <div class="empty-detail">
-        <div class="empty-detail-icon">
-          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        </div>
-        <div class="empty-title">Select a tool</div>
-        <div class="empty-detail-desc">Click any tool row to view details</div>
-      </div>
+  // ============================================================
+  // 5. openMCPConfig() / closeMCPConfig() — modal management
+  // ============================================================
+  function openMCPConfig() {
+    document.getElementById('mcpModal').classList.add('open');
+  }
+
+  function closeMCPConfig() {
+    document.getElementById('mcpModal').classList.remove('open');
+  }
+
+  function saveMCPConfig() {
+    closeMCPConfig();
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.setProperty('--toast-color', 'var(--accent-purple)');
+    toast.style.setProperty('--toast-glow', 'var(--accent-purple-glow)');
+    toast.innerHTML = `
+      <div class="toast-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="toast-text"><span class="toast-tool">MCP</span> configuration saved</div>
     `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2400);
+  }
+
+  function addMCPServer() {
+    saveMCPConfig();
   }
 
   // ============================================================
-  // CATEGORY TABS FILTER
+  // 6. configureTool(toolName) — placeholder
   // ============================================================
-  let currentCategory = 'all';
+  function configureTool(toolName) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.setProperty('--toast-color', 'var(--accent-cyan)');
+    toast.style.setProperty('--toast-glow', 'var(--accent-cyan-glow)');
+    toast.innerHTML = `
+      <div class="toast-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      <div class="toast-text">Configure <span class="toast-tool">${toolName}</span> — coming soon</div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2400);
+  }
 
-  document.querySelectorAll('.category-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      currentCategory = this.dataset.category;
-      renderToolsTable(currentCategory, document.getElementById('toolSearch').value);
+  // ============================================================
+  // 7. Card hover with mouse-follow glow effect
+  // ============================================================
+  document.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('mousemove', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      this.style.setProperty('--mouse-x', x + '%');
+      this.style.setProperty('--mouse-y', y + '%');
     });
   });
 
   // ============================================================
-  // SEARCH FILTER
+  // 8. Sort dropdown close on outside click
   // ============================================================
-  document.getElementById('toolSearch').addEventListener('input', function() {
-    renderToolsTable(currentCategory, this.value);
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('sortDropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
   });
 
   // ============================================================
-  // NAV ITEM INTERACTION
+  // 9. Close modal on overlay click + Escape key
+  // ============================================================
+  document.getElementById('mcpModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMCPConfig();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMCPConfig();
+      document.getElementById('sortDropdown').classList.remove('open');
+    }
+  });
+
+  // ============================================================
+  // 10. Sidebar nav active state (visual only)
   // ============================================================
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', function(e) {
+      if (this.getAttribute('href') === 'tools.html') return;
       e.preventDefault();
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       this.classList.add('active');
     });
   });
 
-  // ============================================================
-  // STATS COUNT-UP ANIMATION
-  // ============================================================
-  (function animateCountUp() {
-    const statValues = document.querySelectorAll('.stat-card-value');
-
-    statValues.forEach((el, index) => {
-      const suffixEl = el.querySelector('.value-suffix');
-      const suffixText = suffixEl ? suffixEl.textContent : '';
-      const targetValue = parseFloat(el.dataset.target);
-      const decimals = parseInt(el.dataset.decimals) || 0;
-      const isDecimal = decimals > 0;
-
-      const duration = 1500 + index * 200;
-      const startTime = performance.now() + index * 150;
-
-      function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        if (elapsed < 0) {
-          requestAnimationFrame(update);
-          return;
-        }
-
-        const progress = Math.min(elapsed / duration, 1);
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-        const currentValue = targetValue * easeProgress;
-
-        let displayValue;
-        if (isDecimal) {
-          displayValue = currentValue.toFixed(decimals);
-        } else {
-          displayValue = Math.floor(currentValue).toLocaleString();
-        }
-
-        if (suffixEl) {
-          el.innerHTML = displayValue + '<span class="value-suffix">' + suffixText + '</span>';
-        } else {
-          el.textContent = displayValue;
-        }
-
-        if (progress < 1) {
-          requestAnimationFrame(update);
-        }
-      }
-
-      requestAnimationFrame(update);
-    });
-  })();
-
-  // ============================================================
-  // TEST TOOL MODAL
-  // ============================================================
-  const testModal = document.getElementById('testModal');
-  const modalToolName = document.getElementById('modalToolName');
-  const testResult = document.getElementById('testResult');
-
-  function openTestModal(tool) {
-    modalToolName.textContent = tool.name;
-    testModal.classList.add('active');
-
-    // Customize placeholder based on tool type
-    const testInput = document.getElementById('testInput');
-    const placeholders = {
-      web: 'Enter search query...',
-      file: 'Enter file path...',
-      code: 'Enter code to execute...',
-      database: 'Enter SQL query...',
-      api: 'Enter API endpoint...',
-      mcp: 'Enter MCP command...'
-    };
-    testInput.placeholder = placeholders[tool.type] || 'Enter input...';
-  }
-
-  function closeTestModal() {
-    testModal.classList.remove('active');
-  }
-
-  document.getElementById('modalClose').addEventListener('click', closeTestModal);
-  document.getElementById('modalCancel').addEventListener('click', closeTestModal);
-  testModal.addEventListener('click', function(e) {
-    if (e.target === testModal) closeTestModal();
-  });
-
-  document.getElementById('runTestBtn').addEventListener('click', function() {
-    const btn = this;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Running...';
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      testResult.style.borderColor = 'rgba(46, 213, 115, 0.3)';
-      testResult.style.boxShadow = '0 0 12px rgba(46, 213, 115, 0.15)';
-      setTimeout(() => {
-        testResult.style.borderColor = '';
-        testResult.style.boxShadow = '';
-      }, 1000);
-    }, 800);
-  });
-
-  // Add spin animation
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = `
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-  `;
-  document.head.appendChild(styleSheet);
-
-  // ============================================================
-  // KEYBOARD SHORTCUT - ESC to close modal
-  // ============================================================
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && testModal.classList.contains('active')) {
-      closeTestModal();
-    }
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      document.getElementById('toolSearch').focus();
-    }
-  });
-
-  // ============================================================
-  // INITIAL RENDER
-  // ============================================================
-  renderToolsTable();
-
-  // Auto-select first tool for demo
-  setTimeout(() => {
-    const firstRow = document.querySelector('#toolsTableBody tr');
-    if (firstRow) {
-      firstRow.click();
-    }
-  }, 300);
+  // Initial count sync
+  updateCounts();
 </script>
 
 </body>
