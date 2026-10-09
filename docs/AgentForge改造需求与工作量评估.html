@@ -78,7 +78,7 @@
 <header class="doc-head">
   <div class="doc-eyebrow">// Agent Development Platform · Planning</div>
   <h1><span class="pre">//</span>AgentForge 平台改造 — 需求清单与工作量评估</h1>
-  <div class="doc-sub"><span class="dot"></span>基于 prototype 原型 vs deer-flow 现状差距分析 · 生成日期 2026-10-08</div>
+  <div class="doc-sub"><span class="dot"></span>基于 prototype 原型 vs deer-flow 现状差距分析 · 生成日期 2026-10-09 · 三项关键决策已确认</div>
 </header>
 
 <div class="toc">
@@ -93,10 +93,10 @@
 </div>
 
 <div class="meta-grid">
-  <div class="meta-card"><div class="k">总工作量</div><div class="v cyan">168</div><div class="s">人天（pd）</div></div>
-  <div class="meta-card"><div class="k">后端 BE</div><div class="v amber">61</div><div class="s">人天</div></div>
-  <div class="meta-card"><div class="k">前端 FE</div><div class="v green">74</div><div class="s">人天</div></div>
-  <div class="meta-card"><div class="k">联调测试</div><div class="v coral">33</div><div class="s">人天</div></div>
+  <div class="meta-card"><div class="k">总工作量</div><div class="v cyan">154</div><div class="s">人天（pd）</div></div>
+  <div class="meta-card"><div class="k">后端 BE</div><div class="v amber">52</div><div class="s">人天</div></div>
+  <div class="meta-card"><div class="k">前端 FE</div><div class="v green">71</div><div class="s">人天</div></div>
+  <div class="meta-card"><div class="k">联调测试</div><div class="v coral">31</div><div class="s">人天</div></div>
 </div>
 
 <h2 id="scope"><span class="idx">01</span>评估口径</h2>
@@ -105,7 +105,8 @@
   <li>分 <strong>后端（BE）/ 前端（FE）/ 联调测试（Q&amp;A）</strong> 三栏</li>
   <li>优先级：<span class="tag p0">P0</span> 平台骨架（无则不成立） / <span class="tag p1">P1</span> 核心能力 / <span class="tag p2">P2</span> 增强体验</li>
   <li>性质：<span class="tag new">新建</span> 从无到有 / <span class="tag ext">扩展</span> 现有能力增强 / <span class="tag thin">薄封装</span> 后端已有仅落 UI</li>
-  <li>不含原型视觉像素级调优，含与 deer-flow 现有风格的对齐决策</li>
+  <li>不含原型视觉像素级调优；视觉风格已确认为<strong>沿用原型深色赛博风</strong>，含主题变量统一（见需求 1.4）</li>
+  <li>Workflows 引擎<strong>基于 LangGraph 原生图扩展</strong>；Datasets / Vector Stores <strong>与现有 thread uploads、memory 合并抽象</strong></li>
 </ul>
 
 <!-- 第1层 -->
@@ -116,19 +117,19 @@
     <tr><td>1.1</td><td>新建 Console 应用壳（左导航+顶栏+主区三栏布局），落地原型 app-shell 布局</td><td>dashboard / index</td><td><span class="tag new">新建</span></td><td class="num">0</td><td class="num">3</td><td class="num">0.5</td><td class="center"><span class="tag p0">P0</span></td></tr>
     <tr><td>1.2</td><td>全局命令搜索（⌘K，agents / runs / skills 模糊检索）</td><td>顶栏搜索框</td><td><span class="tag new">新建</span></td><td class="num">1</td><td class="num">2</td><td class="num">0.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
     <tr><td>1.3</td><td>通知中心与活动流（右侧栏）</td><td>dashboard 右栏</td><td><span class="tag new">新建</span></td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="center"><span class="tag p2">P2</span></td></tr>
-    <tr><td>1.4</td><td>视觉风格对齐决策与主题变量统一（深色赛博风 vs deer-flow 现有风）</td><td>全部</td><td>决策</td><td class="num">0</td><td class="num">2</td><td class="num">0</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>1.4</td><td>视觉风格对齐决策与主题变量统一 —— <strong>已确认：沿用原型深色赛博风</strong>，统一 CSS 变量 / 组件 token，无需对齐 deer-flow 现有风</td><td>全部</td><td><span class="tag ext">已决策</span></td><td class="num">0</td><td class="num">2</td><td class="num">0</td><td class="center"><span class="tag p0">P0</span></td></tr>
   </tbody>
 </table>
 
 <!-- 第2层 -->
-<h2 id="l2"><span class="idx">03</span>第 2 层：后端新建能力（地基 · 主要矛盾）</h2>
+<h2 id="l2"><span class="idx">03</span>第 2 层：后端核心能力（地基 · 主要矛盾 · 新建+扩展）</h2>
 <table>
   <thead><tr><th style="width:50px">#</th><th>需求项</th><th style="width:110px">对应原型</th><th style="width:80px">性质</th><th class="num">BE</th><th class="num">FE</th><th class="num">Q&amp;A</th><th class="center" style="width:70px">优先级</th></tr></thead>
   <tbody>
-    <tr><td>2.1</td><td><strong>Workflows 编排引擎</strong>：DAG 抽象（节点=Agent/工具/条件，边=依赖）、版本化、可运行、可复用 checkpoint</td><td>workflows</td><td><span class="tag new">新建</span></td><td class="num"><strong>12</strong></td><td class="num">0</td><td class="num">3</td><td class="center"><span class="tag p0">P0</span></td></tr>
+    <tr><td>2.1</td><td><strong>Workflows 编排引擎</strong>：<strong>基于 LangGraph 原生图扩展</strong>（复用 StateGraph / checkpoint / 执行内核），补 DAG 语义约束、版本化、工作流元数据与可序列化定义</td><td>workflows</td><td><span class="tag ext">扩展</span></td><td class="num"><strong>8</strong></td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p0">P0</span></td></tr>
     <tr><td>2.2</td><td>Workflows REST API（CRUD + 触发运行 + 状态查询）</td><td>workflows</td><td><span class="tag new">新建</span></td><td class="num">4</td><td class="num">0</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
-    <tr><td>2.3</td><td><strong>Datasets 数据集资产</strong>：平台级数据集（训练/评估/知识库三类）、上传/版本/被 Agent 引用</td><td>datasets</td><td><span class="tag new">新建</span></td><td class="num">6</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
-    <tr><td>2.4</td><td><strong>Vector Stores 向量库</strong>：Provider 抽象、建库/索引/检索、接入外部（可复用 memory）</td><td>vector-stores</td><td><span class="tag new">新建</span></td><td class="num">8</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>2.3</td><td><strong>Datasets 数据集资产</strong>：<strong>与 thread uploads 合并抽象</strong>，在现有上传能力上补平台级数据集元数据（训练/评估/知识库三类）、版本、被 Agent 引用</td><td>datasets</td><td><span class="tag ext">扩展</span></td><td class="num">4</td><td class="num">0</td><td class="num">1.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
+    <tr><td>2.4</td><td><strong>Vector Stores 向量库</strong>：<strong>复用 memory 后端的向量抽象</strong>（Provider / 建库 / 索引 / 检索），补多库管理 API 与 dataset→向量库绑定，避免重复造轮子</td><td>vector-stores</td><td><span class="tag ext">扩展</span></td><td class="num">5</td><td class="num">0</td><td class="num">1.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
     <tr><td>2.5</td><td><strong>Evaluations 评估体系</strong>：测试集绑定、指标定义、跑分、对比报告</td><td>evaluations</td><td><span class="tag new">新建</span></td><td class="num">8</td><td class="num">0</td><td class="num">2</td><td class="center"><span class="tag p1">P1</span></td></tr>
     <tr><td>2.6</td><td>Agent 资产元数据模型扩展（状态/标签/统计/归属，支撑 agents 卡片）</td><td>agents</td><td><span class="tag ext">扩展</span></td><td class="num">3</td><td class="num">0</td><td class="num">1</td><td class="center"><span class="tag p0">P0</span></td></tr>
     <tr><td>2.7</td><td>沙箱<strong>池化管理</strong>（从单 Provider 升级为池：占用/隔离/健康度）</td><td>sandbox</td><td><span class="tag ext">扩展</span></td><td class="num">5</td><td class="num">0</td><td class="num">1.5</td><td class="center"><span class="tag p1">P1</span></td></tr>
@@ -175,31 +176,32 @@
 <table>
   <thead><tr><th>层次</th><th class="num">BE（人天）</th><th class="num">FE（人天）</th><th class="num">Q&amp;A（人天）</th><th class="num">小计</th></tr></thead>
   <tbody>
-    <tr><td>第 1 层 · 控制台壳</td><td class="num">3</td><td class="num">9</td><td class="num">1</td><td class="num"><strong>13</strong></td></tr>
-    <tr><td>第 2 层 · 后端新建能力</td><td class="num"><strong>46</strong></td><td class="num">0</td><td class="num">12.5</td><td class="num"><strong>58.5</strong></td></tr>
-    <tr><td>第 3 层 · 前端业务页</td><td class="num">6</td><td class="num">42</td><td class="num">13</td><td class="num"><strong>61</strong></td></tr>
+    <tr><td>第 1 层 · 控制台壳</td><td class="num">3</td><td class="num">9</td><td class="num">2</td><td class="num"><strong>14</strong></td></tr>
+    <tr><td>第 2 层 · 后端核心能力</td><td class="num"><strong>37</strong></td><td class="num">0</td><td class="num">10.5</td><td class="num"><strong>47.5</strong></td></tr>
+    <tr><td>第 3 层 · 前端业务页</td><td class="num">6</td><td class="num">39</td><td class="num">12</td><td class="num"><strong>57</strong></td></tr>
     <tr><td>第 4 层 · 现有能力收口</td><td class="num">6</td><td class="num">23</td><td class="num">6.5</td><td class="num"><strong>35.5</strong></td></tr>
-    <tr><td class="sum-total">合计</td><td class="num sum-total">61</td><td class="num sum-total">74</td><td class="num sum-total">33</td><td class="num sum-total">168</td></tr>
+    <tr><td class="sum-total">合计</td><td class="num sum-total">52</td><td class="num sum-total">71</td><td class="num sum-total">31</td><td class="num sum-total">154</td></tr>
   </tbody>
 </table>
 <div class="callout">
   <h4>// 工期折算</h4>
-  <p>合计 <strong>168 人天 ≈ 8.4 人月</strong>（按 1 人月 = 20 人天）。若以 <strong>2 后端 + 2 前端 + 1 测试</strong> 并行，关键路径受限于第 2 层后端，预计 <strong>3.5 ~ 4 个月</strong> 可交付完整版。</p>
+  <p>合计 <strong>154 人天 ≈ 7.7 人月</strong>（按 1 人月 = 20 人天）。若以 <strong>2 后端 + 2 前端 + 1 测试</strong> 并行，关键路径受限于第 2 层后端，预计 <strong>3 ~ 3.5 个月</strong> 可交付完整版。三项决策确认（Workflows 扩展、Datasets/Vector Stores 合并抽象）共节省约 <strong>11 人天</strong>；另修正原汇总表与明细行不一致问题（-3 人天）。</p>
 </div>
 
 <!-- 风险 -->
 <h2 id="risk"><span class="idx">07</span>主要矛盾与风险提示</h2>
 <div class="callout warn">
   <h4>// 主要矛盾</h4>
-  <p>本次改造的<strong>主要矛盾是「第 2 层后端新建能力」</strong>——占 46 人天、是所有 P0/P1 前端页面的数据地基。其中又以 <strong>2.1 Workflows 编排引擎（12 人天）为重中之重</strong>，它决定了 editor / debugger / workflows 三个核心页面能否成立。</p>
+  <p>本次改造的<strong>主要矛盾是「第 2 层后端核心能力」</strong>——占 37 人天、是所有 P0/P1 前端页面的数据地基。其中又以 <strong>2.1 Workflows 编排引擎（8 人天，基于 LangGraph 原生图扩展）为重中之重</strong>，它决定了 editor / debugger / workflows 三个核心页面能否成立。</p>
 </div>
-<div class="callout warn">
-  <h4>// 三个必须先拍板的决策（否则范围会漂移）</h4>
+<div class="callout">
+  <h4>// 三项关键决策（已确认 · 2026-10-09）</h4>
   <ol>
-    <li><strong>视觉风格</strong>：沿用原型深色赛博风，还是对齐 deer-flow 现有风格？——影响全部 FE 工作量与需求 1.4。</li>
-    <li><strong>Workflows 引擎技术路线</strong>：基于 LangGraph 原生图扩展，还是引入独立工作流抽象层？——决定 2.1 的 12 人天是「扩展」还是「重写」。</li>
-    <li><strong>Datasets / Vector Stores 边界</strong>：是否与现有 thread uploads、memory 合并抽象？——避免重复造轮子。</li>
+    <li><strong>视觉风格</strong>：<span style="color:var(--green)">已确认 — 沿用原型深色赛博风</span>。统一 CSS 变量与组件 token，无需对齐 deer-flow 现有风格。需求 1.4 性质由"决策"转为落地实施。</li>
+    <li><strong>Workflows 引擎技术路线</strong>：<span style="color:var(--green)">已确认 — 基于 LangGraph 原生图扩展</span>。复用 StateGraph / checkpoint / 执行内核，仅补 DAG 语义约束、版本化与可序列化定义。2.1 由"新建"降为"扩展"，BE 12→8 人天。</li>
+    <li><strong>Datasets / Vector Stores 边界</strong>：<span style="color:var(--green)">已确认 — 与现有 thread uploads、memory 合并抽象，避免重复造轮子</span>。Datasets 复用 thread uploads 上传能力补元数据与版本；Vector Stores 复用 memory 后端向量抽象补多库管理。2.3 / 2.4 由"新建"降为"扩展"，BE 合计 14→9 人天。</li>
   </ol>
+  <p style="margin-top:10px"><strong>决策影响汇总</strong>：三项决策确认后，第 2 层后端由 46→37 人天（-9），总工作量由原估 168→154 人天（决策 -11 + 明细修正 -3），关键路径工期由 3.5~4 个月缩短至 3~3.5 个月。</p>
 </div>
 
 <div class="foot">AgentForge Console · 改造规划文档 · 基于 prototype 原型与 deer-flow 架构差距分析</div>
