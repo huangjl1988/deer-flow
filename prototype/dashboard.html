@@ -796,8 +796,297 @@
   /* DASHBOARD GRID */
   .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 240px 1fr 280px;
     gap: 16px;
+    min-height: calc(100vh - 300px);
+  }
+
+  /* === Chat Thread List === */
+  .chat-thread-list {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .chat-thread-list-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .chat-thread-list-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .chat-thread-list-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .chat-thread-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .chat-thread-item:hover {
+    background: var(--bg-hover);
+  }
+  .chat-thread-item.active {
+    background: var(--bg-active);
+    border-left: 2px solid var(--accent-cyan);
+  }
+  .chat-thread-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-thread-preview {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-thread-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .chat-thread-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+  }
+  .chat-thread-badge {
+    font-size: 10px;
+    background: var(--accent-cyan-glow);
+    color: var(--accent-cyan);
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+  }
+
+  /* === Chat Window === */
+  .chat-window {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .chat-window-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .chat-window-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .chat-window-subtitle {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+  .chat-window-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .chat-window-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 5px 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .chat-window-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .chat-message {
+    display: flex;
+    gap: 10px;
+    max-width: 85%;
+  }
+  .chat-message.user {
+    flex-direction: row-reverse;
+    align-self: flex-end;
+  }
+  .chat-message-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .chat-message-avatar.user {
+    background: rgba(0, 229, 255, 0.15);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+  }
+  .chat-message-avatar.assistant {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--accent-purple);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+  }
+  .chat-message-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .chat-message.user .chat-message-body {
+    align-items: flex-end;
+  }
+  .chat-message-sender {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .chat-message-bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .chat-message.user .chat-message-bubble {
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-top-right-radius: 4px;
+  }
+  .chat-message.assistant .chat-message-bubble {
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-top-left-radius: 4px;
+  }
+  .chat-message-meta {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+  }
+  .chat-typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    border-top-left-radius: 4px;
+    width: fit-content;
+  }
+  .chat-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: typingPulse 1.4s infinite ease-in-out;
+  }
+  .chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingPulse {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+    30% { opacity: 1; transform: scale(1.1); }
+  }
+
+  /* === Chat Composer === */
+  .chat-composer {
+    border-top: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .chat-composer-input {
+    flex: 1;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .chat-composer-input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
+  }
+  .chat-composer-input::placeholder {
+    color: var(--text-tertiary);
+  }
+  .chat-composer-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .chat-composer-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+  .chat-composer-send {
+    background: var(--accent-cyan-glow);
+    border-color: rgba(0, 229, 255, 0.3);
+    color: var(--accent-cyan);
+  }
+  .chat-composer-send:hover {
+    background: rgba(0, 229, 255, 0.15);
+  }
+
+  @media (max-width: 1400px) {
+    .dashboard-grid {
+      grid-template-columns: 220px 1fr;
+    }
+    .dashboard-grid > div:last-child {
+      display: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-grid > div:first-child {
+      display: none;
+    }
   }
 
   .panel-card {
@@ -1589,63 +1878,174 @@
       </div>
     </div>
 
-    <!-- Dashboard Content Grid -->
+    <!-- Chat Layout -->
     <div class="dashboard-grid">
-      <!-- Left: Recent Chats -->
-      <div class="panel-card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="title-bracket">[</span>
-            Recent Chats
-            <span class="count">5</span>
-          </div>
-          <a href="#" class="view-all-link">View all →</a>
+      <!-- Left: Thread List -->
+      <div class="chat-thread-list">
+        <div class="chat-thread-list-header">
+          <span class="chat-thread-list-title">Threads</span>
+          <button class="chat-window-btn" title="New Chat">
+            <svg viewBox="0 0 24 24" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Thread</th>
-              <th>Messages</th>
-              <th>Last Message</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="run-id">Q4 Financial Report Analysis</span></td>
-              <td class="duration-cell">24</td>
-              <td class="time-cell">Analyze the cash flow statement...</td>
-              <td class="time-cell">2 min ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">API Integration Planning</span></td>
-              <td class="duration-cell">18</td>
-              <td class="time-cell">Let me check the auth flow...</td>
-              <td class="time-cell">15 min ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">Code Review — PR #342</span></td>
-              <td class="duration-cell">31</td>
-              <td class="time-cell">Found a potential race condition...</td>
-              <td class="time-cell">1 hour ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">Market Research Summary</span></td>
-              <td class="duration-cell">12</td>
-              <td class="time-cell">Here are the top 5 competitors...</td>
-              <td class="time-cell">3 hours ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">Database Schema Design</span></td>
-              <td class="duration-cell">47</td>
-              <td class="time-cell">The migration plan looks good...</td>
-              <td class="time-cell">Yesterday</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="chat-thread-list-body" id="threadList">
+          <div class="chat-thread-item active" onclick="selectThread(this, 'Q4 Financial Report Analysis', 24)">
+            <div class="chat-thread-name">Q4 Financial Report Analysis</div>
+            <div class="chat-thread-preview">Analyze the cash flow statement...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">2m ago</span>
+              <span class="chat-thread-badge">24</span>
+            </div>
+          </div>
+          <div class="chat-thread-item" onclick="selectThread(this, 'API Integration Planning', 18)">
+            <div class="chat-thread-name">API Integration Planning</div>
+            <div class="chat-thread-preview">Let me check the auth flow...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">15m ago</span>
+              <span class="chat-thread-badge">18</span>
+            </div>
+          </div>
+          <div class="chat-thread-item" onclick="selectThread(this, 'Code Review — PR #342', 31)">
+            <div class="chat-thread-name">Code Review — PR #342</div>
+            <div class="chat-thread-preview">Found a potential race condition...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">1h ago</span>
+              <span class="chat-thread-badge">31</span>
+            </div>
+          </div>
+          <div class="chat-thread-item" onclick="selectThread(this, 'Market Research Summary', 12)">
+            <div class="chat-thread-name">Market Research Summary</div>
+            <div class="chat-thread-preview">Here are the top 5 competitors...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">3h ago</span>
+              <span class="chat-thread-badge">12</span>
+            </div>
+          </div>
+          <div class="chat-thread-item" onclick="selectThread(this, 'Database Schema Design', 47)">
+            <div class="chat-thread-name">Database Schema Design</div>
+            <div class="chat-thread-preview">The migration plan looks good...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">Yesterday</span>
+              <span class="chat-thread-badge">47</span>
+            </div>
+          </div>
+          <div class="chat-thread-item" onclick="selectThread(this, 'Deployment Strategy', 8)">
+            <div class="chat-thread-name">Deployment Strategy</div>
+            <div class="chat-thread-preview">Docker Compose with Nginx...</div>
+            <div class="chat-thread-meta">
+              <span class="chat-thread-time">Yesterday</span>
+              <span class="chat-thread-badge">8</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Right: Active Agents + System Health -->
+      <!-- Center: Chat Window -->
+      <div class="chat-window">
+        <div class="chat-window-header">
+          <div>
+            <div class="chat-window-title" id="chatWindowTitle">Q4 Financial Report Analysis</div>
+            <div class="chat-window-subtitle" id="chatWindowSubtitle">24 messages &middot; started 2 hours ago</div>
+          </div>
+          <div class="chat-window-actions">
+            <button class="chat-window-btn" title="Memory">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            </button>
+            <button class="chat-window-btn" title="Settings">
+              <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-message user">
+            <div class="chat-message-avatar user">You</div>
+            <div class="chat-message-body">
+              <div class="chat-message-sender">You</div>
+              <div class="chat-message-bubble">Analyze the Q4 cash flow statement and identify any red flags in operating, investing, or financing activities.</div>
+              <div class="chat-message-meta">2h ago</div>
+            </div>
+          </div>
+          <div class="chat-message assistant">
+            <div class="chat-message-avatar assistant">AI</div>
+            <div class="chat-message-body">
+              <div class="chat-message-sender">DeerFlow Agent</div>
+              <div class="chat-message-bubble">
+                I've analyzed the Q4 cash flow statement. Here are the key findings:
+                <br><br>
+                <strong>Operating Activities:</strong> +$2.4M (healthy, +12% YoY). Driven by net income and non-cash adjustments.
+                <br><br>
+                <strong>Investing Activities:</strong> -$1.8M (elevated capex). Two acquisitions closed in Q4 totaling $800K.
+                <br><br>
+                <strong>Financing Activities:</strong> -$600K. Debt repayment of $1.2M offset by new credit facility draw of $600K.
+                <br><br>
+                <strong>Red Flags:</strong>
+                <br>1. DSO increased from 42 to 58 days — possible collection issues
+                <br>2. Capex-to-depreciation ratio at 2.1x (industry avg 1.3x)
+                <br>3. Operating cash flow coverage of dividends dropped to 1.4x (was 2.1x in Q3)
+              </div>
+              <div class="chat-message-meta">2h ago &middot; model: gpt-4o &middot; 1,847 tokens</div>
+            </div>
+          </div>
+          <div class="chat-message user">
+            <div class="chat-message-avatar user">You</div>
+            <div class="chat-message-body">
+              <div class="chat-message-sender">You</div>
+              <div class="chat-message-bubble">What's the impact of the increased DSO on free cash flow?</div>
+              <div class="chat-message-meta">1h ago</div>
+            </div>
+          </div>
+          <div class="chat-message assistant">
+            <div class="chat-message-avatar assistant">AI</div>
+            <div class="chat-message-body">
+              <div class="chat-message-sender">DeerFlow Agent</div>
+              <div class="chat-message-bubble">
+                The 16-day DSO increase (42 → 58) ties up approximately $1.1M in working capital, reducing FCF from $1.8M to ~$700K. This is a material impact:
+                <br><br>
+                • Q4 FCF margin dropped from 14.2% to 5.5%
+                <br>• Cash conversion cycle extended by 16 days
+                <br>• If trend persists into Q1, FCF could turn negative
+                <br><br>
+                Recommend reviewing AR aging report and collection procedures.
+              </div>
+              <div class="chat-message-meta">1h ago &middot; model: gpt-4o &middot; 2,234 tokens</div>
+            </div>
+          </div>
+          <div class="chat-message user">
+            <div class="chat-message-avatar user">You</div>
+            <div class="chat-message-body">
+              <div class="chat-message-sender">You</div>
+              <div class="chat-message-bubble">Generate a summary report with recommendations for the board.</div>
+              <div class="chat-message-meta">2m ago</div>
+            </div>
+          </div>
+          <!-- Typing indicator -->
+          <div class="chat-message assistant">
+            <div class="chat-message-avatar assistant">AI</div>
+            <div class="chat-message-body">
+              <div class="chat-typing-indicator">
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Composer -->
+        <div class="chat-composer">
+          <button class="chat-composer-btn" title="Attach file">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="chat-composer-btn" title="Skills">
+            <svg viewBox="0 0 24 24" width="16" height="16"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"/></svg>
+          </button>
+          <textarea class="chat-composer-input" id="chatInput" placeholder="Ask anything, or select a skill..." rows="1"></textarea>
+          <button class="chat-composer-btn chat-composer-send" title="Send" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: System Health -->
       <div>
         <!-- Active Agents -->
         <div class="panel-card side-panel">
@@ -1659,53 +2059,43 @@
           <div class="agent-list">
             <div class="agent-list-item">
               <div class="agent-list-avatar cyan">
-                CS
+                DF
                 <span class="live-dot"></span>
               </div>
               <div class="agent-list-info">
-                <div class="agent-list-name">Customer Support Bot</div>
+                <div class="agent-list-name">Lead Agent</div>
                 <div class="agent-list-meta">Production</div>
               </div>
               <div class="agent-list-runs">3 active</div>
             </div>
             <div class="agent-list-item">
               <div class="agent-list-avatar purple">
-                DA
+                SA
                 <span class="live-dot"></span>
               </div>
               <div class="agent-list-info">
-                <div class="agent-list-name">Data Analyst Pro</div>
-                <div class="agent-list-meta">Production</div>
+                <div class="agent-list-name">Subagent</div>
+                <div class="agent-list-meta">Research</div>
               </div>
               <div class="agent-list-runs">2 active</div>
             </div>
             <div class="agent-list-item">
               <div class="agent-list-avatar green">
-                CR
+                SK
                 <span class="live-dot"></span>
               </div>
               <div class="agent-list-info">
-                <div class="agent-list-name">Code Reviewer</div>
+                <div class="agent-list-name">Skill Worker</div>
                 <div class="agent-list-meta">Production</div>
               </div>
               <div class="agent-list-runs">1 active</div>
             </div>
             <div class="agent-list-item">
               <div class="agent-list-avatar amber">
-                RA
+                SC
               </div>
               <div class="agent-list-info">
-                <div class="agent-list-name">Research Assistant</div>
-                <div class="agent-list-meta">Staging</div>
-              </div>
-              <div class="agent-list-runs" style="color: var(--text-tertiary);">idle</div>
-            </div>
-            <div class="agent-list-item">
-              <div class="agent-list-avatar coral">
-                TC
-              </div>
-              <div class="agent-list-info">
-                <div class="agent-list-name">Test Case Generator</div>
+                <div class="agent-list-name">Scheduler</div>
                 <div class="agent-list-meta">Staging</div>
               </div>
               <div class="agent-list-runs" style="color: var(--text-tertiary);">idle</div>
@@ -1727,7 +2117,7 @@
                 <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
               </div>
               <div class="health-info">
-                <div class="health-name">API Server</div>
+                <div class="health-name">Gateway API :8001</div>
                 <div class="health-bar">
                   <div class="health-bar-fill healthy" style="width: 98%"></div>
                 </div>
@@ -1742,7 +2132,7 @@
                 <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
               </div>
               <div class="health-info">
-                <div class="health-name">Vector Database</div>
+                <div class="health-name">PostgreSQL</div>
                 <div class="health-bar">
                   <div class="health-bar-fill healthy" style="width: 92%"></div>
                 </div>
@@ -1772,7 +2162,7 @@
                 <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </div>
               <div class="health-info">
-                <div class="health-name">Task Queue</div>
+                <div class="health-name">Sandbox</div>
                 <div class="health-bar">
                   <div class="health-bar-fill healthy" style="width: 85%"></div>
                 </div>
@@ -1797,6 +2187,180 @@
       setTimeout(() => this.classList.remove('spinning'), 800);
     });
   });
+
+  // Thread data
+  var threadData = {
+    'Q4 Financial Report Analysis': [
+      { role: 'user', text: 'Analyze the Q4 cash flow statement and identify any red flags in operating, investing, or financing activities.', time: '2h ago' },
+      { role: 'assistant', text: "I've analyzed the Q4 cash flow statement. Here are the key findings:\n\nOperating Activities: +$2.4M (healthy, +12% YoY). Driven by net income and non-cash adjustments.\n\nInvesting Activities: -$1.8M (elevated capex). Two acquisitions closed in Q4 totaling $800K.\n\nFinancing Activities: -$600K. Debt repayment of $1.2M offset by new credit facility draw of $600K.\n\nRed Flags:\n1. DSO increased from 42 to 58 days — possible collection issues\n2. Capex-to-depreciation ratio at 2.1x (industry avg 1.3x)\n3. Operating cash flow coverage of dividends dropped to 1.4x (was 2.1x in Q3)", time: '2h ago', meta: 'model: gpt-4o · 1,847 tokens' },
+      { role: 'user', text: "What's the impact of the increased DSO on free cash flow?", time: '1h ago' },
+      { role: 'assistant', text: 'The 16-day DSO increase (42 → 58) ties up approximately $1.1M in working capital, reducing FCF from $1.8M to ~$700K.\n\n• Q4 FCF margin dropped from 14.2% to 5.5%\n• Cash conversion cycle extended by 16 days\n• If trend persists into Q1, FCF could turn negative\n\nRecommend reviewing AR aging report and collection procedures.', time: '1h ago', meta: 'model: gpt-4o · 2,234 tokens' },
+      { role: 'user', text: 'Generate a summary report with recommendations for the board.', time: '2m ago' }
+    ],
+    'API Integration Planning': [
+      { role: 'user', text: 'Help me plan the authentication flow for our new API.', time: '15m ago' },
+      { role: 'assistant', text: 'Here\'s a recommended auth flow for your API:\n\n1. OAuth 2.0 with PKCE for third-party clients\n2. JWT for first-party SPAs (short-lived access + refresh token rotation)\n3. API keys for service-to-service calls\n\nKey considerations: token revocation, rate limiting per key, and scope-based access control.', time: '15m ago', meta: 'model: claude-3.5-sonnet · 1,203 tokens' },
+      { role: 'user', text: 'Let me check the auth flow for edge cases...', time: '14m ago' }
+    ],
+    'Code Review — PR #342': [
+      { role: 'user', text: 'Review PR #342 — refactored the message queue handler.', time: '1h ago' },
+      { role: 'assistant', text: 'Reviewed PR #342. Overall solid refactor.\n\nIssues found:\n1. Found a potential race condition in the consumer pool — concurrent ack() calls can lead to message loss\n2. Missing error handler on the reconnect logic (line 87)\n3. The backoff strategy should use exponential + jitter, not fixed intervals\n\nOtherwise, the separation of concerns and test coverage look great.', time: '1h ago', meta: 'model: gpt-4o · 3,451 tokens' }
+    ],
+    'Market Research Summary': [
+      { role: 'user', text: 'Summarize the competitive landscape for AI coding tools.', time: '3h ago' },
+      { role: 'assistant', text: 'Here are the top 5 competitors in the AI coding tools space:\n\n1. GitHub Copilot — 30% market share, $10/mo\n2. Cursor — 15% market share, $20/mo\n3. Codeium — 12% market share, freemium\n4. Tabnine — 8% market share, $12/mo\n5. Amazon Q Developer — 5% market share, bundled\n\nKey differentiators: context awareness, multi-file editing, and IDE integration depth.', time: '3h ago', meta: 'model: gpt-4o · 1,876 tokens' }
+    ],
+    'Database Schema Design': [
+      { role: 'user', text: 'Design a schema for the thread and message persistence layer.', time: 'Yesterday' },
+      { role: 'assistant', text: 'The migration plan looks good. Proposed schema:\n\n• threads table: id, user_id, title, created_at, updated_at, metadata JSONB\n• messages table: id, thread_id, role, content, model, tokens, created_at\n• checkpoints table: thread_id, checkpoint_id, parent_id, data JSONB\n\nIndexes on (thread_id, created_at) and (user_id, updated_at).', time: 'Yesterday', meta: 'model: claude-3.5-sonnet · 2,109 tokens' }
+    ],
+    'Deployment Strategy': [
+      { role: 'user', text: 'Plan the Docker Compose deployment for production.', time: 'Yesterday' },
+      { role: 'assistant', text: 'Docker Compose with Nginx (port 2026) as reverse proxy, Gateway API on 8001, and Next.js frontend on 3000. All services use loopback binding by default. Health checks on Gateway /health endpoint.', time: 'Yesterday', meta: 'model: gpt-4o · 987 tokens' }
+    ]
+  };
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatMessage(text) {
+    return escapeHtml(text).replace(/\n/g, '<br>');
+  }
+
+  function selectThread(el, threadName, msgCount) {
+    // Update active state
+    document.querySelectorAll('.chat-thread-item').forEach(function(item) {
+      item.classList.remove('active');
+    });
+    el.classList.add('active');
+
+    // Update header
+    document.getElementById('chatWindowTitle').textContent = threadName;
+    document.getElementById('chatWindowSubtitle').textContent = msgCount + ' messages · started recently';
+
+    // Load messages
+    var messages = threadData[threadName] || [];
+    var chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+
+    messages.forEach(function(msg) {
+      var msgEl = document.createElement('div');
+      msgEl.className = 'chat-message ' + msg.role;
+      var avatar = msg.role === 'user' ? 'You' : 'AI';
+      var sender = msg.role === 'user' ? 'You' : 'DeerFlow Agent';
+      var meta = msg.meta ? '<div class="chat-message-meta">' + msg.time + ' · ' + msg.meta + '</div>' : '<div class="chat-message-meta">' + msg.time + '</div>';
+
+      msgEl.innerHTML =
+        '<div class="chat-message-avatar ' + msg.role + '">' + avatar + '</div>' +
+        '<div class="chat-message-body">' +
+          '<div class="chat-message-sender">' + sender + '</div>' +
+          '<div class="chat-message-bubble">' + formatMessage(msg.text) + '</div>' +
+          meta +
+        '</div>';
+      chatMessages.appendChild(msgEl);
+    });
+
+    // Add typing indicator if last message is from user
+    if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+      var typingEl = document.createElement('div');
+      typingEl.className = 'chat-message assistant';
+      typingEl.innerHTML =
+        '<div class="chat-message-avatar assistant">AI</div>' +
+        '<div class="chat-message-body">' +
+          '<div class="chat-typing-indicator">' +
+            '<div class="chat-typing-dot"></div>' +
+            '<div class="chat-typing-dot"></div>' +
+            '<div class="chat-typing-dot"></div>' +
+          '</div>' +
+        '</div>';
+      chatMessages.appendChild(typingEl);
+    }
+
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function sendMessage() {
+    var input = document.getElementById('chatInput');
+    var text = input.value.trim();
+    if (!text) return;
+
+    var chatMessages = document.getElementById('chatMessages');
+
+    // Remove any existing typing indicator
+    var existingTyping = chatMessages.querySelector('.chat-typing-indicator');
+    if (existingTyping) {
+      existingTyping.closest('.chat-message').remove();
+    }
+
+    // Add user message
+    var msgEl = document.createElement('div');
+    msgEl.className = 'chat-message user';
+    msgEl.innerHTML =
+      '<div class="chat-message-avatar user">You</div>' +
+      '<div class="chat-message-body">' +
+        '<div class="chat-message-sender">You</div>' +
+        '<div class="chat-message-bubble">' + escapeHtml(text) + '</div>' +
+        '<div class="chat-message-meta">just now</div>' +
+      '</div>';
+    chatMessages.appendChild(msgEl);
+
+    // Clear input
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Add typing indicator
+    var typingEl = document.createElement('div');
+    typingEl.className = 'chat-message assistant';
+    typingEl.innerHTML =
+      '<div class="chat-message-avatar assistant">AI</div>' +
+      '<div class="chat-message-body">' +
+        '<div class="chat-typing-indicator">' +
+          '<div class="chat-typing-dot"></div>' +
+          '<div class="chat-typing-dot"></div>' +
+          '<div class="chat-typing-dot"></div>' +
+        '</div>' +
+      '</div>';
+    chatMessages.appendChild(typingEl);
+
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Simulate response after delay
+    setTimeout(function() {
+      typingEl.remove();
+      var respEl = document.createElement('div');
+      respEl.className = 'chat-message assistant';
+      respEl.innerHTML =
+        '<div class="chat-message-avatar assistant">AI</div>' +
+        '<div class="chat-message-body">' +
+          '<div class="chat-message-sender">DeerFlow Agent</div>' +
+          '<div class="chat-message-bubble">I\'ll process your request. In the deer-flow production system, this would stream a response via SSE from the Gateway API, with tool calls and subagent delegation handled by the LangGraph runtime.</div>' +
+          '<div class="chat-message-meta">just now · model: gpt-4o · streaming</div>' +
+        '</div>';
+      chatMessages.appendChild(respEl);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 1500);
+  }
+
+  // Auto-resize textarea
+  var chatInput = document.getElementById('chatInput');
+  if (chatInput) {
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    // Send on Enter (without shift)
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
 </script>
 
 </body>
