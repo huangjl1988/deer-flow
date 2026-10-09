@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgentForge Console — Runs</title>
+<title>AgentForge Console — Scheduled Tasks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1233,6 +1233,18 @@
     border: 1px solid rgba(90, 101, 128, 0.25);
   }
 
+  .status-badge.enabled {
+    background: var(--accent-green-glow);
+    color: var(--accent-green);
+    border: 1px solid rgba(46, 213, 115, 0.25);
+  }
+
+  .status-badge.paused {
+    background: rgba(90, 101, 128, 0.15);
+    color: var(--text-tertiary);
+    border: 1px solid rgba(90, 101, 128, 0.25);
+  }
+
   .status-badge .status-icon {
     width: 10px;
     height: 10px;
@@ -1615,14 +1627,14 @@
         <span class="nav-item-badge">12</span>
       </a>
 
-      <a href="scheduled-tasks.html" class="nav-item">
+      <a href="scheduled-tasks.html" class="nav-item active">
         <span class="nav-item-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
         </span>
         <span>Scheduled Tasks</span>
       </a>
 
-      <a href="runs.html" class="nav-item active">
+      <a href="runs.html" class="nav-item">
         <span class="nav-item-icon">
           <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </span>
@@ -1790,21 +1802,21 @@
       <div class="page-title-group">
         <h1 class="page-title">
           <span class="title-prefix">//</span>
-          Run History &amp; Monitoring
+          Scheduled Tasks
         </h1>
         <p class="page-subtitle">
           <span class="status-indicator"></span>
-          Live monitoring active &middot; 8 runs in progress
+          Scheduler enabled &middot; 5 tasks active &middot; next run in 3m 12s
         </p>
       </div>
       <div class="page-header-actions">
         <button class="btn-ghost">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export CSV
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          Recipes
         </button>
-        <button class="btn-ghost">
-          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          Columns
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Task
         </button>
       </div>
     </div>
@@ -1813,35 +1825,33 @@
     <div class="filter-bar">
       <div class="filter-tabs" id="statusTabs">
         <button class="filter-tab active" data-filter="all">
-          All <span class="tab-count">2,847</span>
+          All <span class="tab-count">8</span>
+        </button>
+        <button class="filter-tab" data-filter="enabled">
+          Enabled <span class="tab-count">5</span>
+        </button>
+        <button class="filter-tab" data-filter="paused">
+          Paused <span class="tab-count">2</span>
         </button>
         <button class="filter-tab" data-filter="running">
-          Running <span class="tab-count">8</span>
-        </button>
-        <button class="filter-tab" data-filter="success">
-          Success <span class="tab-count">2,681</span>
+          Running <span class="tab-count">1</span>
         </button>
         <button class="filter-tab" data-filter="failed">
-          Failed <span class="tab-count">155</span>
-        </button>
-        <button class="filter-tab" data-filter="pending">
-          Pending <span class="tab-count">3</span>
+          Failed <span class="tab-count">1</span>
         </button>
       </div>
 
       <div class="filter-right">
-        <div class="dropdown" id="timeRangeDropdown">
+        <div class="dropdown" id="typeDropdown">
           <button class="dropdown-btn">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Last 24h
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            All Types
             <svg viewBox="0 0 24 24" class="chevron"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="dropdown-menu">
-            <div class="dropdown-item" data-range="1h">Last 1 hour</div>
-            <div class="dropdown-item active" data-range="24h">Last 24 hours</div>
-            <div class="dropdown-item" data-range="7d">Last 7 days</div>
-            <div class="dropdown-item" data-range="30d">Last 30 days</div>
-            <div class="dropdown-item" data-range="custom">Custom range...</div>
+            <div class="dropdown-item active" data-type="all">All Types</div>
+            <div class="dropdown-item" data-type="cron">Cron</div>
+            <div class="dropdown-item" data-type="once">Once</div>
           </div>
         </div>
       </div>
@@ -1851,16 +1861,16 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-card-icon cyan">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </div>
-        <div class="stat-card-label">Total Runs</div>
-        <div class="stat-card-value" data-target="2847">0<span class="value-suffix"></span></div>
+        <div class="stat-card-label">Total Tasks</div>
+        <div class="stat-card-value" data-target="8">0<span class="value-suffix"></span></div>
         <div class="stat-card-footer">
           <span class="stat-trend up">
             <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            12.4%
+            2
           </span>
-          <span class="stat-period">vs yesterday</span>
+          <span class="stat-period">this week</span>
         </div>
       </div>
 
@@ -1868,29 +1878,29 @@
         <div class="stat-card-icon green">
           <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </div>
-        <div class="stat-card-label">Success Rate</div>
-        <div class="stat-card-value" data-target="94.2" data-decimals="1">0<span class="value-suffix">%</span></div>
+        <div class="stat-card-label">Enabled</div>
+        <div class="stat-card-value" data-target="5">0<span class="value-suffix"></span></div>
         <div class="stat-card-footer">
           <span class="stat-trend up">
             <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            0.8%
+            1
           </span>
-          <span class="stat-period">vs yesterday</span>
+          <span class="stat-period">since yesterday</span>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-card-icon purple">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         </div>
-        <div class="stat-card-label">Avg Duration</div>
-        <div class="stat-card-value" data-target="32.4" data-decimals="1">0<span class="value-suffix">s</span></div>
+        <div class="stat-card-label">Cron Jobs</div>
+        <div class="stat-card-value" data-target="6">0<span class="value-suffix"></span></div>
         <div class="stat-card-footer">
-          <span class="stat-trend down">
-            <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
-            4.2s
+          <span class="stat-trend up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            1
           </span>
-          <span class="stat-period">faster</span>
+          <span class="stat-period">this week</span>
         </div>
       </div>
 
@@ -1898,14 +1908,14 @@
         <div class="stat-card-icon amber">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="stat-card-label">Running Now</div>
-        <div class="stat-card-value" data-target="8">0<span class="value-suffix"></span></div>
+        <div class="stat-card-label">Runs Today</div>
+        <div class="stat-card-value" data-target="23">0<span class="value-suffix"></span></div>
         <div class="stat-card-footer">
           <span class="stat-trend up">
             <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-            3
+            5
           </span>
-          <span class="stat-period">new in 5m</span>
+          <span class="stat-period">vs yesterday</span>
         </div>
       </div>
 
@@ -1913,8 +1923,8 @@
         <div class="stat-card-icon coral">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
         </div>
-        <div class="stat-card-label">Failed Today</div>
-        <div class="stat-card-value" data-target="3">0<span class="value-suffix"></span></div>
+        <div class="stat-card-label">Failed (24h)</div>
+        <div class="stat-card-value" data-target="1">0<span class="value-suffix"></span></div>
         <div class="stat-card-footer">
           <span class="stat-trend down">
             <svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
@@ -1930,7 +1940,7 @@
       <div class="chart-header">
         <div class="chart-title">
           <span class="title-bracket">[</span>
-          Runs Timeline
+          Runs Timeline by Task
           <span class="title-bracket">]</span>
         </div>
         <div class="chart-legend">
@@ -1966,13 +1976,13 @@
       </div>
     </div>
 
-    <!-- Runs Table -->
+    <!-- Tasks Table -->
     <div class="table-card">
       <div class="table-header">
         <div class="table-title">
           <span class="title-bracket">[</span>
-          Run History
-          <span class="count" id="tableCount">2,847 runs</span>
+          Scheduled Tasks
+          <span class="count" id="tableCount">8 tasks</span>
           <span class="title-bracket">]</span>
         </div>
         <div class="table-actions">
@@ -1990,14 +2000,13 @@
       <table class="runs-table" id="runsTable">
         <thead>
           <tr>
-            <th style="width: 110px;">Status</th>
-            <th style="width: 140px;">Run ID</th>
-            <th style="width: 180px;">Agent</th>
-            <th style="width: 100px;">Type</th>
-            <th style="width: 90px;">Duration</th>
-            <th style="width: 100px;">Tokens</th>
-            <th style="width: 80px;">Cost</th>
-            <th style="width: 110px;">Started</th>
+            <th style="width: 100px;">Status</th>
+            <th style="width: 200px;">Task Name</th>
+            <th style="width: 90px;">Type</th>
+            <th style="width: 140px;">Schedule</th>
+            <th style="width: 130px;">Context</th>
+            <th style="width: 140px;">Next Run</th>
+            <th style="width: 120px;">Last Run</th>
             <th style="width: 80px; text-align: right;">Actions</th>
           </tr>
         </thead>
@@ -2008,20 +2017,7 @@
 
       <div class="table-footer">
         <div class="table-footer-info">
-          Showing <span id="showingCount">20</span> of <span id="totalCount">2,847</span> runs
-        </div>
-        <div class="pagination">
-          <button class="page-btn">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn">...</button>
-          <button class="page-btn">143</button>
-          <button class="page-btn">
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          Showing <span id="showingCount">8</span> of <span id="totalCount">8</span> tasks
         </div>
       </div>
     </div>
@@ -2031,34 +2027,22 @@
 <!-- Copy Toast -->
 <div class="copy-toast" id="copyToast">
   <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-  Run ID copied to clipboard
+  Task ID copied to clipboard
 </div>
 
 <script>
   // ============================================================
-  // RUN DATA
+  // SCHEDULED TASK DATA
   // ============================================================
   const runData = [
-    { status: 'running', id: 'run_8x2f9k1m', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '45.2s', tokens: '12,847', cost: '$0.042', started: 'just now', steps: 12, input: 'Research the latest developments in quantum computing and summarize key breakthroughs from 2024.', output: 'Quantum computing has seen significant advances in 2024, with major breakthroughs in error correction, qubit coherence times, and practical applications in optimization and simulation...' },
-    { status: 'running', id: 'run_7a3b4n2p', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '28.1s', tokens: '8,291', cost: '$0.031', started: '1 min ago', steps: 8, input: 'Write a Python function that implements a thread-safe LRU cache with TTL support.', output: '' },
-    { status: 'success', id: 'run_6z1w5q9r', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '32.4s', tokens: '15,234', cost: '$0.058', started: '2 min ago', steps: 15, input: 'Analyze the quarterly sales data and identify top 3 performing regions with growth trends.', output: 'Analysis complete. Top 3 performing regions:\n1. APAC: +24.5% YoY growth, driven by Southeast Asia expansion\n2. EMEA: +18.2% YoY growth, strong performance in DACH region\n3. North America: +12.8% YoY growth, enterprise segment leading...' },
-    { status: 'failed', id: 'run_5d7s8t0u', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '12.8s', tokens: '3,421', cost: '$0.012', started: '3 min ago', steps: 4, input: 'Automate the deployment pipeline for the new microservice architecture.', output: 'ERROR: Deployment failed at step 4 - Kubernetes cluster authentication failed. Invalid service account token.' },
-    { status: 'success', id: 'run_4f6g2h3j', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '58.7s', tokens: '24,561', cost: '$0.087', started: '5 min ago', steps: 22, input: 'Conduct comprehensive research on renewable energy storage technologies and market trends.', output: 'Renewable Energy Storage Research Report:\n\n1. Battery Storage Technologies\n   - Lithium-ion: Dominant with 85% market share, declining costs\n   - Solid-state: Emerging, 2-3x energy density, commercialization by 2026\n...' },
-    { status: 'success', id: 'run_3k8l4m5n', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '21.3s', tokens: '6,782', cost: '$0.024', started: '7 min ago', steps: 7, input: 'Create a React hook for debouncing input values with TypeScript support.', output: 'Created useDebounce hook with TypeScript support. Features include:\n- Generic type support\n- Configurable delay\n- Immediate option for first call\n- Cancel function\n- Leading/trailing edge options...' },
-    { status: 'running', id: 'run_2p9q6r7s', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '15.6s', tokens: '5,123', cost: '$0.019', started: '8 min ago', steps: 9, input: 'Analyze customer churn data and build predictive model summary.', output: '' },
-    { status: 'success', id: 'run_1t0u8v9w', agent: 'SecurityAuditor', agentColor: 'coral', type: 'analysis', duration: '41.9s', tokens: '18,456', cost: '$0.067', started: '10 min ago', steps: 18, input: 'Perform security audit on the provided codebase and identify vulnerabilities.', output: 'Security Audit Report\n\nCritical: 2\nHigh: 5\nMedium: 12\nLow: 8\n\nCritical Findings:\n1. SQL Injection in user search endpoint (line 245)\n2. Hardcoded API key in config file...' },
-    { status: 'pending', id: 'run_0x1y2z3a', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '-', tokens: '-', cost: '-', started: '12 min ago', steps: 0, input: 'Scheduled data sync from CRM to data warehouse.', output: '' },
-    { status: 'success', id: 'run_9b4c5d6e', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '1m 12s', tokens: '31,245', cost: '$0.112', started: '15 min ago', steps: 28, input: 'Research competitive landscape of AI-powered developer tools.', output: 'Competitive Analysis: AI Developer Tools\n\nMarket Overview:\n- $4.2B market in 2024, growing at 38% CAGR\n- 150+ vendors across code generation, testing, DevOps\n\nKey Players:\n1. GitHub Copilot - 30% market share...' },
-    { status: 'failed', id: 'run_8f7g6h5i', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '8.4s', tokens: '2,134', cost: '$0.008', started: '18 min ago', steps: 3, input: 'Generate Rust code for blockchain smart contract.', output: 'ERROR: Model context limit exceeded. The requested code pattern requires more context than available.' },
-    { status: 'success', id: 'run_7j3k2l1m', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '26.8s', tokens: '9,876', cost: '$0.036', started: '20 min ago', steps: 11, input: 'Calculate cohort retention rates for Q3 user signups.', output: 'Cohort Retention Analysis - Q3 2024\n\nWeek 1 retention: 68.4%\nWeek 2 retention: 52.1%\nWeek 4 retention: 38.7%\nWeek 8 retention: 29.3%\n\nTop performing cohorts: July signups (34.2% W8 retention)...' },
-    { status: 'running', id: 'run_6n5m4b3v', agent: 'ContentCreator', agentColor: 'purple', type: 'research', duration: '33.2s', tokens: '11,234', cost: '$0.041', started: '22 min ago', steps: 14, input: 'Create technical documentation for the new API endpoints.', output: '' },
-    { status: 'success', id: 'run_5c4x3z2a', agent: 'AutomationBot', agentColor: 'amber', type: 'automation', duration: '18.5s', tokens: '4,567', cost: '$0.017', started: '25 min ago', steps: 6, input: 'Automate weekly report generation and distribution.', output: 'Automation complete. Report generated and sent to 47 recipients. 0 errors encountered.' },
-    { status: 'success', id: 'run_4s3d2f1g', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '47.3s', tokens: '19,876', cost: '$0.072', started: '30 min ago', steps: 19, input: 'Research and summarize the latest trends in edge computing.', output: 'Edge Computing Trends 2024\n\n1. Edge AI Deployment Surge\n   - 65% of enterprises deploying AI at the edge\n   - Low-latency inference driving adoption\n\n2. 5G Edge Integration\n   - MEC (Multi-access Edge Compute) maturing...' },
-    { status: 'pending', id: 'run_3h4j5k6l', agent: 'SecurityAuditor', agentColor: 'coral', type: 'analysis', duration: '-', tokens: '-', cost: '-', started: '32 min ago', steps: 0, input: 'Scheduled security scan of production environment.', output: '' },
-    { status: 'failed', id: 'run_2q7w8e9r', agent: 'DataAnalyst-Pro', agentColor: 'green', type: 'analysis', duration: '15.2s', tokens: '4,890', cost: '$0.018', started: '35 min ago', steps: 5, input: 'Analyze financial data and generate P&L summary.', output: 'ERROR: Database connection timeout. Query exceeded 30s limit.' },
-    { status: 'success', id: 'run_1t5y6u7i', agent: 'CodeWriter-X1', agentColor: 'purple', type: 'coding', duration: '35.6s', tokens: '12,456', cost: '$0.045', started: '40 min ago', steps: 13, input: 'Implement WebSocket server with authentication and room support.', output: 'WebSocket server implementation complete. Features:\n- JWT authentication\n- Room-based messaging\n- Presence tracking\n- Heartbeat mechanism\n- Rate limiting...' },
-    { status: 'success', id: 'run_0o9i8u7y', agent: 'Research-Pro', agentColor: 'cyan', type: 'research', duration: '1m 05s', tokens: '28,345', cost: '$0.101', started: '45 min ago', steps: 25, input: 'Deep dive into microservices architecture patterns and best practices.', output: 'Microservices Architecture Guide\n\n1. Decomposition Patterns\n   - Strangler Fig pattern for migration\n   - Bounded Context (DDD) approach\n   - Event-driven vs API-driven...' },
-    { status: 'running', id: 'run_z9x8c7v6', agent: 'ContentCreator', agentColor: 'purple', type: 'automation', duration: '22.1s', tokens: '7,654', cost: '$0.028', started: '48 min ago', steps: 10, input: 'Auto-generate changelog from git commit history.', output: '' },
+    { status: 'enabled', id: 'task_daily_report', name: 'Daily Market Report', type: 'cron', schedule: '0 9 * * 1-5', context: 'fresh', nextRun: '2026-06-10 09:00', lastRun: '2026-06-09 09:00', lastRunId: 'run_8x2f9k1m', error: null, prompt: 'Generate a daily market report covering major indices, top movers, and macro news.' },
+    { status: 'running', id: 'task_db_backup', name: 'Database Backup Sync', type: 'cron', schedule: '0 */6 * * *', context: 'reuse', nextRun: '2026-06-09 18:00', lastRun: '2026-06-09 12:00', lastRunId: 'run_7a3b4n2p', error: null, prompt: 'Sync production database backups to cold storage and verify integrity.' },
+    { status: 'enabled', id: 'task_weekly_audit', name: 'Weekly Security Audit', type: 'cron', schedule: '0 2 * * 1', context: 'fresh', nextRun: '2026-06-16 02:00', lastRun: '2026-06-09 02:00', lastRunId: 'run_1t0u8v9w', error: null, prompt: 'Run security audit on all code repositories and generate vulnerability report.' },
+    { status: 'paused', id: 'task_monthly_metrics', name: 'Monthly Metrics Digest', type: 'cron', schedule: '0 6 1 * *', context: 'fresh', nextRun: '—', lastRun: '2026-06-01 06:00', lastRunId: 'run_4f6g2h3j', error: null, prompt: 'Compile monthly business metrics digest and distribute to leadership team.' },
+    { status: 'enabled', id: 'task_content_review', name: 'Content Queue Review', type: 'cron', schedule: '0 10 * * *', context: 'fresh', nextRun: '2026-06-10 10:00', lastRun: '2026-06-09 10:00', lastRunId: 'run_6n5m4b3v', error: null, prompt: 'Review pending content queue, prioritize items, and assign to authors.' },
+    { status: 'failed', id: 'task_data_pipeline', name: 'ETL Data Pipeline', type: 'cron', schedule: '30 3 * * *', context: 'reuse', nextRun: '2026-06-10 03:30', lastRun: '2026-06-09 03:30', lastRunId: 'run_2q7w8e9r', error: 'Database connection timeout', prompt: 'Run ETL pipeline to sync CRM data into the analytics warehouse.' },
+    { status: 'enabled', id: 'task_onetime_migration', name: 'Legacy Data Migration', type: 'once', schedule: '2026-06-15 22:00', context: 'fresh', nextRun: '2026-06-15 22:00', lastRun: '—', lastRunId: '—', error: null, prompt: 'One-time migration of legacy user data to the new schema during maintenance window.' },
+    { status: 'paused', id: 'task_log_cleanup', name: 'Log Cleanup & Archive', type: 'cron', schedule: '0 4 * * 0', context: 'fresh', nextRun: '—', lastRun: '2026-06-02 04:00', lastRunId: 'run_5c4x3z2a', error: null, prompt: 'Archive logs older than 30 days and clean up temporary files.' },
   ];
 
   // ============================================================
@@ -2215,6 +2199,8 @@
       row.setAttribute('data-id', run.id);
       row.setAttribute('data-index', index);
 
+      const contextLabel = run.context === 'reuse' ? 'Reuse Thread' : 'Fresh Thread';
+
       row.innerHTML = `
         <td>
           <span class="status-badge ${run.status}">
@@ -2224,29 +2210,23 @@
         </td>
         <td>
           <div class="run-id">
-            ${run.id}
+            ${run.name}
             <span class="copy-btn" title="Copy ID" onclick="copyRunId('${run.id}', event)">
               <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             </span>
           </div>
         </td>
-        <td>
-          <div class="agent-cell">
-            <span class="agent-dot ${run.agentColor}"></span>
-            <span class="agent-name">${run.agent}</span>
-          </div>
-        </td>
         <td><span class="type-badge">${run.type}</span></td>
-        <td><span class="duration-cell">${run.duration}</span></td>
-        <td><span class="tokens-cell">${run.tokens}</span></td>
-        <td><span class="cost-cell">${run.cost}</span></td>
-        <td><span class="time-cell">${run.started}</span></td>
+        <td><span class="duration-cell" style="font-family: var(--font-mono); font-size: 11px;">${run.schedule}</span></td>
+        <td><span class="tokens-cell">${contextLabel}</span></td>
+        <td><span class="time-cell">${run.nextRun}</span></td>
+        <td><span class="time-cell">${run.lastRun}</span></td>
         <td style="text-align: right;">
           <div class="actions-cell" style="justify-content: flex-end;">
             <button class="action-btn" title="View Details" onclick="toggleExpand(this, event)">
               <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
-            <button class="action-btn debug" title="Debug Run" onclick="debugRun('${run.id}', event)">
+            <button class="action-btn debug" title="Trigger Now" onclick="debugRun('${run.id}', event)">
               <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
           </div>
@@ -2259,35 +2239,39 @@
       const detailRow = document.createElement('tr');
       detailRow.className = 'run-details-row';
       detailRow.innerHTML = `
-        <td colspan="9">
+        <td colspan="8">
           <div class="run-details">
             <div class="run-details-content">
               <div class="detail-section">
-                <h4>Input Preview</h4>
-                <div class="detail-preview">${run.input}</div>
+                <h4>Prompt</h4>
+                <div class="detail-preview">${run.prompt}</div>
               </div>
               <div class="detail-section">
-                <h4>Output Preview</h4>
-                <div class="detail-preview">${run.output || '(Run still in progress...)'}</div>
+                <h4>Last Run</h4>
+                <div class="detail-preview">
+                  <div><strong>Run ID:</strong> ${run.lastRunId}</div>
+                  <div><strong>At:</strong> ${run.lastRun}</div>
+                  ${run.error ? `<div style="color: var(--accent-coral);"><strong>Error:</strong> ${run.error}</div>` : '<div style="color: var(--accent-green);">Status: Success</div>'}
+                </div>
               </div>
               <div class="detail-section">
-                <h4>Run Stats</h4>
+                <h4>Task Info</h4>
                 <div class="detail-stats">
                   <div class="detail-stat">
-                    <div class="detail-stat-label">Steps</div>
-                    <div class="detail-stat-value">${run.steps}</div>
+                    <div class="detail-stat-label">Task ID</div>
+                    <div class="detail-stat-value" style="font-family: var(--font-mono); font-size: 11px;">${run.id}</div>
                   </div>
                   <div class="detail-stat">
-                    <div class="detail-stat-label">Duration</div>
-                    <div class="detail-stat-value">${run.duration}</div>
+                    <div class="detail-stat-label">Schedule</div>
+                    <div class="detail-stat-value" style="font-family: var(--font-mono); font-size: 11px;">${run.schedule}</div>
                   </div>
                   <div class="detail-stat">
-                    <div class="detail-stat-label">Tokens</div>
-                    <div class="detail-stat-value">${run.tokens}</div>
+                    <div class="detail-stat-label">Context</div>
+                    <div class="detail-stat-value">${contextLabel}</div>
                   </div>
                   <div class="detail-stat">
-                    <div class="detail-stat-label">Cost</div>
-                    <div class="detail-stat-value">${run.cost}</div>
+                    <div class="detail-stat-label">Next Run</div>
+                    <div class="detail-stat-value">${run.nextRun}</div>
                   </div>
                 </div>
               </div>
@@ -2300,19 +2284,21 @@
 
     // Update counts
     document.getElementById('showingCount').textContent = data.length;
-    document.getElementById('tableCount').textContent = `${data.length.toLocaleString()} runs`;
+    document.getElementById('tableCount').textContent = `${data.length.toLocaleString()} tasks`;
   }
 
   function getStatusIcon(status) {
     switch (status) {
       case 'success':
+      case 'enabled':
         return '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
       case 'failed':
         return '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
       case 'running':
         return '<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
       case 'pending':
-        return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>';
+      case 'paused':
+        return '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       default:
         return '';
     }
@@ -2393,9 +2379,10 @@
     if (searchTerm) {
       filtered = filtered.filter(r => 
         r.id.toLowerCase().includes(searchTerm) ||
-        r.agent.toLowerCase().includes(searchTerm) ||
+        r.name.toLowerCase().includes(searchTerm) ||
         r.type.toLowerCase().includes(searchTerm) ||
-        r.input.toLowerCase().includes(searchTerm)
+        r.prompt.toLowerCase().includes(searchTerm) ||
+        r.schedule.toLowerCase().includes(searchTerm)
       );
     }
     
@@ -2425,7 +2412,7 @@
   // ROW CLICK SELECTION
   // ============================================================
   document.getElementById('runsTableBody').addEventListener('click', function(e) {
-    const row = e.target.closest('tr.status-running, tr.status-success, tr.status-failed, tr.status-pending');
+    const row = e.target.closest('tr.status-running, tr.status-enabled, tr.status-paused, tr.status-failed');
     if (!row) return;
     if (e.target.closest('.action-btn') || e.target.closest('.copy-btn')) return;
 

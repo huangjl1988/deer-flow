@@ -1229,9 +1229,9 @@
 
       <a href="dashboard.html" class="nav-item active">
         <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </span>
-        <span>Dashboard</span>
+        <span>Chats</span>
       </a>
 
       <a href="agents.html" class="nav-item">
@@ -1242,6 +1242,22 @@
         <span class="nav-item-badge">12</span>
       </a>
 
+      <a href="scheduled-tasks.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+        </span>
+        <span>Scheduled Tasks</span>
+      </a>
+
+      <a href="runs.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span>Runs</span>
+      </a>
+
+      <div class="nav-section-label">Build</div>
+
       <a href="workflows.html" class="nav-item">
         <span class="nav-item-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -1249,6 +1265,22 @@
         <span>Workflows</span>
         <span class="nav-item-badge cyan">5</span>
       </a>
+
+      <a href="editor.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </span>
+        <span>Editor</span>
+      </a>
+
+      <a href="debugger.html" class="nav-item">
+        <span class="nav-item-icon">
+          <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </span>
+        <span>Debugger</span>
+      </a>
+
+      <div class="nav-section-label">Skills & Tools</div>
 
       <a href="skills.html" class="nav-item">
         <span class="nav-item-icon">
@@ -1264,14 +1296,14 @@
         <span>Tools</span>
       </a>
 
-      <div class="nav-section-label">Resources</div>
-
       <a href="models.html" class="nav-item">
         <span class="nav-item-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </span>
         <span>Models</span>
       </a>
+
+      <div class="nav-section-label">Data</div>
 
       <a href="datasets.html" class="nav-item">
         <span class="nav-item-icon">
@@ -1296,13 +1328,6 @@
       </a>
 
       <div class="nav-section-label">Observability</div>
-
-      <a href="runs.html" class="nav-item">
-        <span class="nav-item-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </span>
-        <span>Runs</span>
-      </a>
 
       <a href="traces.html" class="nav-item">
         <span class="nav-item-icon">
@@ -1387,17 +1412,17 @@
       <div class="page-title-group">
         <h1 class="page-title">
           <span class="title-prefix">//</span>
-          Dashboard
+          Chats
         </h1>
         <p class="page-subtitle">
           <span class="status-indicator"></span>
-          System operational &middot; All services healthy
+          4 threads active &middot; 128 messages today
         </p>
       </div>
       <div class="page-header-actions">
-        <button class="btn-ghost">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Last 24h
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          New Chat
         </button>
       </div>
     </div>
@@ -1414,8 +1439,8 @@
             +12.5%
           </div>
         </div>
-        <div class="stat-card-label">Total Agents</div>
-        <div class="stat-card-value">12<span class="value-suffix">agents</span></div>
+        <div class="stat-card-label">Total Threads</div>
+        <div class="stat-card-value">47<span class="value-suffix">threads</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1440,8 +1465,8 @@
             +8.3%
           </div>
         </div>
-        <div class="stat-card-label">Active Runs</div>
-        <div class="stat-card-value">8<span class="value-suffix">running</span></div>
+        <div class="stat-card-label">Messages Today</div>
+        <div class="stat-card-value">128<span class="value-suffix">msgs</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1466,8 +1491,8 @@
             +2.1%
           </div>
         </div>
-        <div class="stat-card-label">Success Rate</div>
-        <div class="stat-card-value">94.2<span class="value-suffix">%</span></div>
+        <div class="stat-card-label">Memory Facts</div>
+        <div class="stat-card-value">23<span class="value-suffix">facts</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1495,8 +1520,8 @@
             -5.2%
           </div>
         </div>
-        <div class="stat-card-label">Avg Latency</div>
-        <div class="stat-card-value">1.2<span class="value-suffix">s</span></div>
+        <div class="stat-card-label">Skills Enabled</div>
+        <div class="stat-card-value">6<span class="value-suffix">skills</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1521,8 +1546,8 @@
             +18.7%
           </div>
         </div>
-        <div class="stat-card-label">Token Usage</div>
-        <div class="stat-card-value">2.4M<span class="value-suffix">tokens</span></div>
+        <div class="stat-card-label">MCP Tools</div>
+        <div class="stat-card-value">14<span class="value-suffix">tools</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1547,8 +1572,8 @@
             -3.4%
           </div>
         </div>
-        <div class="stat-card-label">Cost Today</div>
-        <div class="stat-card-value">$47.82</div>
+        <div class="stat-card-label">Models</div>
+        <div class="stat-card-value">8<span class="value-suffix">models</span></div>
         <div class="mini-chart">
           <svg viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
@@ -1566,86 +1591,55 @@
 
     <!-- Dashboard Content Grid -->
     <div class="dashboard-grid">
-      <!-- Left: Recent Runs Table -->
+      <!-- Left: Recent Chats -->
       <div class="panel-card">
         <div class="panel-header">
           <div class="panel-title">
             <span class="title-bracket">[</span>
-            Recent Runs
+            Recent Chats
             <span class="count">5</span>
           </div>
-          <a href="runs.html" class="view-all-link">View all →</a>
+          <a href="#" class="view-all-link">View all →</a>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Run ID</th>
-              <th>Agent</th>
-              <th>Status</th>
-              <th>Duration</th>
-              <th>Started</th>
+              <th>Thread</th>
+              <th>Messages</th>
+              <th>Last Message</th>
+              <th>Updated</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><span class="run-id">run_8x2k9m</span></td>
-              <td>
-                <div class="agent-cell">
-                  <span class="agent-dot cyan"></span>
-                  <span class="agent-name">Customer Support Bot</span>
-                </div>
-              </td>
-              <td><span class="status-badge running"><span class="status-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg></span>Running</span></td>
-              <td class="duration-cell">02m 34s</td>
+              <td><span class="run-id">Q4 Financial Report Analysis</span></td>
+              <td class="duration-cell">24</td>
+              <td class="time-cell">Analyze the cash flow statement...</td>
               <td class="time-cell">2 min ago</td>
             </tr>
             <tr>
-              <td><span class="run-id">run_7p1q4z</span></td>
-              <td>
-                <div class="agent-cell">
-                  <span class="agent-dot purple"></span>
-                  <span class="agent-name">Data Analyst Pro</span>
-                </div>
-              </td>
-              <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Success</span></td>
-              <td class="duration-cell">0m 45s</td>
-              <td class="time-cell">5 min ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">run_6n3b8w</span></td>
-              <td>
-                <div class="agent-cell">
-                  <span class="agent-dot green"></span>
-                  <span class="agent-name">Code Reviewer</span>
-                </div>
-              </td>
-              <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Success</span></td>
-              <td class="duration-cell">1m 12s</td>
-              <td class="time-cell">8 min ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">run_5v9c2x</span></td>
-              <td>
-                <div class="agent-cell">
-                  <span class="agent-dot amber"></span>
-                  <span class="agent-name">Research Assistant</span>
-                </div>
-              </td>
-              <td><span class="status-badge failed"><span class="status-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Failed</span></td>
-              <td class="duration-cell">0m 28s</td>
-              <td class="time-cell">12 min ago</td>
-            </tr>
-            <tr>
-              <td><span class="run-id">run_4d7f1a</span></td>
-              <td>
-                <div class="agent-cell">
-                  <span class="agent-dot cyan"></span>
-                  <span class="agent-name">Customer Support Bot</span>
-                </div>
-              </td>
-              <td><span class="status-badge success"><span class="status-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Success</span></td>
-              <td class="duration-cell">3m 05s</td>
+              <td><span class="run-id">API Integration Planning</span></td>
+              <td class="duration-cell">18</td>
+              <td class="time-cell">Let me check the auth flow...</td>
               <td class="time-cell">15 min ago</td>
+            </tr>
+            <tr>
+              <td><span class="run-id">Code Review — PR #342</span></td>
+              <td class="duration-cell">31</td>
+              <td class="time-cell">Found a potential race condition...</td>
+              <td class="time-cell">1 hour ago</td>
+            </tr>
+            <tr>
+              <td><span class="run-id">Market Research Summary</span></td>
+              <td class="duration-cell">12</td>
+              <td class="time-cell">Here are the top 5 competitors...</td>
+              <td class="time-cell">3 hours ago</td>
+            </tr>
+            <tr>
+              <td><span class="run-id">Database Schema Design</span></td>
+              <td class="duration-cell">47</td>
+              <td class="time-cell">The migration plan looks good...</td>
+              <td class="time-cell">Yesterday</td>
             </tr>
           </tbody>
         </table>
