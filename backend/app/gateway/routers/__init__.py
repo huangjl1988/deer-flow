@@ -2,7 +2,9 @@ from . import (
     artifacts,
     assistants_compat,
     browser,
+    evaluations,
     input_polish,
+    logs,
     mcp,
     models,
     scheduled_tasks,
@@ -11,6 +13,7 @@ from . import (
     suggestions,
     thread_runs,
     threads,
+    traces,
     uploads,
 )
 
@@ -18,7 +21,9 @@ __all__ = [
     "artifacts",
     "assistants_compat",
     "browser",
+    "evaluations",
     "input_polish",
+    "logs",
     "mcp",
     "models",
     "scheduled_tasks",
@@ -27,5 +32,6 @@ __all__ = [
     "suggestions",
     "threads",
     "thread_runs",
+    "traces",
     "uploads",
 ]

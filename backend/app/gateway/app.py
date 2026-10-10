@@ -22,11 +22,13 @@ from app.gateway.routers import (
     channel_connections,
     channels,
     console,
+    evaluations,
     features,
     feedback,
     github_webhooks,
     input_polish,
     integrations,
+    logs,
     mcp,
     mcp_tasks,
     memory,
@@ -39,6 +41,7 @@ from app.gateway.routers import (
     suggestions,
     thread_runs,
     threads,
+    traces,
     uploads,
 )
 from app.gateway.trace_middleware import TraceMiddleware, resolve_trace_enabled
@@ -668,6 +671,18 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
                 "name": "health",
                 "description": "Health check and system status endpoints",
             },
+            {
+                "name": "evaluations",
+                "description": "Evaluation definitions CRUD and run history for quality testing",
+            },
+            {
+                "name": "traces",
+                "description": "Execution chain tracing for agent runs (spans and call trees)",
+            },
+            {
+                "name": "logs",
+                "description": "Structured application log ingestion, search, and SSE streaming",
+            },
         ],
     )
 
@@ -785,6 +800,15 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
 
     # Console API (cross-thread observability) is mounted at /api/console
     app.include_router(console.router)
+
+    # Evaluations API (quality evaluation CRUD + run history) is mounted at /api/evaluations
+    app.include_router(evaluations.router)
+
+    # Traces API (run execution chain tracing) is mounted at /api/traces
+    app.include_router(traces.router)
+
+    # Logs API (structured log ingestion, search, SSE streaming) is mounted at /api/logs
+    app.include_router(logs.router)
 
     # MCP API is mounted at /api/mcp
     app.include_router(mcp.router)
