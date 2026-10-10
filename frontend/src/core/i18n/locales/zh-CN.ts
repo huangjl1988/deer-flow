@@ -299,6 +299,10 @@ export const zhCN: Translations = {
     logs: "日志",
     editor: "编辑器",
     debugger: "调试器",
+    datasets: "数据集",
+    vectorStores: "向量库",
+    sandbox: "沙箱",
+    preview: "预览",
   },
 
   backgroundTasks: {

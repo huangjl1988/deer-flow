@@ -315,6 +315,10 @@ export const enUS: Translations = {
     logs: "Logs",
     editor: "Editor",
     debugger: "Debugger",
+    datasets: "Datasets",
+    vectorStores: "Vector Stores",
+    sandbox: "Sandbox",
+    preview: "Preview",
   },
 
   backgroundTasks: {

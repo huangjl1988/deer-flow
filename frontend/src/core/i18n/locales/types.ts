@@ -240,6 +240,10 @@ export interface Translations {
     logs: string;
     editor: string;
     debugger: string;
+    datasets: string;
+    vectorStores: string;
+    sandbox: string;
+    preview: string;
   };
 
   // Thread-scoped MCP background tasks

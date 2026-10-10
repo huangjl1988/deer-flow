@@ -23,6 +23,7 @@ from app.gateway.routers import (
     channel_connections,
     channels,
     console,
+    datasets,
     evaluations,
     features,
     feedback,
@@ -35,6 +36,7 @@ from app.gateway.routers import (
     memory,
     models,
     runs,
+    sandbox,
     scheduled_tasks,
     skills,
     subagent_batches,
@@ -45,6 +47,7 @@ from app.gateway.routers import (
     threads,
     traces,
     uploads,
+    vector_stores,
     workflows,
 )
 from app.gateway.trace_middleware import TraceMiddleware, resolve_trace_enabled
@@ -698,6 +701,18 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
                 "name": "teams",
                 "description": "Team/workspace management, team members, and resource permissions",
             },
+            {
+                "name": "datasets",
+                "description": "Dataset asset CRUD, versioning, and item browsing",
+            },
+            {
+                "name": "vector-stores",
+                "description": "Vector store, collection, and document management",
+            },
+            {
+                "name": "sandbox",
+                "description": "Sandbox pool, instance, and lease management for isolated code execution",
+            },
         ],
     )
 
@@ -833,6 +848,15 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
 
     # Teams API (team, member, and resource permission management) is mounted at /api/teams
     app.include_router(teams.router)
+
+    # Datasets API (data asset CRUD + versions + items) is mounted at /api/datasets
+    app.include_router(datasets.router)
+
+    # Vector Stores API (vector store + collection management) is mounted at /api/vector-stores
+    app.include_router(vector_stores.router)
+
+    # Sandbox API (sandbox pool, instance, and lease management) is mounted at /api/sandbox
+    app.include_router(sandbox.router)
 
     # MCP API is mounted at /api/mcp
     app.include_router(mcp.router)

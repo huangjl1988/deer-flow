@@ -3,16 +3,20 @@
 import {
   ActivityIcon,
   BotIcon,
+  BoxesIcon,
   BrainIcon,
   CalendarClock,
   ClipboardCheckIcon,
   CodeIcon,
   CpuIcon,
+  DatabaseIcon,
+  EyeIcon,
   FlaskConicalIcon,
   BugIcon,
   KeyRoundIcon,
   MessagesSquare,
   ScrollTextIcon,
+  ServerIcon,
   SparklesIcon,
   UsersIcon,
   WorkflowIcon,
@@ -180,6 +184,50 @@ export function WorkspaceNavChatList() {
             <Link className="text-muted-foreground" href="/workspace/debugger">
               <BugIcon />
               <span>{t.sidebar.debugger}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/datasets")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/datasets">
+              <DatabaseIcon />
+              <span>{t.sidebar.datasets}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/vector-stores")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/vector-stores">
+              <BoxesIcon />
+              <span>{t.sidebar.vectorStores}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/sandbox")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/sandbox">
+              <ServerIcon />
+              <span>{t.sidebar.sandbox}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/preview")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/preview">
+              <EyeIcon />
+              <span>{t.sidebar.preview}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

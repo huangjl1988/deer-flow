@@ -22,6 +22,12 @@ from deerflow.persistence.channel_connections.model import (
     ChannelCredentialRow,
     ChannelOAuthStateRow,
 )
+from deerflow.persistence.datasets.model import (
+    DatasetFileRow,
+    DatasetItemRow,
+    DatasetRow,
+    DatasetVersionRow,
+)
 from deerflow.persistence.evaluations.model import (
     EvaluationCaseRow,
     EvaluationResultRow,
@@ -34,6 +40,11 @@ from deerflow.persistence.managed_subagents.model import ManagedSubagentRow
 from deerflow.persistence.mcp_tasks.model import McpTaskRow
 from deerflow.persistence.models.run_event import RunEventRow
 from deerflow.persistence.run.model import RunRow
+from deerflow.persistence.sandbox.model import (
+    SandboxInstanceRow,
+    SandboxLeaseRow,
+    SandboxPoolRow,
+)
 from deerflow.persistence.scheduled_task_runs.model import ScheduledTaskRunRow
 from deerflow.persistence.scheduled_tasks.model import ScheduledTaskRow
 from deerflow.persistence.subagent_batches.model import SubagentBatchItemRow, SubagentBatchRow
@@ -44,6 +55,11 @@ from deerflow.persistence.teams.model import (
 )
 from deerflow.persistence.thread_meta.model import ThreadMetaRow
 from deerflow.persistence.user.model import UserRow
+from deerflow.persistence.vector_stores.model import (
+    VectorStoreCollectionRow,
+    VectorStoreDocumentRow,
+    VectorStoreRow,
+)
 from deerflow.persistence.webhook_delivery.model import WebhookDeliveryRow
 from deerflow.persistence.workflows.model import (
     WorkflowEdgeRow,
@@ -61,6 +77,10 @@ __all__ = [
     "ChannelConversationRow",
     "ChannelCredentialRow",
     "ChannelOAuthStateRow",
+    "DatasetFileRow",
+    "DatasetItemRow",
+    "DatasetRow",
+    "DatasetVersionRow",
     "EvaluationCaseRow",
     "EvaluationResultRow",
     "EvaluationRow",
@@ -73,6 +93,9 @@ __all__ = [
     "RunRow",
     "ScheduledTaskRow",
     "ScheduledTaskRunRow",
+    "SandboxInstanceRow",
+    "SandboxLeaseRow",
+    "SandboxPoolRow",
     "SubagentBatchRow",
     "SubagentBatchItemRow",
     "TeamMemberRow",
@@ -80,6 +103,9 @@ __all__ = [
     "TeamRow",
     "ThreadMetaRow",
     "UserRow",
+    "VectorStoreCollectionRow",
+    "VectorStoreDocumentRow",
+    "VectorStoreRow",
     "WebhookDeliveryRow",
     "WorkflowEdgeRow",
     "WorkflowNodeRow",
