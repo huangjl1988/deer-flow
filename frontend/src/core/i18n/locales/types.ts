@@ -235,6 +235,9 @@ export interface Translations {
     runs: string;
     apiKeys: string;
     team: string;
+    traces: string;
+    evaluations: string;
+    logs: string;
   };
 
   // Thread-scoped MCP background tasks

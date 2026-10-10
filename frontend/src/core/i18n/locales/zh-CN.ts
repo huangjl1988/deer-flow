@@ -294,7 +294,12 @@ export const zhCN: Translations = {
     runs: "运行",
     apiKeys: "API 密钥",
     team: "团队",
-  };
+    traces: "链路追踪",
+    evaluations: "评估",
+    logs: "日志",
+  },
+
+  backgroundTasks: {
     label: "后台任务",
     title: "后台任务",
     description: "当前对话中的 MCP 长程任务。",

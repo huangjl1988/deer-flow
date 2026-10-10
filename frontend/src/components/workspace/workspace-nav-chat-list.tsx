@@ -1,13 +1,16 @@
 "use client";
 
 import {
+  ActivityIcon,
   BotIcon,
   BrainIcon,
   CalendarClock,
+  ClipboardCheckIcon,
   CpuIcon,
   FlaskConicalIcon,
   KeyRoundIcon,
   MessagesSquare,
+  ScrollTextIcon,
   SparklesIcon,
   UsersIcon,
   WorkflowIcon,
@@ -186,6 +189,42 @@ export function WorkspaceNavChatList() {
             <Link className="text-muted-foreground" href="/workspace/team">
               <UsersIcon />
               <span>{t.sidebar.team}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/traces")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/traces">
+              <ActivityIcon />
+              <span>{t.sidebar.traces}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/evaluations")}
+            asChild
+          >
+            <Link
+              className="text-muted-foreground"
+              href="/workspace/evaluations"
+            >
+              <ClipboardCheckIcon />
+              <span>{t.sidebar.evaluations}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/logs")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/logs">
+              <ScrollTextIcon />
+              <span>{t.sidebar.logs}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

@@ -310,7 +310,12 @@ export const enUS: Translations = {
     runs: "Runs",
     apiKeys: "API Keys",
     team: "Team",
-  };
+    traces: "Traces",
+    evaluations: "Evaluations",
+    logs: "Logs",
+  },
+
+  backgroundTasks: {
     label: "Background tasks",
     title: "Background tasks",
     description: "Long-running MCP work for this chat.",
