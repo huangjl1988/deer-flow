@@ -238,6 +238,8 @@ export interface Translations {
     traces: string;
     evaluations: string;
     logs: string;
+    editor: string;
+    debugger: string;
   };
 
   // Thread-scoped MCP background tasks

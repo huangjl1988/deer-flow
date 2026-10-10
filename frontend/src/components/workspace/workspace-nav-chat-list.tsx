@@ -6,8 +6,10 @@ import {
   BrainIcon,
   CalendarClock,
   ClipboardCheckIcon,
+  CodeIcon,
   CpuIcon,
   FlaskConicalIcon,
+  BugIcon,
   KeyRoundIcon,
   MessagesSquare,
   ScrollTextIcon,
@@ -156,6 +158,28 @@ export function WorkspaceNavChatList() {
             <Link className="text-muted-foreground" href="/workspace/workflows">
               <WorkflowIcon />
               <span>{t.sidebar.workflows}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/editor")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/editor">
+              <CodeIcon />
+              <span>{t.sidebar.editor}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/debugger")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/debugger">
+              <BugIcon />
+              <span>{t.sidebar.debugger}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

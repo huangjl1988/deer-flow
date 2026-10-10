@@ -17,7 +17,14 @@ from sqlalchemy import func, select
 from app.gateway.authz import require_permission
 from app.gateway.deps import get_current_user
 from deerflow.persistence.engine import get_session_factory
-from deerflow.persistence.workflows.model import WorkflowRow, WorkflowRunRow
+from deerflow.persistence.workflows.model import (
+    WorkflowEdgeRow,
+    WorkflowNodeRow,
+    WorkflowRow,
+    WorkflowRunRow,
+    WorkflowRunStepRow,
+    WorkflowVersionRow,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/workflows", tags=["workflows"])
@@ -95,6 +102,99 @@ class WorkflowUpdateRequest(BaseModel):
     metadata: dict | None = None
 
 
+class WorkflowVersionSummary(BaseModel):
+    """Workflow version list item."""
+
+    id: str
+    workflow_id: str
+    version: int
+    name: str | None = None
+    created_by: str | None = None
+    created_at: datetime
+
+
+class WorkflowVersionDetail(WorkflowVersionSummary):
+    """Full version detail with graph topology."""
+
+    graph: dict = Field(default_factory=dict)
+    nodes: list = Field(default_factory=list)
+    edges: list = Field(default_factory=list)
+    config: dict = Field(default_factory=dict)
+
+
+class WorkflowNodeSummary(BaseModel):
+    """Workflow node item."""
+
+    id: str
+    workflow_id: str
+    version_id: str
+    node_type: str
+    name: str
+    config: dict = Field(default_factory=dict)
+    position: dict = Field(default_factory=dict)
+
+
+class WorkflowEdgeSummary(BaseModel):
+    """Workflow edge item."""
+
+    id: str
+    workflow_id: str
+    version_id: str
+    source_node_id: str
+    target_node_id: str
+    condition: dict = Field(default_factory=dict)
+
+
+class WorkflowRunStepSummary(BaseModel):
+    """A single step within a workflow run (for debugger)."""
+
+    id: str
+    workflow_run_id: str
+    node_id: str
+    node_name: str
+    step_index: int
+    status: str
+    input: dict = Field(default_factory=dict)
+    output: dict | None = None
+    error: str | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    checkpoint_id: str | None = None
+
+
+class WorkflowVersionCreateRequest(BaseModel):
+    """Request body for saving a workflow version (editor save)."""
+
+    name: str | None = Field(default=None, max_length=128)
+    graph: dict = Field(default_factory=dict)
+    nodes: list = Field(default_factory=list)
+    edges: list = Field(default_factory=list)
+    config: dict = Field(default_factory=dict)
+
+
+class WorkflowNodeCreateRequest(BaseModel):
+    """Request body for creating/updating a node."""
+
+    node_type: str = Field(..., description="agent | tool | condition | input | output")
+    name: str = Field(..., min_length=1, max_length=128)
+    config: dict = Field(default_factory=dict)
+    position: dict = Field(default_factory=dict)
+
+
+class WorkflowEdgeCreateRequest(BaseModel):
+    """Request body for creating an edge."""
+
+    source_node_id: str = Field(..., min_length=1)
+    target_node_id: str = Field(..., min_length=1)
+    condition: dict = Field(default_factory=dict)
+
+
+class WorkflowRunTriggerRequest(BaseModel):
+    """Request body for triggering a workflow run."""
+
+    input_data: dict = Field(default_factory=dict, description="Input data for the workflow run")
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -118,6 +218,26 @@ def _as_utc(dt: datetime | None) -> datetime | None:
 
 def _generate_id() -> str:
     return f"wf_{secrets.token_hex(12)}"
+
+
+def _generate_version_id() -> str:
+    return f"wfv_{secrets.token_hex(12)}"
+
+
+def _generate_node_id() -> str:
+    return f"wn_{secrets.token_hex(12)}"
+
+
+def _generate_edge_id() -> str:
+    return f"we_{secrets.token_hex(12)}"
+
+
+def _generate_run_id() -> str:
+    return f"wfr_{secrets.token_hex(12)}"
+
+
+def _generate_step_id() -> str:
+    return f"wrs_{secrets.token_hex(12)}"
 
 
 # ---------------------------------------------------------------------------
@@ -385,6 +505,321 @@ async def list_workflow_runs(
             started_at=_as_utc(r.started_at),
             finished_at=_as_utc(r.finished_at),
             created_at=_as_utc(r.created_at) or datetime.now(UTC),
+        )
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Version endpoints (Editor: save/load DAG topology)
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/{workflow_id}/versions",
+    response_model=list[WorkflowVersionSummary],
+    summary="List Workflow Versions",
+    description="List all versions of a workflow, newest first.",
+)
+@require_permission("threads", "read")
+async def list_workflow_versions(
+    workflow_id: str,
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[WorkflowVersionSummary]:
+    sf = _session_factory_or_503()
+
+    async with sf() as session:
+        wf = await session.get(WorkflowRow, workflow_id)
+        if wf is None:
+            raise HTTPException(status_code=404, detail="Workflow not found")
+
+        stmt = select(WorkflowVersionRow).where(WorkflowVersionRow.workflow_id == workflow_id).order_by(WorkflowVersionRow.version.desc()).limit(limit).offset(offset)
+        rows = (await session.execute(stmt)).scalars().all()
+
+    return [
+        WorkflowVersionSummary(
+            id=r.id,
+            workflow_id=r.workflow_id,
+            version=r.version,
+            name=r.name,
+            created_by=r.created_by,
+            created_at=_as_utc(r.created_at) or datetime.now(UTC),
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/{workflow_id}/versions/{version_id}",
+    response_model=WorkflowVersionDetail,
+    summary="Get Workflow Version",
+    description="Retrieve a version with its full graph, nodes, and edges.",
+)
+@require_permission("threads", "read")
+async def get_workflow_version(workflow_id: str, version_id: str, request: Request) -> WorkflowVersionDetail:
+    sf = _session_factory_or_503()
+
+    async with sf() as session:
+        ver = await session.get(WorkflowVersionRow, version_id)
+        if ver is None or ver.workflow_id != workflow_id:
+            raise HTTPException(status_code=404, detail="Version not found")
+
+        nodes = (await session.execute(select(WorkflowNodeRow).where(WorkflowNodeRow.version_id == version_id))).scalars().all()
+        edges = (await session.execute(select(WorkflowEdgeRow).where(WorkflowEdgeRow.version_id == version_id))).scalars().all()
+
+    return WorkflowVersionDetail(
+        id=ver.id,
+        workflow_id=ver.workflow_id,
+        version=ver.version,
+        name=ver.name,
+        created_by=ver.created_by,
+        created_at=_as_utc(ver.created_at) or datetime.now(UTC),
+        graph=ver.graph_json if isinstance(ver.graph_json, dict) else {},
+        nodes=[
+            {
+                "id": n.id,
+                "node_type": n.node_type,
+                "name": n.name,
+                "config": n.config_json if isinstance(n.config_json, dict) else {},
+                "position": n.position_json if isinstance(n.position_json, dict) else {},
+            }
+            for n in nodes
+        ],
+        edges=[
+            {
+                "id": e.id,
+                "source_node_id": e.source_node_id,
+                "target_node_id": e.target_node_id,
+                "condition": e.condition_json if isinstance(e.condition_json, dict) else {},
+            }
+            for e in edges
+        ],
+        config=ver.config_json if isinstance(ver.config_json, dict) else {},
+    )
+
+
+@router.post(
+    "/{workflow_id}/versions",
+    response_model=WorkflowVersionDetail,
+    summary="Save Workflow Version",
+    description="Create a new version of a workflow with the full DAG topology (editor save).",
+)
+@require_permission("threads", "write")
+async def save_workflow_version(
+    workflow_id: str,
+    body: WorkflowVersionCreateRequest,
+    request: Request,
+) -> WorkflowVersionDetail:
+    sf = _session_factory_or_503()
+    user_id = await get_current_user(request)
+
+    async with sf() as session:
+        wf = await session.get(WorkflowRow, workflow_id)
+        if wf is None:
+            raise HTTPException(status_code=404, detail="Workflow not found")
+        if user_id and wf.owner_user_id != user_id:
+            raise HTTPException(status_code=404, detail="Workflow not found")
+
+        next_version = wf.current_version + 1
+        version_id = _generate_version_id()
+        now = datetime.now(UTC)
+        ver = WorkflowVersionRow(
+            id=version_id,
+            workflow_id=workflow_id,
+            version=next_version,
+            name=body.name or wf.name,
+            graph_json=body.graph,
+            nodes_json=body.nodes,
+            edges_json=body.edges,
+            config_json=body.config,
+            created_by=user_id,
+            created_at=now,
+        )
+        session.add(ver)
+
+        # Create node and edge rows for the new version
+        for node_data in body.nodes:
+            if not isinstance(node_data, dict):
+                continue
+            session.add(
+                WorkflowNodeRow(
+                    id=node_data.get("id") or _generate_node_id(),
+                    workflow_id=workflow_id,
+                    version_id=version_id,
+                    node_type=node_data.get("node_type", "agent"),
+                    name=node_data.get("name", "Untitled"),
+                    config_json=node_data.get("config", {}),
+                    position_json=node_data.get("position", {}),
+                )
+            )
+
+        for edge_data in body.edges:
+            if not isinstance(edge_data, dict):
+                continue
+            session.add(
+                WorkflowEdgeRow(
+                    id=edge_data.get("id") or _generate_edge_id(),
+                    workflow_id=workflow_id,
+                    version_id=version_id,
+                    source_node_id=edge_data.get("source_node_id", ""),
+                    target_node_id=edge_data.get("target_node_id", ""),
+                    condition_json=edge_data.get("condition", {}),
+                )
+            )
+
+        wf.current_version = next_version
+        wf.updated_at = now
+        if wf.status == "draft":
+            wf.status = "published"
+        await session.commit()
+        await session.refresh(ver)
+
+    return WorkflowVersionDetail(
+        id=ver.id,
+        workflow_id=ver.workflow_id,
+        version=ver.version,
+        name=ver.name,
+        created_by=ver.created_by,
+        created_at=_as_utc(ver.created_at) or now,
+        graph=ver.graph_json if isinstance(ver.graph_json, dict) else {},
+        nodes=ver.nodes_json if isinstance(ver.nodes_json, list) else [],
+        edges=ver.edges_json if isinstance(ver.edges_json, list) else [],
+        config=ver.config_json if isinstance(ver.config_json, dict) else {},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Run trigger + steps (Editor Run All + Debugger)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/{workflow_id}/runs",
+    response_model=WorkflowRunSummary,
+    summary="Trigger Workflow Run",
+    description="Trigger a new execution of a workflow (Run All).",
+)
+@require_permission("runs", "create")
+async def trigger_workflow_run(
+    workflow_id: str,
+    body: WorkflowRunTriggerRequest,
+    request: Request,
+) -> WorkflowRunSummary:
+    sf = _session_factory_or_503()
+    user_id = await get_current_user(request) or "default"
+
+    async with sf() as session:
+        wf = await session.get(WorkflowRow, workflow_id)
+        if wf is None:
+            raise HTTPException(status_code=404, detail="Workflow not found")
+        if user_id and wf.owner_user_id != user_id:
+            raise HTTPException(status_code=404, detail="Workflow not found")
+
+        # Find the current version
+        ver = (await session.execute(select(WorkflowVersionRow).where(WorkflowVersionRow.workflow_id == workflow_id).order_by(WorkflowVersionRow.version.desc()).limit(1))).scalar_one_or_none()
+        if ver is None:
+            raise HTTPException(status_code=409, detail="Workflow has no versions — save the DAG first")
+
+        now = datetime.now(UTC)
+        run = WorkflowRunRow(
+            id=_generate_run_id(),
+            workflow_id=workflow_id,
+            version_id=ver.id,
+            user_id=user_id,
+            status="pending",
+            input_json=body.input_data,
+            current_step=0,
+            total_steps=0,
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(run)
+        await session.commit()
+        await session.refresh(run)
+
+    return WorkflowRunSummary(
+        id=run.id,
+        workflow_id=run.workflow_id,
+        status=run.status,
+        current_step=run.current_step,
+        total_steps=run.total_steps,
+        run_id=run.run_id,
+        thread_id=run.thread_id,
+        error=run.error,
+        started_at=_as_utc(run.started_at),
+        finished_at=_as_utc(run.finished_at),
+        created_at=_as_utc(run.created_at) or datetime.now(UTC),
+    )
+
+
+@router.get(
+    "/{workflow_id}/runs/{run_id}",
+    response_model=WorkflowRunSummary,
+    summary="Get Workflow Run",
+    description="Retrieve a single workflow run by ID.",
+)
+@require_permission("runs", "read")
+async def get_workflow_run(workflow_id: str, run_id: str, request: Request) -> WorkflowRunSummary:
+    sf = _session_factory_or_503()
+
+    async with sf() as session:
+        run = await session.get(WorkflowRunRow, run_id)
+        if run is None or run.workflow_id != workflow_id:
+            raise HTTPException(status_code=404, detail="Run not found")
+
+    return WorkflowRunSummary(
+        id=run.id,
+        workflow_id=run.workflow_id,
+        status=run.status,
+        current_step=run.current_step,
+        total_steps=run.total_steps,
+        run_id=run.run_id,
+        thread_id=run.thread_id,
+        error=run.error,
+        started_at=_as_utc(run.started_at),
+        finished_at=_as_utc(run.finished_at),
+        created_at=_as_utc(run.created_at) or datetime.now(UTC),
+    )
+
+
+@router.get(
+    "/{workflow_id}/runs/{run_id}/steps",
+    response_model=list[WorkflowRunStepSummary],
+    summary="List Run Steps",
+    description="List steps (spans) for a workflow run — the debugger's call tree data.",
+)
+@require_permission("runs", "read")
+async def list_workflow_run_steps(
+    workflow_id: str,
+    run_id: str,
+    request: Request,
+) -> list[WorkflowRunStepSummary]:
+    sf = _session_factory_or_503()
+
+    async with sf() as session:
+        run = await session.get(WorkflowRunRow, run_id)
+        if run is None or run.workflow_id != workflow_id:
+            raise HTTPException(status_code=404, detail="Run not found")
+
+        stmt = select(WorkflowRunStepRow).where(WorkflowRunStepRow.workflow_run_id == run_id).order_by(WorkflowRunStepRow.step_index)
+        rows = (await session.execute(stmt)).scalars().all()
+
+    return [
+        WorkflowRunStepSummary(
+            id=r.id,
+            workflow_run_id=r.workflow_run_id,
+            node_id=r.node_id,
+            node_name=r.node_name,
+            step_index=r.step_index,
+            status=r.status,
+            input=r.input_json if isinstance(r.input_json, dict) else {},
+            output=r.output_json if isinstance(r.output_json, dict) else None,
+            error=r.error,
+            started_at=_as_utc(r.started_at),
+            finished_at=_as_utc(r.finished_at),
+            checkpoint_id=r.checkpoint_id,
         )
         for r in rows
     ]

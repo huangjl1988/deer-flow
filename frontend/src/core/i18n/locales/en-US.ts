@@ -313,6 +313,8 @@ export const enUS: Translations = {
     traces: "Traces",
     evaluations: "Evaluations",
     logs: "Logs",
+    editor: "Editor",
+    debugger: "Debugger",
   },
 
   backgroundTasks: {

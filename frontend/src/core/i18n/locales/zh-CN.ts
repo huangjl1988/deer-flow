@@ -297,6 +297,8 @@ export const zhCN: Translations = {
     traces: "链路追踪",
     evaluations: "评估",
     logs: "日志",
+    editor: "编辑器",
+    debugger: "调试器",
   },
 
   backgroundTasks: {
