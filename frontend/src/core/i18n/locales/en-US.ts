@@ -302,6 +302,9 @@ export const enUS: Translations = {
     agents: "Agents",
     scheduledTasks: "Scheduled tasks",
     agentsDisabledTooltip: "Feature not enabled",
+    skills: "Skills",
+    tools: "Tools",
+    memory: "Memory",
   },
 
   backgroundTasks: {

@@ -1,6 +1,13 @@
 "use client";
 
-import { BotIcon, CalendarClock, MessagesSquare } from "lucide-react";
+import {
+  BotIcon,
+  BrainIcon,
+  CalendarClock,
+  MessagesSquare,
+  SparklesIcon,
+  WrenchIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -86,6 +93,39 @@ export function WorkspaceNavChatList() {
             >
               <CalendarClock />
               <span>{t.sidebar.scheduledTasks}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/skills")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/skills">
+              <SparklesIcon />
+              <span>{t.sidebar.skills}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/tools")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/tools">
+              <WrenchIcon />
+              <span>{t.sidebar.tools}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/memory")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/memory">
+              <BrainIcon />
+              <span>{t.sidebar.memory}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

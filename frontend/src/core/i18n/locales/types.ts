@@ -227,6 +227,9 @@ export interface Translations {
     scheduledTasks: string;
     agentsDisabledTooltip: string;
     channels: string;
+    skills: string;
+    tools: string;
+    memory: string;
   };
 
   // Thread-scoped MCP background tasks

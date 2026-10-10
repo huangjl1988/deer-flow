@@ -286,6 +286,9 @@ export const zhCN: Translations = {
     agents: "智能体",
     scheduledTasks: "定时任务",
     agentsDisabledTooltip: "功能未启用",
+    skills: "技能",
+    tools: "工具",
+    memory: "记忆",
   },
 
   backgroundTasks: {
