@@ -305,9 +305,12 @@ export const enUS: Translations = {
     skills: "Skills",
     tools: "Tools",
     memory: "Memory",
-  },
-
-  backgroundTasks: {
+    models: "Models",
+    workflows: "Workflows",
+    runs: "Runs",
+    apiKeys: "API Keys",
+    team: "Team",
+  };
     label: "Background tasks",
     title: "Background tasks",
     description: "Long-running MCP work for this chat.",

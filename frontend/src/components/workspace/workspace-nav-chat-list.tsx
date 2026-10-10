@@ -4,8 +4,13 @@ import {
   BotIcon,
   BrainIcon,
   CalendarClock,
+  CpuIcon,
+  FlaskConicalIcon,
+  KeyRoundIcon,
   MessagesSquare,
   SparklesIcon,
+  UsersIcon,
+  WorkflowIcon,
   WrenchIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -126,6 +131,61 @@ export function WorkspaceNavChatList() {
             <Link className="text-muted-foreground" href="/workspace/memory">
               <BrainIcon />
               <span>{t.sidebar.memory}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/models")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/models">
+              <CpuIcon />
+              <span>{t.sidebar.models}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/workflows")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/workflows">
+              <WorkflowIcon />
+              <span>{t.sidebar.workflows}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/runs")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/runs">
+              <FlaskConicalIcon />
+              <span>{t.sidebar.runs}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/api-keys")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/api-keys">
+              <KeyRoundIcon />
+              <span>{t.sidebar.apiKeys}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={pathname.startsWith("/workspace/team")}
+            asChild
+          >
+            <Link className="text-muted-foreground" href="/workspace/team">
+              <UsersIcon />
+              <span>{t.sidebar.team}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

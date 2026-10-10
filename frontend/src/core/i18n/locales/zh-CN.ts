@@ -289,9 +289,12 @@ export const zhCN: Translations = {
     skills: "技能",
     tools: "工具",
     memory: "记忆",
-  },
-
-  backgroundTasks: {
+    models: "模型",
+    workflows: "工作流",
+    runs: "运行",
+    apiKeys: "API 密钥",
+    team: "团队",
+  };
     label: "后台任务",
     title: "后台任务",
     description: "当前对话中的 MCP 长程任务。",

@@ -230,6 +230,11 @@ export interface Translations {
     skills: string;
     tools: string;
     memory: string;
+    models: string;
+    workflows: string;
+    runs: string;
+    apiKeys: string;
+    team: string;
   };
 
   // Thread-scoped MCP background tasks
