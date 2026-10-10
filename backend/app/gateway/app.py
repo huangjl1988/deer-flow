@@ -15,6 +15,7 @@ from app.gateway.csrf_middleware import CORS_EXPOSED_HEADERS, CSRFMiddleware, ge
 from app.gateway.deps import langgraph_runtime
 from app.gateway.routers import (
     agents,
+    api_keys,
     artifacts,
     assistants_compat,
     auth,
@@ -39,10 +40,12 @@ from app.gateway.routers import (
     subagent_batches,
     subagents,
     suggestions,
+    teams,
     thread_runs,
     threads,
     traces,
     uploads,
+    workflows,
 )
 from app.gateway.trace_middleware import TraceMiddleware, resolve_trace_enabled
 from deerflow.config import app_config as deerflow_app_config
@@ -683,6 +686,18 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
                 "name": "logs",
                 "description": "Structured application log ingestion, search, and SSE streaming",
             },
+            {
+                "name": "workflows",
+                "description": "Workflow DAG orchestration definitions, versions, and run history",
+            },
+            {
+                "name": "api-keys",
+                "description": "User API key CRUD, revocation, and rotation for programmatic access",
+            },
+            {
+                "name": "teams",
+                "description": "Team/workspace management, team members, and resource permissions",
+            },
         ],
     )
 
@@ -809,6 +824,15 @@ This gateway provides runtime endpoints for agent runs plus custom endpoints for
 
     # Logs API (structured log ingestion, search, SSE streaming) is mounted at /api/logs
     app.include_router(logs.router)
+
+    # Workflows API (DAG orchestration CRUD + run history) is mounted at /api/workflows
+    app.include_router(workflows.router)
+
+    # API Keys API (user API key CRUD + rotation) is mounted at /api/api-keys
+    app.include_router(api_keys.router)
+
+    # Teams API (team, member, and resource permission management) is mounted at /api/teams
+    app.include_router(teams.router)
 
     # MCP API is mounted at /api/mcp
     app.include_router(mcp.router)

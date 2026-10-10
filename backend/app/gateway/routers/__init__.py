@@ -1,4 +1,5 @@
 from . import (
+    api_keys,
     artifacts,
     assistants_compat,
     browser,
@@ -11,13 +12,16 @@ from . import (
     skills,
     subagent_batches,
     suggestions,
+    teams,
     thread_runs,
     threads,
     traces,
     uploads,
+    workflows,
 )
 
 __all__ = [
+    "api_keys",
     "artifacts",
     "assistants_compat",
     "browser",
@@ -30,8 +34,10 @@ __all__ = [
     "skills",
     "subagent_batches",
     "suggestions",
+    "teams",
     "threads",
     "thread_runs",
     "traces",
     "uploads",
+    "workflows",
 ]
