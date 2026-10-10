@@ -143,7 +143,7 @@ export default function ModelsPage() {
 
 function extractProvider(modelId: string): string {
   if (modelId.includes("/")) {
-    return modelId.split("/")[0];
+    return modelId.split("/")[0] ?? "other";
   }
   if (modelId.startsWith("gpt") || modelId.startsWith("o1") || modelId.startsWith("o3")) {
     return "openai";
